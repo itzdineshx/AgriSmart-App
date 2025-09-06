@@ -102,7 +102,7 @@ export default function GlassShineAnimation() {
     let running = true;
     let lastTime = 0;
     
-    function animate(currentTime) {
+    function animate(currentTime: number) {
       if (currentTime - lastTime > 16) { // ~60fps
         setShinePos(prev => {
           let next = prev + 0.008; // Smoother, more noticeable speed
@@ -119,7 +119,7 @@ export default function GlassShineAnimation() {
       }
       if (running) requestAnimationFrame(animate);
     }
-    animate();
+    requestAnimationFrame(animate);
     return () => { running = false; };
   }, []);
 
