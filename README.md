@@ -1,250 +1,264 @@
-#  NEXUS
+# AgriSmart - Smart Agriculture Platform
 
-> **Discover, analyze, and build amazing projects with comprehensive GitHub insights**
+[![Deploy with Lovable](https://lovable.dev/deploy-badge.svg)](https://lovable.dev/projects/39025cf3-6b8b-4243-bba9-43a604dfea94)
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://your-domain.com)
+A comprehensive digital agriculture platform that empowers farmers with smart tools, real-time weather data, crop disease detection, market analysis, and direct marketplace access. Built with modern web technologies and supporting multilingual capabilities.
 
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+## 🌟 Features
 
-## ✨ What is WhatToBuild?
+### 🌾 Core Agricultural Tools
+- **Crop Disease Detection**: AI-powered image analysis for identifying plant diseases
+- **Weather Monitoring**: Real-time weather data and forecasts for farming decisions
+- **Market Analysis**: Live market prices and trends for agricultural products
+- **Government Schemes**: Access to agricultural subsidies and government programs
 
-WhatToBuild is an  platform that helps developers discover, analyze, and understand open-source projects. Whether you're looking for inspiration, trying to understand complex codebases, or comparing developer profiles, WhatToBuild provides comprehensive insights to accelerate your development journey.
+### 🛒 Marketplace
+- **Buy & Sell**: Direct farmer-to-consumer marketplace
+- **Seller Panel**: Comprehensive dashboard for sellers to manage products
+- **Smart Recommendations**: AI-powered product suggestions
 
-## 🌟 Key Features
+### 🤖 Smart Features
+- **AI Chatbot**: Intelligent farming assistant for queries and guidance
+- **Multilingual Support**: Available in English and Tamil (தமிழ்)
+- **Role-Based Access**: Different interfaces for farmers, buyers, and administrators
+- **Mobile Responsive**: Optimized for all devices
 
-### 🔍 **Smart Project Search**
-- **Discovery**: Find relevant repositories based on concepts and ideas
-- **Project Idea Generation**: Get AI-generated project suggestions with tech stacks
-- **Relevance Scoring**: Advanced algorithms rank projects by relevance to your query
-- **Technology Filtering**: Search by programming languages and frameworks
+### 👤 User Management
+- **Secure Authentication**: Powered by Clerk authentication
+- **User Profiles**: Personalized dashboards and settings
+- **Admin Panel**: Administrative tools and analytics
+- **Protected Routes**: Secure access to sensitive features
 
-![Smart Project Search](public/GithubImages/search.png)
+## 🚀 Tech Stack
 
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **Authentication**: Clerk
+- **State Management**: React Context API
+- **Routing**: React Router DOM
+- **API Integration**: TanStack Query
+- **Animations**: Framer Motion
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Weather API**: OpenMeteo
 
-
-### 📊 **Deep Repository Analysis**
-- **Code Structure Analysis**: Understand project architecture and file organization
-- **Technology Stack Detection**: Automatic identification of frameworks, libraries, and tools
-- **Dependency Mapping**: Visualize project dependencies and relationships
-- **File Content Summarization**: AI-powered summaries of key source files
-- **Contributor Insights**: Analyze team composition and contribution patterns
-
-![Deep Repository Analysis](public/GithubImages/analyze.png)
-
-### ⚖️ **Developer Comparison**
-- **Profile Analytics**: Compare GitHub profiles side-by-side
-- **Contribution Patterns**: Analyze coding activity and project diversity
-- **Repository Quality**: Evaluate star counts, fork ratios, and project impact
-- **Language Expertise**: Compare programming language proficiency
-- **Activity Metrics**: Track commits, issues, and collaboration patterns
-
-![Developer Comparison](public/GithubImages/compare.png)
-
-### 📝 **Generate a Great README**
-- **Instant Draft**: Analyze your GitHub repository to generate a high‑quality README in seconds
-- **Flexible Input**: Use `owner/repo` or a full GitHub URL
-- **Personalization**: Add optional notes to steer tone, structure, and highlights
-- **Live Preview**: Edit Markdown with a GitHub‑flavored live preview side‑by‑side
-- **AI Refine**: Improve sections, wording, and structure via Google Gemini
-- **One‑Click Actions**: Copy, download, or create a PR to update `README.md` in your repo
-- **Private Repos**: Use a personal access token in-session for secure access
-
-![Generate a Great README](public/GithubImages/readme.png)
-
-### 🎨 **Interactive Visualizations**
-- **Architecture Diagrams**: Generate visual representations of project structure
-- **Dependency Graphs**: Interactive visualization of project dependencies
-- **Technology Stack Charts**: Visual breakdown of technologies used
-- **Contribution Heatmaps**: Timeline visualization of developer activity
-
-![Interactive Visualizations](public/GithubImages/visualize.png)
-
-### 🔓 **Open Source Discovery**
-- **Good First Issues**: Find beginner-friendly contribution opportunities
-- **Bounty Issues**: Discover paid contribution opportunities
-- **Language-Specific Search**: Filter by programming languages
-- **Project Categorization**: Browse projects by type and domain
-
-![Open Source Discovery](public/GithubImages/opensource.png)
-
-## 🛠️ Technology Stack
-
-### **Frontend**
-- **Next.js 15.4.5** - React framework with App Router
-- **React 19.1.0** - Modern UI library with latest features
-- **TypeScript** - Type-safe development (98.2% of codebase)
-- **Tailwind CSS 4.1.11** - Utility-first styling
-- **Framer Motion** - Smooth animations and transitions
-
-### **UI Components**
-- **Radix UI** - Accessible component primitives
-- **Lucide React** - Beautiful icon library
-- **React Icons** - Additional icon sets
-- **Chart.js & Recharts** - Data visualization
-- **React Three Fiber** - 3D graphics and animations
-
-### **AI & APIs**
-- **Google Generative AI** - AI-powered analysis and summaries
-- **GitHub API** - Repository data and insights
-- **Mermaid** - Diagram generation
-
-### **Development Tools**
-- **ESLint** - Code linting and quality
-- **Autoprefixer** - CSS vendor prefixes
-- **PostCSS** - CSS processing
-
-## 🚀 Getting Started
+## 📦 Installation
 
 ### Prerequisites
-- Node.js 18+      
-- npm, yarn, pnpm, or bun
-- GitHub API access (for full functionality)
+- Node.js (v18 or higher)
+- npm or yarn
 
-### Installation
+### Local Development
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
-```
+   ```bash
+   git clone <YOUR_GIT_URL>
+   cd agrismart
+   ```
 
 2. **Install dependencies**
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
-```
+   ```bash
+   npm install
+   ```
 
-3. **Set up environment variables**
-```bash
-cp .env.example .env.local
-```
+3. **Set up authentication**
+   - Sign up at [Clerk](https://go.clerk.com/lovable)
+   - Create a new application
+   - Copy your `VITE_CLERK_PUBLISHABLE_KEY`
+   - Update `src/main.tsx` with your key (see [CLERK_SETUP.md](./CLERK_SETUP.md))
 
-Add your API keys to `.env.local`:
-```env
-GITHUB_TOKEN=your_github_token_here
-GOOGLE_AI_API_KEY=your_google_ai_key_here
-```
+4. **Start development server**
+   ```bash
+   npm run dev
+   ```
 
-4. **Run the development server**
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-5. **Open your browser**
-Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
-
-## 📱 Usage
-
-### Search Projects
-1. Visit the homepage and enter a concept or technology
-2. Browse AI-generated project ideas and relevant repositories
-3. Use filters to refine results by language, stars, or activity
-
-### Analyze Repositories
-1. Click "Analyze" on any repository or enter a GitHub URL
-2. Explore file structure, dependencies, and code summaries
-3. View technology stack and architectural insights
-
-### Compare Developers
-1. Navigate to the Compare section
-2. Enter two GitHub usernames
-3. Review detailed comparison metrics and visualizations
-
-### Visualize Architecture
-1. Select "Visualize" for any repository
-2. Generate interactive diagrams and dependency graphs
-3. Export diagrams for documentation
+5. **Open in browser**
+   Navigate to `http://localhost:5173`
 
 ## 🏗️ Project Structure
 
 ```
-WhatToBuild/
-├── app/                    # Next.js App Router pages
-│   ├── analyze/           # Repository analysis
-│   ├── compare/           # Developer comparison
-│   ├── search/            # Project search
-│   ├── visualize/         # Architecture visualization
-│   └── api/               # API routes
-├── components/            # React components
-│   ├── Hero/             # Landing page sections
-│   ├── ui/               # Reusable UI components
-│   └── page/             # Page-specific components
-├── lib/                  # Utility functions
-│   ├── github.ts         # GitHub API integration
-│   ├── gemini.ts         # AI service integration
-│   └── utils.ts          # Helper functions
-├── config/               # Configuration files
-└── public/               # Static assets
+src/
+├── components/           # Reusable UI components
+│   ├── ui/              # shadcn/ui components
+│   ├── home/            # Home page sections
+│   ├── layout/          # Layout components
+│   └── ...
+├── contexts/            # React contexts
+│   ├── AuthContext.tsx  # Authentication context
+│   └── LanguageContext.tsx  # Internationalization
+├── hooks/               # Custom React hooks
+├── pages/               # Application pages/routes
+├── services/            # API services
+├── data/                # Static data and translations
+├── assets/              # Images and static assets
+├── lib/                 # Utility libraries
+└── utils/               # Utility functions
 ```
+
+## 🌍 Internationalization
+
+The application supports multiple languages:
+
+- **English** (en) - Default
+- **தமிழ் (Tamil)** (ta) - Complete translation
+
+### Adding Translations
+1. Add new keys to `src/data/translations.json`
+2. Use the `useLanguage` hook in components:
+   ```tsx
+   import { useLanguage } from '@/contexts/LanguageContext';
+   
+   function MyComponent() {
+     const { t } = useLanguage();
+     return <h1>{t("section.title")}</h1>;
+   }
+   ```
+
+See [README_TRANSLATION.md](./README_TRANSLATION.md) for detailed implementation guide.
+
+## 🔑 Authentication Setup
+
+This project uses Clerk for authentication. Follow these steps:
+
+1. **Get your Clerk keys**
+   - Sign up at [Clerk](https://go.clerk.com/lovable)
+   - Create a new application
+   - Copy your publishable key
+
+2. **Configure the application**
+   - Update `src/main.tsx` with your Clerk publishable key
+   - The app includes pre-built auth components and protected routes
+
+See [CLERK_SETUP.md](./CLERK_SETUP.md) for detailed setup instructions.
+
+## 🎨 Styling and Theming
+
+The project uses a design system approach:
+
+- **Tailwind CSS**: Utility-first CSS framework
+- **shadcn/ui**: High-quality, accessible components
+- **CSS Custom Properties**: Semantic color tokens
+- **Dark/Light Mode**: Built-in theme switching
+
+### Design System
+- Colors are defined as HSL values in `src/index.css`
+- Components use semantic tokens from `tailwind.config.ts`
+- Custom variants available for different use cases
+
+## 📱 Key Pages and Features
+
+### 🏠 Home (`/`)
+- Hero section with platform overview
+- Feature highlights and statistics
+- User testimonials and call-to-action
+
+### 🌤️ Weather (`/weather`)
+- Real-time weather data
+- 7-day forecasts
+- Agricultural weather insights
+
+### 🔍 Diagnose (`/diagnose`)
+- Crop disease detection using AI
+- Image upload and analysis
+- Treatment recommendations
+
+### 📊 Market Analysis (`/market-analysis`)
+- Live commodity prices
+- Market trends and analytics
+- Price prediction models
+
+### 🛒 Marketplace (`/buy`)
+- Product catalog with search and filters
+- Direct farmer connections
+- Secure transaction handling
+
+### 👤 User Management
+- `/auth` - Authentication pages
+- `/profile` - User profile management
+- `/admin` - Administrative dashboard
+
+## 🔧 Configuration
+
+### Environment Variables
+The project doesn't use traditional env files. Instead:
+- Clerk publishable key is set directly in `main.tsx`
+- API endpoints are configured in service files
+- Feature flags can be added to context providers
+
+### API Integration
+- Weather data: OpenMeteo API
+- Authentication: Clerk
+- Custom APIs can be added in `src/services/`
+
+## 🚀 Deployment
+
+### Lovable (Recommended)
+1. Open your [Lovable project](https://lovable.dev/projects/39025cf3-6b8b-4243-bba9-43a604dfea94)
+2. Click "Share" → "Publish"
+3. Your app will be live with a Lovable subdomain
+
+### Custom Domain
+1. Navigate to Project → Settings → Domains in Lovable
+2. Connect your custom domain
+3. Follow the DNS configuration instructions
+
+### Other Platforms
+The app can be deployed to any static hosting service:
+- Vercel
+- Netlify
+- GitHub Pages
+- AWS S3 + CloudFront
+
+Build command: `npm run build`
+Output directory: `dist`
+
+## 🧪 Development
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Code Quality
+- TypeScript for type safety
+- ESLint for code linting
+- Prettier for code formatting (via ESLint config)
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how to get started:
-
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. **Make your changes**
-4. **Commit with conventional commits**
-   ```bash
-   git commit -m "feat: add amazing feature"
-   ```
-5. **Push to your branch**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-6. **Open a Pull Request**
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ### Development Guidelines
-- Follow TypeScript best practices
-- Use conventional commit messages
-- Add tests for new features
-- Update documentation as needed
+- Follow the existing code style and patterns
+- Use TypeScript for all new code
+- Add proper error handling and loading states
+- Test on both mobile and desktop
+- Ensure accessibility standards are met
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🆘 Support
+
+- **Documentation**: [Lovable Docs](https://docs.lovable.dev/)
+- **Community**: [Discord](https://discord.com/channels/1119885301872070706/1280461670979993613)
+- **Video Tutorials**: [YouTube Playlist](https://www.youtube.com/watch?v=9KHLTZaJcR8&list=PLbVHz4urQBZkJiAWdG8HWoJTdgEysigIO)
+
 ## 🙏 Acknowledgments
 
-- **GitHub API** for providing comprehensive repository data
-- **Google Generative AI** for powering intelligent analysis
-- **Vercel** for seamless deployment and hosting
-- **Next.js Team** for the amazing framework
-- **Open Source Community** for inspiration and tools
-
-## 📊 Project Stats
-
-- **Language Composition**: 98.2% TypeScript, 1.7% CSS, 0.1% JavaScript
-- **Dependencies**: 40+ production packages
-- **Components**: Modular, reusable architecture
-- **Performance**: Optimized with Next.js 15 features
-
-## 🔗 Links
-
-- **Live Demo**: [your-domain.com](https://your-domain.com)
-- **Repository**: [github.com/your-username/your-repo-name](https://github.com/your-username/your-repo-name)
-- **Issues**: [Report bugs or request features](https://github.com/your-username/your-repo-name/issues)
+- Built with [Lovable](https://lovable.dev) - The AI-powered development platform
+- Icons by [Lucide](https://lucide.dev)
+- UI components by [shadcn/ui](https://ui.shadcn.com)
+- Weather data from [OpenMeteo](https://open-meteo.com)
+- Authentication by [Clerk](https://clerk.com)
 
 ---
 
-<div align="center">
-
-  Built with ❤️ by [Your Name](https://github.com/your-username)  
-  ⭐ Star this repo if you find it helpful!
-
-</div>
-
+**Made with ❤️ for farmers and agricultural communities worldwide**
