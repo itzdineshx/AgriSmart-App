@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
-import { Header } from "./Header";
+import { MobileHeader } from "./MobileHeader";
 import { Footer } from "./Footer";
+import { BottomNavigation } from "./BottomNavigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,13 +10,16 @@ interface LayoutProps {
 }
 
 export function Layout({ children, hideFooter = false }: LayoutProps) {
+  const isMobile = useIsMobile();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      <main className="flex-1">
+      <MobileHeader />
+      <main className={`flex-1 ${isMobile ? 'pb-20' : ''}`}>
         {children}
       </main>
-      {!hideFooter && <Footer />}
+      {!hideFooter && !isMobile && <Footer />}
+      <BottomNavigation />
     </div>
   );
 }
