@@ -1,6 +1,6 @@
 # AgriSmart - Smart Agriculture Platform
 
-[![Deploy with Lovable](https://lovable.dev/deploy-badge.svg)](https://lovable.dev/projects/39025cf3-6b8b-4243-bba9-43a604dfea94)
+![Logo](/logo.png)
 
 A comprehensive digital agriculture platform that empowers farmers with smart tools, real-time weather data, crop disease detection, market analysis, and direct marketplace access. Built with modern web technologies and supporting multilingual capabilities.
 
