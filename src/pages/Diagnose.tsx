@@ -381,7 +381,7 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                     <img
                       src={selectedImage}
                       alt="Selected plant"
-                      className="max-w-sm mx-auto rounded-lg shadow-md"
+                      className="w-full max-w-xs sm:max-w-sm mx-auto rounded-lg shadow-md h-auto object-contain"
                     />
                     <Button
                       onClick={() => {

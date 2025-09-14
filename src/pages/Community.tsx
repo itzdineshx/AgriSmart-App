@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -283,13 +284,67 @@ const topContributors = [
   }
 ];
 
+const marketplaceCategories = [
+  {
+    category: "Seeds & Seedlings",
+    description: "High-quality seeds for various crops",
+    items: 125,
+    icon: "🌱",
+    image: seedsMarketplace
+  },
+  {
+    category: "Fertilizers",
+    description: "Organic and chemical fertilizers", 
+    items: 89,
+    icon: "🌿",
+    image: fertilizersMarketplace
+  },
+  {
+    category: "Equipment & Tools",
+    description: "Farming tools and machinery",
+    items: 234,
+    icon: "🚜",
+    image: equipmentMarketplace
+  },
+  {
+    category: "Fresh Harvest",
+    description: "Farm-fresh produce for sale",
+    items: 456,
+    icon: "🥕",
+    image: harvestMarketplace
+  }
+];
+
 export default function Community() {
   const { t, language } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("discussions");
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostTitle, setNewPostTitle] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+
+  // Update search query when URL params change
+  useEffect(() => {
+    const search = searchParams.get("search");
+    if (search) {
+      setSearchQuery(search);
+    }
+  }, [searchParams]);
+
+  // Filter posts based on search query
+  const filteredPosts = mockPosts.filter(post => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      post.title.toLowerCase().includes(query) ||
+      post.content.toLowerCase().includes(query) ||
+      post.author.name.toLowerCase().includes(query) ||
+      post.category.toLowerCase().includes(query) ||
+      post.tags.some(tag => tag.toLowerCase().includes(query))
+    );
+  });
 
   const categories = [
     { id: "all", name: language === 'ta' ? "அனைத்தும்" : "All", count: 156 },
@@ -335,24 +390,28 @@ export default function Community() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-4 md:p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="discussions">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              {language === 'ta' ? 'விவாதங்கள்' : 'Discussions'}
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <TabsTrigger value="discussions" className="text-xs md:text-sm">
+              <MessageCircle className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">{language === 'ta' ? 'விவாதங்கள்' : 'Discussions'}</span>
+              <span className="sm:hidden">Talk</span>
             </TabsTrigger>
-            <TabsTrigger value="knowledge">
-              <BookOpen className="h-4 w-4 mr-2" />
-              {language === 'ta' ? 'அறிவு பகிர்வு' : 'Knowledge'}
+            <TabsTrigger value="knowledge" className="text-xs md:text-sm">
+              <BookOpen className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">{language === 'ta' ? 'அறிவு பகிர்வு' : 'Knowledge'}</span>
+              <span className="sm:hidden">Learn</span>
             </TabsTrigger>
-            <TabsTrigger value="events">
-              <Calendar className="h-4 w-4 mr-2" />
-              {language === 'ta' ? 'நிகழ்வுகள்' : 'Events'}
+            <TabsTrigger value="events" className="text-xs md:text-sm">
+              <Calendar className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">{language === 'ta' ? 'நிகழ்வுகள்' : 'Events'}</span>
+              <span className="sm:hidden">Events</span>
             </TabsTrigger>
-            <TabsTrigger value="marketplace">
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              {language === 'ta' ? 'சந்தை' : 'Marketplace'}
+            <TabsTrigger value="marketplace" className="text-xs md:text-sm">
+              <ShoppingCart className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">{language === 'ta' ? 'சந்தை' : 'Marketplace'}</span>
+              <span className="sm:hidden">Shop</span>
             </TabsTrigger>
           </TabsList>
 
@@ -372,157 +431,167 @@ export default function Community() {
                       className="pl-10"
                     />
                   </div>
-                  <Button variant="outline">
+                  <Button variant="outline" size="sm" className="sm:size-default">
                     <Filter className="h-4 w-4 mr-2" />
-                    {language === 'ta' ? 'வடிகட்டி' : 'Filter'}
+                    <span className="hidden sm:inline">{language === 'ta' ? 'வடிகட்டி' : 'Filter'}</span>
                   </Button>
-                  <Button>
+                  <Button size="sm" className="sm:size-default">
                     <Plus className="h-4 w-4 mr-2" />
-                    {language === 'ta' ? 'புதிய கேள்வி' : 'New Question'}
+                    <span className="hidden sm:inline">{language === 'ta' ? 'புதிய கேள்வி' : 'New Question'}</span>
+                    <span className="sm:hidden">Post</span>
                   </Button>
                 </div>
 
                 {/* Posts Feed */}
-                <div className="space-y-6">
-                  {mockPosts.map((post) => (
-                    <Card key={post.id} className="shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <Avatar className="w-12 h-12">
-                            <AvatarImage src={post.author.avatar} />
-                            <AvatarFallback>{post.author.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                          </Avatar>
-                          
-                          <div className="flex-1 space-y-3">
-                            {/* Author Info */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-medium">{post.author.name}</h4>
-                                <Badge variant="secondary" className="text-xs">
-                                  {post.author.badge}
-                                </Badge>
-                                <span className="text-sm text-muted-foreground">
-                                  {post.author.location} • {post.timestamp}
-                                </span>
-                              </div>
-                              <Badge variant="outline">{post.category}</Badge>
-                            </div>
-
-                            {/* Post Content */}
-                            <div>
-                              <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
-                              <p className="text-muted-foreground mb-3">{post.content}</p>
-                              
-                              {/* Post Image */}
-                              {post.postImage && (
-                                <div className="mb-3 rounded-lg overflow-hidden">
-                                  <img 
-                                    src={post.postImage} 
-                                    alt={post.title}
-                                    className="w-full h-48 object-cover hover:scale-105 transition-transform duration-200"
-                                  />
+                <div className="space-y-4 sm:space-y-6">
+                  {searchQuery && (
+                    <div className="text-sm text-muted-foreground">
+                      Found {filteredPosts.length} result{filteredPosts.length !== 1 ? 's' : ''} for "{searchQuery}"
+                    </div>
+                  )}
+                  {filteredPosts.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">
+                        {searchQuery ? "No posts found matching your search." : "No posts available."}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredPosts.map((post) => (
+                      <Card key={post.id} className="shadow-sm hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex items-start gap-3 sm:gap-4">
+                            <Avatar className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
+                              <AvatarImage src={post.author.avatar} />
+                              <AvatarFallback>{post.author.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            </Avatar>
+                            
+                            <div className="flex-1 space-y-3 min-w-0">
+                              {/* Author Info */}
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <h4 className="font-medium text-sm sm:text-base truncate">{post.author.name}</h4>
+                                  <Badge variant="secondary" className="text-xs flex-shrink-0">
+                                    {post.author.badge}
+                                  </Badge>
                                 </div>
-                              )}
+                                <Badge variant="outline" className="text-xs flex-shrink-0">{post.category}</Badge>
+                              </div>
                               
-                              {/* Tags */}
-                              <div className="flex flex-wrap gap-1 mb-3">
-                                {post.tags.map((tag) => (
-                                  <Badge key={tag} variant="outline" className="text-xs">
-                                    #{tag}
-                                  </Badge>
-                                ))}
+                              {/* Location and timestamp - mobile responsive */}
+                              <div className="text-xs sm:text-sm text-muted-foreground">
+                                {post.author.location} • {post.timestamp}
                               </div>
 
-                              {/* Actions */}
-                              <div className="flex items-center gap-4 pt-2 border-t">
-                                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                                  <ThumbsUp className="h-4 w-4 mr-1" />
-                                  {post.likes}
-                                </Button>
-                                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                                  <MessageCircle className="h-4 w-4 mr-1" />
-                                  {post.replies} {language === 'ta' ? 'பதில்கள்' : 'Replies'}
-                                </Button>
-                                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                                  <Share2 className="h-4 w-4 mr-1" />
-                                  {language === 'ta' ? 'பகிர்' : 'Share'}
-                                </Button>
-                                {post.hasImages && (
-                                  <Badge variant="outline" className="text-xs ml-auto">
-                                    <Camera className="h-3 w-3 mr-1" />
-                                    {language === 'ta' ? 'படங்கள்' : 'Images'}
-                                  </Badge>
+                              {/* Post Content */}
+                              <div>
+                                <h3 className="text-base sm:text-lg font-semibold mb-2 leading-tight">{post.title}</h3>
+                                <p className="text-muted-foreground mb-3 text-sm sm:text-base leading-relaxed">{post.content}</p>
+                                
+                                {/* Post Image - Mobile Optimized */}
+                                {post.postImage && (
+                                  <div className="mb-3 rounded-lg overflow-hidden max-w-full">
+                                    <img 
+                                      src={post.postImage} 
+                                      alt={post.title}
+                                      className="w-full h-32 sm:h-40 md:h-48 object-cover hover:scale-105 transition-transform duration-200"
+                                      loading="lazy"
+                                    />
+                                  </div>
                                 )}
+                                
+                                {/* Tags */}
+                                <div className="flex flex-wrap gap-1 mb-3">
+                                  {post.tags.map((tag) => (
+                                    <Badge key={tag} variant="outline" className="text-xs">
+                                      #{tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex items-center gap-2 sm:gap-4 pt-2 border-t">
+                                  <Button variant="ghost" size="sm" className="text-muted-foreground text-xs sm:text-sm">
+                                    <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                    {post.likes}
+                                  </Button>
+                                  <Button variant="ghost" size="sm" className="text-muted-foreground text-xs sm:text-sm">
+                                    <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                    {post.replies} <span className="hidden sm:inline">{language === 'ta' ? 'பதில்கள்' : 'Replies'}</span>
+                                  </Button>
+                                  <Button variant="ghost" size="sm" className="text-muted-foreground text-xs sm:text-sm">
+                                    <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                    <span className="hidden sm:inline">{language === 'ta' ? 'பகிர்' : 'Share'}</span>
+                                  </Button>
+                                  {post.hasImages && (
+                                    <Badge variant="outline" className="text-xs ml-auto">
+                                      <Camera className="h-3 w-3 mr-1" />
+                                      <span className="hidden sm:inline">{language === 'ta' ? 'படங்கள்' : 'Images'}</span>
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </div>
 
               {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Categories */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {language === 'ta' ? 'பிரிவுகள்' : 'Categories'}
+              <div className="lg:col-span-1 space-y-6">
+                {/* Categories - Mobile Horizontal Scroll */}
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Filter className="h-5 w-5" />
+                      {language === 'ta' ? 'வகைகள்' : 'Categories'}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => setSelectedCategory(category.id)}
-                        className={`w-full flex items-center justify-between p-2 rounded-md text-left transition-colors ${
-                          selectedCategory === category.id 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'hover:bg-accent'
-                        }`}
-                      >
-                        <span className="text-sm">{category.name}</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {category.count}
-                        </Badge>
-                      </button>
-                    ))}
+                  <CardContent className="pt-0">
+                    {/* Mobile: Horizontal scroll, Desktop: Vertical list */}
+                    <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+                      {categories.map((category) => (
+                        <Button
+                          key={category.id}
+                          variant={selectedCategory === category.id ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setSelectedCategory(category.id)}
+                          className="flex-shrink-0 lg:w-full lg:justify-start whitespace-nowrap"
+                        >
+                          {category.name}
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            {category.count}
+                          </Badge>
+                        </Button>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
 
-                {/* Top Contributors */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {language === 'ta' ? 'சிறந்த பங்களிப்பாளர்கள்' : 'Top Contributors'}
+                {/* Top Contributors - Mobile responsive */}
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Award className="h-5 w-5" />
+                      {language === 'ta' ? 'முன்னணி பங்களிப்பாளர்கள்' : 'Top Contributors'}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {topContributors.map((contributor, index) => (
-                      <div key={contributor.name} className="flex items-center gap-3">
-                        <div className="relative">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={contributor.avatar} />
-                            <AvatarFallback>{contributor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                          </Avatar>
-                          {index === 0 && (
-                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-warning rounded-full flex items-center justify-center">
-                              <Star className="h-3 w-3 text-warning-foreground" />
-                            </div>
-                          )}
-                        </div>
+                  <CardContent className="pt-0 space-y-3">
+                    {topContributors.slice(0, 3).map((contributor, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
+                          <AvatarImage src={contributor.avatar} />
+                          <AvatarFallback>{contributor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{contributor.name}</p>
-                          <p className="text-xs text-muted-foreground">{contributor.location}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs px-1">
+                          <h4 className="font-medium text-sm truncate">{contributor.name}</h4>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="truncate">{contributor.location}</span>
+                            <Badge variant="outline" className="text-xs">
                               {contributor.reputation}
                             </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {contributor.solutions} solutions
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -533,145 +602,118 @@ export default function Community() {
             </div>
           </TabsContent>
 
-          {/* Knowledge Sharing Tab */}
+          {/* Knowledge Tab */}
           <TabsContent value="knowledge" className="space-y-6">
-            <div 
-              className="relative rounded-lg overflow-hidden bg-cover bg-center h-64 flex items-center justify-center"
-              style={{ backgroundImage: `url(${knowledgeSharing})` }}
-            >
-              <div className="absolute inset-0 bg-black/60" />
-              <div className="relative text-center text-white">
-                <h2 className="text-2xl font-bold mb-2">
-                  {language === 'ta' ? 'அறிவைப் பகிர்ந்துகொள்ளுங்கள்' : 'Share Your Knowledge'}
-                </h2>
-                <p className="mb-4">
-                  {language === 'ta' 
-                    ? 'உங்கள் வெற்றிகரமான விவசாய நுட்பங்களை மற்றவர்களுடன் பகிர்ந்துகொள்ளுங்கள்' 
-                    : 'Share your successful farming techniques with fellow farmers'}
-                </p>
-                <Button size="lg">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {language === 'ta' ? 'உங்கள் அனுபவத்தை பகிருங்கள்' : 'Share Your Experience'}
-                </Button>
-              </div>
-            </div>
-
-            {/* Knowledge Categories */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { 
-                  title: language === 'ta' ? 'வெற்றிக் கதைகள்' : 'Success Stories', 
-                  count: 89, 
-                  icon: TrendingUp,
-                  description: language === 'ta' 
-                    ? 'விவசாயிகளின் வெற்றிகரமான முயற்சிகள்' 
-                    : 'Successful farming experiences and achievements'
-                },
-                { 
-                  title: language === 'ta' ? 'சிறந்த நடைமுறைகள்' : 'Best Practices', 
-                  count: 156, 
-                  icon: BookOpen,
-                  description: language === 'ta' 
-                    ? 'நிரூபிக்கப்பட்ட விவசாய முறைகள்' 
-                    : 'Proven farming methods and techniques'
-                },
-                { 
-                  title: language === 'ta' ? 'புதுமை யோசனைகள்' : 'Innovation Ideas', 
-                  count: 67, 
-                  icon: Award,
-                  description: language === 'ta' 
-                    ? 'புதிய தொழில்நுட்பம் மற்றும் முறைகள்' 
-                    : 'New technologies and innovative approaches'
-                }
-              ].map((category) => (
-                <Card key={category.title} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-6 text-center">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <category.icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold mb-2">{category.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
-                    <Badge variant="secondary">{category.count} {language === 'ta' ? 'பதிவுகள்' : 'Posts'}</Badge>
-                  </CardContent>
-                </Card>
-              ))}
+              <Card className="shadow-sm hover:shadow-md transition-shadow">
+                <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                  <img 
+                    src={knowledgeSharing} 
+                    alt="Knowledge Sharing"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-2">Crop Disease Prevention Guide</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Comprehensive guide on preventing common crop diseases using organic and chemical methods.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">Disease Prevention</Badge>
+                    <Button variant="outline" size="sm">Read More</Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm hover:shadow-md transition-shadow">
+                <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                  <img 
+                    src={agricultureWorkshop} 
+                    alt="Agriculture Workshop"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-2">Smart Irrigation Techniques</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Learn about water-efficient irrigation methods that can increase your crop yield.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">Water Management</Badge>
+                    <Button variant="outline" size="sm">Read More</Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm hover:shadow-md transition-shadow">
+                <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                  <img 
+                    src={yieldSuccess} 
+                    alt="Yield Success"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-2">Organic Fertilizer Guide</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Complete guide to organic fertilizers and their application for different crops.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">Organic Farming</Badge>
+                    <Button variant="outline" size="sm">Read More</Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
           {/* Events Tab */}
           <TabsContent value="events" className="space-y-6">
-            <div 
-              className="relative rounded-lg overflow-hidden bg-cover bg-center h-64 flex items-center justify-center"
-              style={{ backgroundImage: `url(${agricultureWorkshop})` }}
-            >
-              <div className="absolute inset-0 bg-black/60" />
-              <div className="relative text-center text-white">
-                <h2 className="text-2xl font-bold mb-2">
-                  {language === 'ta' ? 'விவசாய நிகழ்வுகள் மற்றும் பட்டறைகள்' : 'Agricultural Events & Workshops'}
-                </h2>
-                <p className="mb-4">
-                  {language === 'ta' 
-                    ? 'அருகிலுள்ள பட்டறைகள், கருத்தரங்குகள் மற்றும் பயிற்சி நிகழ்ச்சிகளைக் கண்டறியுங்கள்' 
-                    : 'Discover nearby workshops, seminars, and training programs'}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {mockEvents.map((event) => (
-                <Card key={event.id} className="shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                  {/* Event Image */}
-                  {event.image && (
-                    <div className="h-48 overflow-hidden">
-                      <img 
-                        src={event.image} 
-                        alt={event.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                      />
-                    </div>
-                  )}
+                <Card key={event.id} className="shadow-sm hover:shadow-md transition-shadow">
+                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                    <img 
+                      src={event.image} 
+                      alt={event.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {event.isRegistered && (
+                      <Badge className="absolute top-3 right-3 bg-success text-success-foreground">
+                        Registered
+                      </Badge>
+                    )}
+                  </div>
                   
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold mb-2">{event.title}</h3>
-                        <p className="text-sm text-muted-foreground mb-3">{event.description}</p>
+                    <div className="flex items-start justify-between mb-3">
+                      <Badge variant="outline">{event.type}</Badge>
+                      <div className="text-right text-sm text-muted-foreground">
+                        <div>{event.date}</div>
+                        <div>{event.time}</div>
                       </div>
-                      <Badge variant={event.type === 'workshop' ? 'default' : event.type === 'certification' ? 'secondary' : 'outline'}>
-                        {event.type}
-                      </Badge>
                     </div>
+                    
+                    <h3 className="font-semibold mb-2">{event.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{event.description}</p>
                     
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{event.date} at {event.time}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span>{event.location}</span>
+                        {event.location}
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <Users className="h-4 w-4 text-muted-foreground" />
-                        <span>{event.attendees} {language === 'ta' ? 'பங்கேற்பாளர்கள்' : 'attendees'}</span>
+                        {event.attendees} attendees
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        {language === 'ta' ? 'ஏற்பாடு:' : 'Organized by'} {event.organizer}
-                      </span>
-                      <Button 
-                        size="sm" 
-                        variant={event.isRegistered ? 'secondary' : 'default'}
-                        disabled={event.isRegistered}
-                      >
-                        {event.isRegistered 
-                          ? (language === 'ta' ? 'பதிவு செய்தது' : 'Registered') 
-                          : (language === 'ta' ? 'பதிவு செய்யுங்கள்' : 'Register')
-                        }
-                      </Button>
-                    </div>
+                    
+                    <Button 
+                      className="w-full" 
+                      variant={event.isRegistered ? "outline" : "default"}
+                    >
+                      {event.isRegistered ? "View Details" : "Register Now"}
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
@@ -680,74 +722,11 @@ export default function Community() {
 
           {/* Marketplace Tab */}
           <TabsContent value="marketplace" className="space-y-6">
-            <div 
-              className="relative rounded-lg overflow-hidden bg-cover bg-center h-64 flex items-center justify-center"
-              style={{ backgroundImage: `url(${communityMarketplace})` }}
-            >
-              <div className="absolute inset-0 bg-black/60" />
-              <div className="relative text-center text-white">
-                <h2 className="text-2xl font-bold mb-2">
-                  {language === 'ta' ? 'சமூக சந்தை' : 'Community Marketplace'}
-                </h2>
-                <p className="mb-4">
-                  {language === 'ta' 
-                    ? 'விதைகள், உரங்கள், கருவிகள் வாங்குங்கள் மற்றும் விற்றுங்கள்' 
-                    : 'Buy and sell seeds, fertilizers, equipment with fellow farmers'}
-                </p>
-                <Button size="lg">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {language === 'ta' ? 'பொருட்களை பட்டியலிடுங்கள்' : 'List Your Items'}
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { 
-                  category: language === 'ta' ? 'விதைகள்' : 'Seeds', 
-                  items: 45, 
-                  icon: '🌱',
-                  description: language === 'ta' ? 'தரமான விதைகள் மற்றும் நாற்றுகள்' : 'Quality seeds and saplings',
-                  image: seedsMarketplace
-                },
-                { 
-                  category: language === 'ta' ? 'உரங்கள்' : 'Fertilizers', 
-                  items: 32, 
-                  icon: '🧪',
-                  description: language === 'ta' ? 'இயற்கை மற்றும் செயற்கை உரங்கள்' : 'Organic and chemical fertilizers',
-                  image: fertilizersMarketplace
-                },
-                { 
-                  category: language === 'ta' ? 'கருவிகள்' : 'Equipment', 
-                  items: 28, 
-                  icon: '🚜',
-                  description: language === 'ta' ? 'விவசாய கருவிகள் மற்றும் இயந்திரங்கள்' : 'Farm tools and machinery',
-                  image: equipmentMarketplace
-                },
-                { 
-                  category: language === 'ta' ? 'பூச்சிக்கொல்லி' : 'Pesticides', 
-                  items: 19, 
-                  icon: '🛡️',
-                  description: language === 'ta' ? 'பாதுகாப்பான பூச்சிக் கட்டுப்பாட்டு தயாரிப்புகள்' : 'Safe pest control products'
-                },
-                { 
-                  category: language === 'ta' ? 'அறுவடை' : 'Harvest', 
-                  items: 67, 
-                  icon: '🥕',
-                  description: language === 'ta' ? 'விளைபொருட்கள் மற்றும் காய்கறிகள்' : 'Fresh produce and vegetables',
-                  image: harvestMarketplace
-                },
-                { 
-                  category: language === 'ta' ? 'சேவைகள்' : 'Services', 
-                  items: 23, 
-                  icon: '🤝',
-                  description: language === 'ta' ? 'விவசாய சேவைகள் மற்றும் ஆலோசனை' : 'Agricultural services and consultation'
-                }
-              ].map((category) => (
-                <Card key={category.category} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
-                  {/* Category Image */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {marketplaceCategories.map((category, index) => (
+                <Card key={index} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                   {category.image && (
-                    <div className="h-32 overflow-hidden">
+                    <div className="aspect-square relative overflow-hidden rounded-t-lg">
                       <img 
                         src={category.image} 
                         alt={category.category}
@@ -756,7 +735,7 @@ export default function Community() {
                     </div>
                   )}
                   
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-4 sm:p-6 text-center">
                     {!category.image && (
                       <div className="text-4xl mb-4">{category.icon}</div>
                     )}

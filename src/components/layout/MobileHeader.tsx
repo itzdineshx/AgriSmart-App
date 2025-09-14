@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
 import { 
@@ -25,12 +27,25 @@ import { WeatherWidget } from "./WeatherWidget";
 
 export function MobileHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { logout, isAuthenticated, isClerkUser, userRole } = useAuth();
   const { user } = useUser();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     logout();
     setIsMenuOpen(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to community with search query
+      navigate(`/community?search=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery("");
+    }
   };
 
   const navItems = [
@@ -65,9 +80,40 @@ export function MobileHeader() {
         {/* Right Actions */}
         <div className="flex items-center space-x-2">
           {/* Search Button */}
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Search className="h-4 w-4" />
-          </Button>
+          <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Search className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Search AgriSmart</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSearch} className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search discussions, tips, or topics..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                    autoFocus
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1">Search</Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsSearchOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
           
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="h-9 w-9 relative">
