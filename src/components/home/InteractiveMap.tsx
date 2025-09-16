@@ -39,7 +39,7 @@ export function InteractiveMap() {
   const [weatherLayer, setWeatherLayer] = useState<L.TileLayer | null>(null);
   const { weatherData } = useWeather();
 
-  // Load AI suggestions
+  // Load AI suggestions with error handling
   useEffect(() => {
     const loadSuggestions = async () => {
       try {
@@ -59,6 +59,11 @@ export function InteractiveMap() {
         setAiSuggestions(suggestions.map(s => s.description));
       } catch (error) {
         console.error('Failed to load AI suggestions:', error);
+        // Set fallback suggestions
+        setAiSuggestions([
+          "Monitor crop health daily for signs of pest or disease",
+          "Adjust irrigation based on current weather conditions"
+        ]);
       }
     };
     
