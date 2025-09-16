@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
+import { SettingsModal } from "@/components/SettingsModal";
 import { 
   User, 
   MapPin, 
@@ -24,6 +26,8 @@ import {
 } from "lucide-react";
 
 export default function UserProfile() {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  
   const farmerData = {
     name: "Rajesh Kumar",
     location: "Village Rampur, Punjab",
@@ -102,13 +106,18 @@ export default function UserProfile() {
 
               {/* Quick Profile Actions */}
               <div className="flex-1 md:text-right space-y-2">
-                <Button variant="outline" size="sm" className="w-full md:w-auto">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Profile
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full md:w-auto"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
                 </Button>
                 <div className="flex md:justify-end gap-2">
                   <Button variant="outline" size="icon">
-                    <Settings className="h-4 w-4" />
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button variant="outline" size="icon">
                     <Bell className="h-4 w-4" />
@@ -193,6 +202,9 @@ export default function UserProfile() {
           </div>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 }
