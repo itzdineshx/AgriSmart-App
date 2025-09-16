@@ -36,7 +36,6 @@ export function InteractiveMap() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [weatherLayer, setWeatherLayer] = useState<L.TileLayer | null>(null);
   const { weatherData } = useWeather();
 
   // Load AI suggestions with error handling
@@ -84,16 +83,6 @@ export function InteractiveMap() {
       tileSize: 512,
       zoomOffset: -1,
     }).addTo(map);
-
-    // Add weather overlay layer
-    const weatherTileLayer = L.tileLayer(
-      `https://api.openweathermap.org/data/2.5/weather/lat={lat}&lon={lon}&appid=demo`,
-      {
-        attribution: '© OpenWeatherMap',
-        opacity: 0.6
-      }
-    );
-    setWeatherLayer(weatherTileLayer);
 
     mapInstanceRef.current = map;
 
@@ -223,15 +212,9 @@ export function InteractiveMap() {
       }
     });
 
-    // Toggle weather layer
-    if (weatherLayer) {
-      if (visibleLayers.weather) {
-        weatherLayer.addTo(map);
-      } else {
-        map.removeLayer(weatherLayer);
-      }
-    }
-  }, [visibleLayers, weatherLayer]);
+    // Toggle weather layer (placeholder for future implementation)
+    // Weather layer would need proper tile service integration
+  }, [visibleLayers]);
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -336,7 +319,8 @@ export function InteractiveMap() {
             variant={visibleLayers.weather ? 'default' : 'ghost'}
             onClick={() => toggleLayer('weather')}
             className="text-xs px-2"
-            title="Weather Layer"
+            title="Weather Layer (Coming Soon)"
+            disabled
           >
             {visibleLayers.weather ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
           </Button>
