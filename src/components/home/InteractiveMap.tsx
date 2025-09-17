@@ -74,99 +74,108 @@ export function InteractiveMap() {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Initialize map
-    const map = L.map(mapRef.current).setView(mockData.farmer.coordinates as [number, number], 12);
+    try {
+      // Initialize map with error handling
+      const map = L.map(mapRef.current, {
+        zoomControl: true,
+        scrollWheelZoom: true,
+      }).setView(mockData.farmer.coordinates as [number, number], 12);
 
-    // Add Mapbox tile layer
-    L.tileLayer(`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`, {
-      attribution: '© Mapbox © OpenStreetMap',
-      tileSize: 512,
-      zoomOffset: -1,
-    }).addTo(map);
+      // Add OpenStreetMap tile layer as fallback
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
 
-    mapInstanceRef.current = map;
+      mapInstanceRef.current = map;
 
-    // Add farm plots
-    const farmMarkers: L.Marker[] = [];
-    mockData.farmPlots.forEach((plot) => {
-      const icon = L.divIcon({
-        html: `<div style="background: ${plot.health > 80 ? '#22c55e' : plot.health > 60 ? '#f59e0b' : '#ef4444'}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">🌾</div>`,
-        className: 'custom-div-icon',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
+      // Add farm plots
+      const farmMarkers: L.Marker[] = [];
+      mockData.farmPlots.forEach((plot) => {
+        const icon = L.divIcon({
+          html: `<div style="background: ${plot.health > 80 ? '#22c55e' : plot.health > 60 ? '#f59e0b' : '#ef4444'}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">🌾</div>`,
+          className: 'custom-div-icon',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
 
-      const marker = L.marker(plot.coordinates as [number, number], { icon })
-        .bindPopup(`
-          <div class="p-2">
-            <h3 class="font-semibold">${plot.name}</h3>
-            <p class="text-sm text-gray-600">Crop: ${plot.crop}</p>
-            <p class="text-sm text-gray-600">Area: ${plot.area}</p>
-            <p class="text-sm">Health: <span class="font-medium" style="color: ${plot.health > 80 ? '#22c55e' : plot.health > 60 ? '#f59e0b' : '#ef4444'}">${plot.health}%</span></p>
-            ${plot.issues.length > 0 ? `<p class="text-sm text-red-600">Issues: ${plot.issues.join(', ')}</p>` : ''}
-          </div>
-        `);
-      
-      farmMarkers.push(marker);
-      if (visibleLayers.crops) marker.addTo(map);
-    });
-
-    // Add market markers
-    const marketMarkers: L.Marker[] = [];
-    mockData.nearbyMarkets.forEach((market) => {
-      const icon = L.divIcon({
-        html: '<div style="background: #3b82f6; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">🛒</div>',
-        className: 'custom-div-icon',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
-
-      const marker = L.marker(market.coordinates as [number, number], { icon })
-        .bindPopup(`
-          <div class="p-2">
-            <h3 class="font-semibold">${market.name}</h3>
-            <p class="text-sm text-gray-600">Distance: ${market.distance}</p>
-            <div class="mt-2 space-y-1">
-              ${Object.entries(market.prices).map(([crop, price]) => 
-                `<p class="text-sm">${crop}: ₹${price}</p>`
-              ).join('')}
+        const marker = L.marker(plot.coordinates as [number, number], { icon })
+          .bindPopup(`
+            <div class="p-2">
+              <h3 class="font-semibold">${plot.name}</h3>
+              <p class="text-sm text-gray-600">Crop: ${plot.crop}</p>
+              <p class="text-sm text-gray-600">Area: ${plot.area}</p>
+              <p class="text-sm">Health: <span class="font-medium" style="color: ${plot.health > 80 ? '#22c55e' : plot.health > 60 ? '#f59e0b' : '#ef4444'}">${plot.health}%</span></p>
+              ${plot.issues.length > 0 ? `<p class="text-sm text-red-600">Issues: ${plot.issues.join(', ')}</p>` : ''}
             </div>
-          </div>
-        `);
-      
-      marketMarkers.push(marker);
-      if (visibleLayers.market) marker.addTo(map);
-    });
-
-    // Add disease outbreak areas
-    const alertCircles: L.Circle[] = [];
-    mockData.diseaseOutbreaks.forEach((outbreak) => {
-      const circle = L.circle(outbreak.coordinates as [number, number], {
-        radius: outbreak.radius * 1000, // Convert km to meters
-        color: outbreak.severity === 'high' ? '#ef4444' : '#f59e0b',
-        fillColor: outbreak.severity === 'high' ? '#ef4444' : '#f59e0b',
-        fillOpacity: 0.2,
-        weight: 2
+          `);
+        
+        farmMarkers.push(marker);
+        if (visibleLayers.crops) marker.addTo(map);
       });
 
-      circle.bindPopup(`
-        <div class="p-2">
-          <h3 class="font-semibold text-red-600">⚠️ ${outbreak.name}</h3>
-          <p class="text-sm text-gray-600">Crop: ${outbreak.crop}</p>
-          <p class="text-sm text-gray-600">Severity: ${outbreak.severity}</p>
-          <p class="text-sm text-gray-600">Affected farms: ${outbreak.affectedFarms}</p>
-          <p class="text-sm text-gray-600">Radius: ${outbreak.radius}km</p>
-        </div>
-      `);
-      
-      alertCircles.push(circle);
-      if (visibleLayers.alerts) circle.addTo(map);
-    });
+      // Add market markers
+      const marketMarkers: L.Marker[] = [];
+      mockData.nearbyMarkets.forEach((market) => {
+        const icon = L.divIcon({
+          html: '<div style="background: #3b82f6; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">🛒</div>',
+          className: 'custom-div-icon',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
 
-    // Store references for layer toggling
-    (map as any)._farmMarkers = farmMarkers;
-    (map as any)._marketMarkers = marketMarkers;
-    (map as any)._alertCircles = alertCircles;
+        const marker = L.marker(market.coordinates as [number, number], { icon })
+          .bindPopup(`
+            <div class="p-2">
+              <h3 class="font-semibold">${market.name}</h3>
+              <p class="text-sm text-gray-600">Distance: ${market.distance}</p>
+              <div class="mt-2 space-y-1">
+                ${Object.entries(market.prices).map(([crop, price]) => 
+                  `<p class="text-sm">${crop}: ₹${price}</p>`
+                ).join('')}
+              </div>
+            </div>
+          `);
+        
+        marketMarkers.push(marker);
+        if (visibleLayers.market) marker.addTo(map);
+      });
+
+      // Add disease outbreak areas
+      const alertCircles: L.Circle[] = [];
+      mockData.diseaseOutbreaks.forEach((outbreak) => {
+        const circle = L.circle(outbreak.coordinates as [number, number], {
+          radius: outbreak.radius * 1000, // Convert km to meters
+          color: outbreak.severity === 'high' ? '#ef4444' : '#f59e0b',
+          fillColor: outbreak.severity === 'high' ? '#ef4444' : '#f59e0b',
+          fillOpacity: 0.2,
+          weight: 2
+        });
+
+        circle.bindPopup(`
+          <div class="p-2">
+            <h3 class="font-semibold text-red-600">⚠️ ${outbreak.name}</h3>
+            <p class="text-sm text-gray-600">Crop: ${outbreak.crop}</p>
+            <p class="text-sm text-gray-600">Severity: ${outbreak.severity}</p>
+            <p class="text-sm text-gray-600">Affected farms: ${outbreak.affectedFarms}</p>
+            <p class="text-sm text-gray-600">Radius: ${outbreak.radius}km</p>
+          </div>
+        `);
+        
+        alertCircles.push(circle);
+        if (visibleLayers.alerts) circle.addTo(map);
+      });
+
+      // Store references for layer toggling
+      (map as any)._farmMarkers = farmMarkers;
+      (map as any)._marketMarkers = marketMarkers;
+      (map as any)._alertCircles = alertCircles;
+
+      console.log('Map initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize map:', error);
+      toast.error('Failed to load map');
+    }
 
     return () => {
       if (mapInstanceRef.current) {
@@ -260,7 +269,7 @@ export function InteractiveMap() {
 
   const MapContent = () => (
     <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-lg overflow-hidden">
-      <div ref={mapRef} className="w-full h-64 rounded-lg" />
+      <div ref={mapRef} className="w-full h-96 rounded-lg" />
       
       {/* Search Bar */}
       <div className="absolute top-2 left-2 flex gap-2 z-10">
@@ -367,21 +376,21 @@ export function InteractiveMap() {
         </div>
       )}
 
-      {/* AI Suggestions */}
+      {/* AI Suggestions - Moved to avoid overlap */}
       {aiSuggestions.length > 0 && (
-        <div className="absolute bottom-16 left-2 bg-background/95 backdrop-blur-sm rounded-lg p-3 max-w-xs shadow-lg border border-primary/20 z-10 animate-fade-in">
+        <div className="absolute top-20 left-2 bg-background/95 backdrop-blur-sm rounded-lg p-3 max-w-xs shadow-lg border border-primary/20 z-20 animate-fade-in">
           <h4 className="text-xs font-semibold mb-2 flex items-center gap-1 text-primary">
             🤖 Smart Suggestions
           </h4>
           <div className="space-y-1">
             {aiSuggestions.slice(0, 2).map((suggestion, index) => (
               <p key={index} className="text-xs text-muted-foreground leading-relaxed">
-                • {suggestion.substring(0, 100)}...
+                • {suggestion.substring(0, 80)}...
               </p>
             ))}
           </div>
           <Button size="sm" variant="ghost" className="text-xs mt-2 p-0 h-auto text-primary hover:text-primary/80">
-            View All Suggestions →
+            View All →
           </Button>
         </div>
       )}
