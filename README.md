@@ -1,6 +1,6 @@
 # AgriSmart - Smart Agriculture Platform
 
-![Logo](/lovable-uploads/logo.png)
+![Logo](/public/lovable-uploads/logo.png)
 
 A comprehensive digital agriculture platform that empowers farmers with smart tools, real-time weather data, crop disease detection, market analysis, and direct marketplace access. Built with modern web technologies and supporting multilingual capabilities.
 
@@ -193,11 +193,6 @@ The project doesn't use traditional env files. Instead:
 
 ## 🚀 Deployment
 
-### Lovable (Recommended)
-1. Open your [Lovable project](https://lovable.dev/projects/39025cf3-6b8b-4243-bba9-43a604dfea94)
-2. Click "Share" → "Publish"
-3. Your app will be live with a Lovable subdomain
-
 ### Custom Domain
 1. Navigate to Project → Settings → Domains in Lovable
 2. Connect your custom domain
@@ -247,13 +242,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Documentation**: [Lovable Docs](https://docs.lovable.dev/)
 - **Community**: [Discord](https://discord.com/channels/1119885301872070706/1280461670979993613)
 - **Video Tutorials**: [YouTube Playlist](https://www.youtube.com/watch?v=9KHLTZaJcR8&list=PLbVHz4urQBZkJiAWdG8HWoJTdgEysigIO)
 
 ## 🙏 Acknowledgments
 
-- Built with [Lovable](https://lovable.dev) - The AI-powered development platform
 - Icons by [Lucide](https://lucide.dev)
 - UI components by [shadcn/ui](https://ui.shadcn.com)
 - Weather data from [OpenMeteo](https://open-meteo.com)

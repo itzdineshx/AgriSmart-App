@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SettingsModal } from "@/components/SettingsModal";
+import { LanguageTranslator } from "@/components/LanguageTranslator";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -174,6 +175,9 @@ export function Header() {
 
             {/* Right Actions */}
             <div className="flex items-center space-x-3">
+              {/* Language Translator */}
+              <LanguageTranslator />
+              
               {/* Search Button */}
               <Button variant="ghost" size="icon" className="hidden md:flex">
                 <Search className="h-4 w-4" />

@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
+
 import { 
   Menu, 
   Search, 
@@ -13,7 +14,8 @@ import {
   Cloud,
   Home, 
   Camera, 
-  ShoppingCart, 
+  ShoppingCart,
+  Languages, 
   Users,
   User,
   TrendingUp,
@@ -120,9 +122,21 @@ export function MobileHeader() {
             <Bell className="h-4 w-4" />
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full"></div>
           </Button>
+          
+          {/* Cart */}
+          <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+            <ShoppingCart className="h-4 w-4" />
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full"></div>
+          </Button>
+
+          {/* Language Translator */}
+          <div className="h-9 flex items-center">
+            <div className="elfsight-app-c998736f-4dcd-413c-bfcb-5560a365b817" data-elfsight-app-lazy />
+          </div>
 
           {/* Compact Weather Widget */}
           <WeatherWidget />
+          
           
           {/* Hamburger Menu */}
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
@@ -151,6 +165,11 @@ export function MobileHeader() {
                 {/* Navigation Items */}
                 <div className="flex-1 overflow-y-auto py-6">
                   <nav className="px-6 space-y-2">
+                    {/* Language Translator */}
+                    <div className="px-3 py-2">
+                      <div className="elfsight-app-c998736f-4dcd-413c-bfcb-5560a365b817" data-elfsight-app-lazy />
+                    </div>
+
                     {navItems.map((item) => (
                       <Link
                         key={item.path}

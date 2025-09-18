@@ -4,7 +4,7 @@ import { AlertsSection } from "@/components/home/AlertsSection";
 import { EngagementSection } from "@/components/home/EngagementSection";
 import { KnowledgeSection } from "@/components/home/KnowledgeSection";
 import { AISuggestionsSection } from "@/components/home/AIsuggestionsSection";
-import { InteractiveMap } from "@/components/home/InteractiveMap";
+import { InteractiveMapNew } from "@/components/maps/InteractiveMapNew";
 
 const Index = () => {
   return (
@@ -31,7 +31,7 @@ const Index = () => {
 
         {/* Interactive Map */}
         <div className="animate-fade-in [animation-delay:300ms]">
-          <InteractiveMap />
+          <InteractiveMapNew />
         </div>
 
         {/* AI Suggestions */}

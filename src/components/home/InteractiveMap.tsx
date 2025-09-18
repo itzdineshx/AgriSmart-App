@@ -1,17 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { MapPin, Layers, Navigation, Maximize2, Search, Target, Eye, EyeOff, Mic } from "lucide-react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import { mockData } from "@/data/mockData";
-import { useWeather } from "@/hooks/useWeather";
-import { getWeatherData } from "@/services/weatherService";
-import { generateAISuggestions } from "@/services/geminiService";
-import { toast } from "sonner";
+import React, { useEffect, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { MapPin, Navigation, Search, Target, Eye, EyeOff, Maximize2, X } from 'lucide-react';
 
 // Fix for default markers in React Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -21,13 +16,141 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiaGFyaXNod2FyYW4iLCJhIjoiY21hZHhwZGs2MDF4YzJxczh2aDd0cWg1MyJ9.qcu0lpqVlZlC2WFxhwb1Pg';
+const PUNJAB_CENTER = { lat: 30.7333, lng: 76.7794 }; // Chandigarh, Punjab
+const DEFAULT_ZOOM = 10;
+
+// Mock data for farm monitoring
+const mockData = {
+  farmer: {
+    location: "Punjab, India",
+    farmSize: "2.5 acres"
+  },
+  farmPlots: [
+    {
+      id: 1,
+      name: "Field A",
+      crop: "Rice",
+      area: "1.2 acres",
+      health: 85,
+      coordinates: { lat: 30.7333, lng: 76.7794 },
+      issues: [] as string[]
+    },
+    {
+      id: 2,
+      name: "Field B", 
+      crop: "Tomato",
+      area: "1.3 acres", 
+      health: 65,
+      coordinates: { lat: 30.7400, lng: 76.7850 },
+      issues: ["Low moisture"]
+    }
+  ],
+  nearbyMarkets: [
+    {
+      id: 1,
+      name: "Punjab Mandi",
+      distance: "5 km",
+      coordinates: { lat: 30.7500, lng: 76.8000 },
+      prices: {
+        Rice: "2400/quintal",
+        Tomato: "1800/quintal"
+      }
+    }
+  ],
+  diseaseOutbreaks: [
+    {
+      id: 1,
+      name: "Leaf Blight",
+      crop: "Rice",
+      severity: "medium" as const,
+      coordinates: { lat: 30.7300, lng: 76.7700 },
+      radius: 2,
+      affectedFarms: 5
+    }
+  ]
+};
+
+// Additional Punjab locations for better map context
+const punjabLocations = [
+  {
+    lat: 30.9010,
+    lng: 75.8573,
+    name: "Ludhiana Agricultural Market",
+    type: 'market',
+    description: "Major grain and crop trading center",
+    phone: "0161-2401234"
+  },
+  {
+    lat: 31.6340,
+    lng: 74.8723,
+    name: "Amritsar Crop Research Center",
+    type: 'hospital',
+    description: "Agricultural research and plant health facility",
+    phone: "0183-2258802"
+  },
+  {
+    lat: 30.3398,
+    lng: 76.3869,
+    name: "Patiala Agricultural Extension Office",
+    type: 'shelter',
+    description: "Government agricultural support center",
+    phone: "0175-2212345"
+  }
+];
+
+// Custom icons for different location types
+const createCustomIcon = (type: string, emoji: string) => {
+  const colors = {
+    crop: '#10B981',
+    market: '#3B82F6',
+    disease: '#EF4444',
+    current: '#06B6D4',
+    shelter: '#8B5CF6',
+    hospital: '#EF4444',
+    search: '#F59E0B'
+  };
+
+  const color = colors[type as keyof typeof colors] || '#6B7280';
+  
+  return L.divIcon({
+    html: `
+      <div style="
+        background-color: ${color};
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 3px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      ">
+        ${emoji}
+      </div>
+    `,
+    className: 'custom-div-icon',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+};
+
+const LocationUpdater: React.FC<{ center: { lat: number; lng: number }, zoom?: number }> = ({ center, zoom }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    map.setView([center.lat, center.lng], zoom || map.getZoom());
+  }, [center, zoom, map]);
+
+  return null;
+};
 
 export function InteractiveMap() {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [mapCenter, setMapCenter] = useState(PUNJAB_CENTER);
+  const [mapZoom, setMapZoom] = useState(DEFAULT_ZOOM);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [activeLayer, setActiveLayer] = useState<'weather' | 'crops' | 'market' | 'alerts'>('crops');
   const [visibleLayers, setVisibleLayers] = useState({
     weather: true,
     crops: true,
@@ -35,225 +158,107 @@ export function InteractiveMap() {
     alerts: true
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const { weatherData } = useWeather();
+  const [selectedLocation, setSelectedLocation] = useState<string>('Punjab, India');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
-  // Load AI suggestions with error handling
+  // Add CSS to ensure map fills container
   useEffect(() => {
-    const loadSuggestions = async () => {
-      try {
-        const farmerProfile = {
-          name: "Rajesh Kumar",
-          crops: ["rice", "tomato"],
-          location: mockData.farmer.location,
-          farmSize: mockData.farmer.farmSize
-        };
-        
-        const suggestions = await generateAISuggestions(
-          farmerProfile,
-          weatherData?.current,
-          mockData.cropHealth,
-          mockData.marketPrices
-        );
-        setAiSuggestions(suggestions.map(s => s.description));
-      } catch (error) {
-        console.error('Failed to load AI suggestions:', error);
-        // Set fallback suggestions
-        setAiSuggestions([
-          "Monitor crop health daily for signs of pest or disease",
-          "Adjust irrigation based on current weather conditions"
-        ]);
+    const style = document.createElement('style');
+    style.textContent = `
+      .leaflet-container {
+        height: 100% !important;
+        width: 100% !important;
+        border-radius: 0.5rem;
       }
-    };
+      .leaflet-control-container {
+        font-size: 12px;
+      }
+    `;
+    document.head.appendChild(style);
     
-    if (weatherData) {
-      loadSuggestions();
-    }
-  }, [weatherData]);
-
-  useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
-
-    try {
-      // Initialize map with error handling
-      const map = L.map(mapRef.current, {
-        zoomControl: true,
-        scrollWheelZoom: true,
-      }).setView(mockData.farmer.coordinates as [number, number], 12);
-
-      // Add OpenStreetMap tile layer as fallback
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-      }).addTo(map);
-
-      mapInstanceRef.current = map;
-
-      // Add farm plots
-      const farmMarkers: L.Marker[] = [];
-      mockData.farmPlots.forEach((plot) => {
-        const icon = L.divIcon({
-          html: `<div style="background: ${plot.health > 80 ? '#22c55e' : plot.health > 60 ? '#f59e0b' : '#ef4444'}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">🌾</div>`,
-          className: 'custom-div-icon',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        });
-
-        const marker = L.marker(plot.coordinates as [number, number], { icon })
-          .bindPopup(`
-            <div class="p-2">
-              <h3 class="font-semibold">${plot.name}</h3>
-              <p class="text-sm text-gray-600">Crop: ${plot.crop}</p>
-              <p class="text-sm text-gray-600">Area: ${plot.area}</p>
-              <p class="text-sm">Health: <span class="font-medium" style="color: ${plot.health > 80 ? '#22c55e' : plot.health > 60 ? '#f59e0b' : '#ef4444'}">${plot.health}%</span></p>
-              ${plot.issues.length > 0 ? `<p class="text-sm text-red-600">Issues: ${plot.issues.join(', ')}</p>` : ''}
-            </div>
-          `);
-        
-        farmMarkers.push(marker);
-        if (visibleLayers.crops) marker.addTo(map);
-      });
-
-      // Add market markers
-      const marketMarkers: L.Marker[] = [];
-      mockData.nearbyMarkets.forEach((market) => {
-        const icon = L.divIcon({
-          html: '<div style="background: #3b82f6; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center;">🛒</div>',
-          className: 'custom-div-icon',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        });
-
-        const marker = L.marker(market.coordinates as [number, number], { icon })
-          .bindPopup(`
-            <div class="p-2">
-              <h3 class="font-semibold">${market.name}</h3>
-              <p class="text-sm text-gray-600">Distance: ${market.distance}</p>
-              <div class="mt-2 space-y-1">
-                ${Object.entries(market.prices).map(([crop, price]) => 
-                  `<p class="text-sm">${crop}: ₹${price}</p>`
-                ).join('')}
-              </div>
-            </div>
-          `);
-        
-        marketMarkers.push(marker);
-        if (visibleLayers.market) marker.addTo(map);
-      });
-
-      // Add disease outbreak areas
-      const alertCircles: L.Circle[] = [];
-      mockData.diseaseOutbreaks.forEach((outbreak) => {
-        const circle = L.circle(outbreak.coordinates as [number, number], {
-          radius: outbreak.radius * 1000, // Convert km to meters
-          color: outbreak.severity === 'high' ? '#ef4444' : '#f59e0b',
-          fillColor: outbreak.severity === 'high' ? '#ef4444' : '#f59e0b',
-          fillOpacity: 0.2,
-          weight: 2
-        });
-
-        circle.bindPopup(`
-          <div class="p-2">
-            <h3 class="font-semibold text-red-600">⚠️ ${outbreak.name}</h3>
-            <p class="text-sm text-gray-600">Crop: ${outbreak.crop}</p>
-            <p class="text-sm text-gray-600">Severity: ${outbreak.severity}</p>
-            <p class="text-sm text-gray-600">Affected farms: ${outbreak.affectedFarms}</p>
-            <p class="text-sm text-gray-600">Radius: ${outbreak.radius}km</p>
-          </div>
-        `);
-        
-        alertCircles.push(circle);
-        if (visibleLayers.alerts) circle.addTo(map);
-      });
-
-      // Store references for layer toggling
-      (map as any)._farmMarkers = farmMarkers;
-      (map as any)._marketMarkers = marketMarkers;
-      (map as any)._alertCircles = alertCircles;
-
-      console.log('Map initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize map:', error);
-      toast.error('Failed to load map');
-    }
-
     return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
+      document.head.removeChild(style);
     };
   }, []);
 
-  // Handle layer visibility changes
-  useEffect(() => {
-    if (!mapInstanceRef.current) return;
-    
-    const map = mapInstanceRef.current;
-    const farmMarkers = (map as any)._farmMarkers || [];
-    const marketMarkers = (map as any)._marketMarkers || [];
-    const alertCircles = (map as any)._alertCircles || [];
-
-    // Toggle farm markers
-    farmMarkers.forEach((marker: L.Marker) => {
-      if (visibleLayers.crops) {
-        marker.addTo(map);
-      } else {
-        map.removeLayer(marker);
-      }
-    });
-
-    // Toggle market markers
-    marketMarkers.forEach((marker: L.Marker) => {
-      if (visibleLayers.market) {
-        marker.addTo(map);
-      } else {
-        map.removeLayer(marker);
-      }
-    });
-
-    // Toggle alert circles
-    alertCircles.forEach((circle: L.Circle) => {
-      if (visibleLayers.alerts) {
-        circle.addTo(map);
-      } else {
-        map.removeLayer(circle);
-      }
-    });
-
-    // Toggle weather layer (placeholder for future implementation)
-    // Weather layer would need proper tile service integration
-  }, [visibleLayers]);
-
+  // Get current location with Punjab fallback
   const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setView([latitude, longitude], 15);
-          toast.success("Location updated");
-        }
-      }, () => {
-        toast.error("Could not get your location");
-      });
-    } else {
-      toast.error("Geolocation is not supported");
+    if (!navigator.geolocation) {
+      console.log('Geolocation not supported, using Punjab fallback');
+      setMapCenter(PUNJAB_CENTER);
+      setMapZoom(DEFAULT_ZOOM);
+      setSelectedLocation('Punjab, India (Fallback Location)');
+      return;
     }
+
+    setIsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setUserLocation(location);
+        setMapCenter(location);
+        setMapZoom(14);
+        setSelectedLocation(`Your Location: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Error getting location, falling back to Punjab:', error);
+        setMapCenter(PUNJAB_CENTER);
+        setMapZoom(DEFAULT_ZOOM);
+        setSelectedLocation('Punjab, India (Location access denied - using fallback)');
+        setIsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
   };
 
-  const handleSearch = (query: string) => {
-    // Simple search functionality for crops and locations
-    const results = mockData.farmPlots.filter(plot => 
-      plot.name.toLowerCase().includes(query.toLowerCase()) ||
-      plot.crop.toLowerCase().includes(query.toLowerCase())
-    );
-    
-    if (results.length > 0 && mapInstanceRef.current) {
-      mapInstanceRef.current.setView(results[0].coordinates as [number, number], 15);
-      toast.success(`Found ${results.length} result(s)`);
-    } else {
-      toast.error("No results found");
+  // Search functionality using OpenStreetMap Nominatim API
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ' Punjab India')}&limit=3&countrycodes=in`
+      );
+      const results = await response.json();
+      
+      if (results && results.length > 0) {
+        const result = results[0];
+        const location = {
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon)
+        };
+        
+        setMapCenter(location);
+        setMapZoom(13);
+        setSelectedLocation(result.display_name);
+        
+        // Clear previous search results and add new ones
+        setSearchResults([{
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon),
+          name: result.display_name,
+          type: 'search'
+        }]);
+      } else {
+        // Fallback to Punjab if search fails
+        setMapCenter(PUNJAB_CENTER);
+        setMapZoom(DEFAULT_ZOOM);
+        setSelectedLocation('Punjab, India (Search fallback)');
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Search failed, using Punjab fallback:', error);
+      setMapCenter(PUNJAB_CENTER);
+      setMapZoom(DEFAULT_ZOOM);
+      setSelectedLocation('Punjab, India (Search error - using fallback)');
+      setSearchResults([]);
     }
+    setIsLoading(false);
   };
 
   const toggleLayer = (layer: keyof typeof visibleLayers) => {
@@ -263,38 +268,247 @@ export function InteractiveMap() {
     }));
   };
 
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
+  // Initialize with Punjab center on component mount
+  useEffect(() => {
+    setMapCenter(PUNJAB_CENTER);
+    setMapZoom(DEFAULT_ZOOM);
+    setSelectedLocation('Punjab, India');
+    
+    // Small delay to ensure proper map initialization
+    const timer = setTimeout(() => {
+      // Trigger a resize event to ensure map fills container
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  const getAllMarkers = () => {
+    const markers: any[] = [];
+
+    // Add farm plots if crops layer is visible
+    if (visibleLayers.crops) {
+      mockData.farmPlots.forEach((plot) => {
+        markers.push({
+          ...plot.coordinates,
+          name: plot.name,
+          type: 'crop',
+          data: plot
+        });
+      });
+    }
+
+    // Add markets if market layer is visible
+    if (visibleLayers.market) {
+      mockData.nearbyMarkets.forEach((market) => {
+        markers.push({
+          ...market.coordinates,
+          name: market.name,
+          type: 'market',
+          data: market
+        });
+      });
+      
+      // Add Punjab locations
+      punjabLocations.forEach((location) => {
+        if (location.type === 'hospital' || location.type === 'shelter') {
+          markers.push({
+            lat: location.lat,
+            lng: location.lng,
+            name: location.name,
+            type: 'market',
+            data: location
+          });
+        }
+      });
+    }
+
+    // Add disease alerts if alerts layer is visible
+    if (visibleLayers.alerts) {
+      mockData.diseaseOutbreaks.forEach((outbreak) => {
+        markers.push({
+          ...outbreak.coordinates,
+          name: outbreak.name,
+          type: 'disease',
+          data: outbreak
+        });
+      });
+    }
+
+    // Add search results
+    searchResults.forEach((result) => {
+      markers.push({
+        lat: result.lat,
+        lng: result.lng,
+        name: result.name,
+        type: 'search',
+        data: result
+      });
+    });
+
+    // Add user location if available
+    if (userLocation) {
+      markers.push({
+        ...userLocation,
+        name: "Your Location",
+        type: 'current',
+        data: { description: "Your current location" }
+      });
+    }
+
+    return markers;
+  };
+
+  const getMarkerIcon = (type: string) => {
+    const icons = {
+      crop: '🌾',
+      market: '🛒',
+      disease: '⚠️',
+      current: '📍',
+      search: '🔍',
+      shelter: '🏠',
+      hospital: '🏥'
+    };
+    return icons[type as keyof typeof icons] || '📍';
+  };
+
+  const renderMarkerPopup = (marker: any) => {
+    const { type, data, name } = marker;
+    
+    switch (type) {
+      case 'crop':
+        const healthColor = data.health > 80 ? '#22c55e' : data.health > 60 ? '#f59e0b' : '#ef4444';
+        return (
+          <div className="p-3 min-w-[200px]">
+            <h3 className="font-semibold text-sm mb-2">{name}</h3>
+            <div className="space-y-1 text-xs">
+              <div><strong>Crop:</strong> {data.crop}</div>
+              <div><strong>Area:</strong> {data.area}</div>
+              <div><strong>Health:</strong> 
+                <span style={{ color: healthColor, fontWeight: 'bold' }}> {data.health}%</span>
+              </div>
+              {data.issues?.length > 0 && (
+                <div className="mt-2 p-2 bg-yellow-50 rounded">
+                  <strong className="text-yellow-800">Issues:</strong><br/>
+                  <span className="text-yellow-700">{data.issues.join(', ')}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+        
+      case 'market':
+        return (
+          <div className="p-3 min-w-[200px]">
+            <h3 className="font-semibold text-sm mb-2">{name}</h3>
+            <div className="space-y-1 text-xs">
+              {data.distance && <div><strong>Distance:</strong> {data.distance}</div>}
+              {data.prices && (
+                <>
+                  <div><strong>Current Prices:</strong></div>
+                  {Object.entries(data.prices).map(([crop, price]: [string, any]) => 
+                    <div key={crop} className="ml-2">• {crop}: ₹{price}</div>
+                  )}
+                </>
+              )}
+              {data.description && <div><strong>Info:</strong> {data.description}</div>}
+              {data.phone && (
+                <div><strong>Phone:</strong> 
+                  <a href={`tel:${data.phone}`} className="text-blue-600 ml-1">{data.phone}</a>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+        
+      case 'disease':
+        const severityColor = data.severity === 'high' ? '#ef4444' : '#f59e0b';
+        return (
+          <div className="p-3 min-w-[200px]">
+            <h3 className="font-semibold text-sm mb-2 text-red-600">⚠️ {name}</h3>
+            <div className="space-y-1 text-xs">
+              <div><strong>Crop:</strong> {data.crop}</div>
+              <div><strong>Severity:</strong> 
+                <span style={{ color: severityColor, fontWeight: 'bold', textTransform: 'capitalize' }}> {data.severity}</span>
+              </div>
+              <div><strong>Affected Farms:</strong> {data.affectedFarms}</div>
+              <div><strong>Radius:</strong> {data.radius}km</div>
+            </div>
+          </div>
+        );
+        
+      default:
+        return (
+          <div className="p-2">
+            <h3 className="font-semibold text-sm">{name}</h3>
+            {data.description && <p className="text-xs text-gray-600 mt-1">{data.description}</p>}
+          </div>
+        );
+    }
   };
 
   const MapContent = () => (
-    <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-lg overflow-hidden">
-      <div ref={mapRef} className="w-full h-96 rounded-lg" />
+    <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-lg overflow-hidden">
+      <MapContainer
+        key={`${mapCenter.lat}-${mapCenter.lng}-${mapZoom}`} // Force remount when location changes
+        center={[mapCenter.lat, mapCenter.lng]}
+        zoom={mapZoom}
+        style={{ height: '100%', width: '100%', minHeight: '384px' }}
+        scrollWheelZoom={true}
+        zoomControl={true}
+        attributionControl={true}
+        maxZoom={18}
+        minZoom={6}
+        className="rounded-lg z-0"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={18}
+          crossOrigin="anonymous"
+        />
+        
+        {/* Render all markers */}
+        {getAllMarkers().map((marker, index) => (
+          <Marker
+            key={`${marker.type}-${index}-${marker.lat}-${marker.lng}`}
+            position={[marker.lat, marker.lng]}
+            icon={createCustomIcon(marker.type, getMarkerIcon(marker.type))}
+          >
+            <Popup>
+              {renderMarkerPopup(marker)}
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+      
+      {/* Loading overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">Getting your location...</p>
+          </div>
+        </div>
+      )}
       
       {/* Search Bar */}
       <div className="absolute top-2 left-2 flex gap-2 z-10">
         <div className="flex items-center bg-background/95 backdrop-blur-sm rounded-lg border shadow-lg border-primary/20">
           <Input
-            placeholder="Search crops, locations..."
+            placeholder="Search in Punjab..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             className="border-0 bg-transparent text-xs w-40 focus:ring-2 focus:ring-primary/20"
           />
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => handleSearch(searchQuery)}
+            onClick={handleSearch}
             className="h-8 px-2 hover:bg-primary/10"
           >
             <Search className="h-3 w-3" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 px-2 hover:bg-primary/10"
-          >
-            <Mic className="h-3 w-3" />
           </Button>
         </div>
       </div>
@@ -305,15 +519,20 @@ export function InteractiveMap() {
           size="sm"
           variant="ghost"
           onClick={getCurrentLocation}
+          disabled={isLoading}
           className="bg-background/95 backdrop-blur-sm shadow-lg border border-primary/20 hover:bg-primary/10 hover:scale-105 transition-all duration-200"
-          title="Get Current Location"
+          title="Get Current Location (with Punjab fallback)"
         >
-          <Target className="h-4 w-4" />
+          {isLoading ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          ) : (
+            <Target className="h-4 w-4" />
+          )}
         </Button>
         <Button
           size="sm"
           variant="ghost"
-          onClick={toggleFullscreen}
+          onClick={() => setIsFullscreen(true)}
           className="bg-background/95 backdrop-blur-sm shadow-lg border border-primary/20 hover:bg-primary/10 hover:scale-105 transition-all duration-200"
         >
           <Maximize2 className="h-4 w-4" />
@@ -323,16 +542,6 @@ export function InteractiveMap() {
       {/* Layer Controls */}
       <div className="absolute bottom-2 right-2 bg-background/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-primary/20 z-10">
         <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant={visibleLayers.weather ? 'default' : 'ghost'}
-            onClick={() => toggleLayer('weather')}
-            className="text-xs px-2 hover:scale-105 transition-all duration-200"
-            title="Weather Layer (Coming Soon)"
-            disabled
-          >
-            {visibleLayers.weather ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-          </Button>
           <Button
             size="sm"
             variant={visibleLayers.crops ? 'default' : 'ghost'}
@@ -363,37 +572,20 @@ export function InteractiveMap() {
         </div>
       </div>
 
-      {/* Weather Info */}
-      {weatherData && (
-        <div className="absolute bottom-2 left-2 bg-background/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-primary/20 z-10">
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-lg">🌤️</span>
-            <div>
-              <div className="font-medium text-primary">{Math.round(weatherData.current.temperature_2m)}°C</div>
-              <div className="text-muted-foreground">Clear</div>
-            </div>
+      {/* Status Indicator */}
+      <div className="absolute bottom-2 left-2 bg-background/95 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-primary/20 z-10">
+        <div className="flex items-center gap-2 text-xs">
+          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          <div>
+            <div className="font-medium text-primary">✅ Map Ready</div>
+            {selectedLocation && (
+              <div className="text-muted-foreground text-xs mt-1 max-w-40 truncate" title={selectedLocation}>
+                📍 {selectedLocation}
+              </div>
+            )}
           </div>
         </div>
-      )}
-
-      {/* AI Suggestions - Moved to avoid overlap */}
-      {aiSuggestions.length > 0 && (
-        <div className="absolute top-20 left-2 bg-background/95 backdrop-blur-sm rounded-lg p-3 max-w-xs shadow-lg border border-primary/20 z-20 animate-fade-in">
-          <h4 className="text-xs font-semibold mb-2 flex items-center gap-1 text-primary">
-            🤖 Smart Suggestions
-          </h4>
-          <div className="space-y-1">
-            {aiSuggestions.slice(0, 2).map((suggestion, index) => (
-              <p key={index} className="text-xs text-muted-foreground leading-relaxed">
-                • {suggestion.substring(0, 80)}...
-              </p>
-            ))}
-          </div>
-          <Button size="sm" variant="ghost" className="text-xs mt-2 p-0 h-auto text-primary hover:text-primary/80">
-            View All →
-          </Button>
-        </div>
-      )}
+      </div>
     </div>
   );
 
@@ -409,10 +601,10 @@ export function InteractiveMap() {
               </div>
               <div>
                 <span className="bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent">
-                  Interactive Farm Map
+                  Interactive Farm Map (Punjab)
                 </span>
                 <p className="text-xs text-muted-foreground font-normal mt-1">
-                  Monitor your fields, markets, and weather in real-time
+                  Monitor your fields, markets, and alerts with OpenStreetMap
                 </p>
               </div>
             </CardTitle>
@@ -424,28 +616,46 @@ export function InteractiveMap() {
             <div className="mt-4 flex flex-wrap gap-2">
               <Badge 
                 variant="outline" 
-                className="text-xs bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800 hover-scale"
+                className={`text-xs hover:scale-105 transition-transform cursor-pointer ${
+                  visibleLayers.crops 
+                    ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800' 
+                    : 'opacity-50'
+                }`}
+                onClick={() => toggleLayer('crops')}
               >
-                🌾 Farm Plots
+                🌾 Farm Plots ({mockData.farmPlots.length})
               </Badge>
               <Badge 
                 variant="outline" 
-                className="text-xs bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800 hover-scale"
+                className={`text-xs hover:scale-105 transition-transform cursor-pointer ${
+                  visibleLayers.market 
+                    ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800' 
+                    : 'opacity-50'
+                }`}
+                onClick={() => toggleLayer('market')}
               >
-                🛒 Markets
+                🛒 Markets ({mockData.nearbyMarkets.length + punjabLocations.length})
               </Badge>
               <Badge 
                 variant="outline" 
-                className="text-xs bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 border-red-200 dark:border-red-800 hover-scale"
+                className={`text-xs hover:scale-105 transition-transform cursor-pointer ${
+                  visibleLayers.alerts 
+                    ? 'bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 border-red-200 dark:border-red-800' 
+                    : 'opacity-50'
+                }`}
+                onClick={() => toggleLayer('alerts')}
               >
-                ⚠️ Disease Alerts
+                ⚠️ Disease Alerts ({mockData.diseaseOutbreaks.length})
               </Badge>
-              <Badge 
-                variant="outline" 
-                className="text-xs bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800 hover-scale"
-              >
-                🤖 AI Insights
-              </Badge>
+            </div>
+
+            {/* Map Instructions */}
+            <div className="mt-3 text-xs text-muted-foreground space-y-1">
+              <p>• Click markers to see detailed farm, market, and alert information</p>
+              <p>• Use search to find specific places in Punjab</p>
+              <p>• "Get Location" will use your location or fallback to Punjab</p>
+              <p>• Toggle layer buttons to show/hide different data types</p>
+              <p>• Map defaults to Punjab region for reliable farming data</p>
             </div>
           </CardContent>
         </Card>
@@ -457,99 +667,15 @@ export function InteractiveMap() {
           <DialogHeader className="p-4 pb-0">
             <DialogTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              Interactive Farm Map
+              Interactive Farm Map - Fullscreen View
+              <Button variant="ghost" size="sm" onClick={() => setIsFullscreen(false)} className="ml-auto">
+                <X className="h-4 w-4" />
+              </Button>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 min-h-0 p-4 pt-0">
-            <div className="relative w-full h-full">
-              <div ref={mapRef} className="w-full h-full rounded-lg" />
-              
-              {/* Fullscreen Search Bar */}
-              <div className="absolute top-4 left-4 flex gap-2">
-                <div className="flex items-center bg-background/95 backdrop-blur-sm rounded-lg border shadow-lg">
-                  <Input
-                    placeholder="Search crops, locations..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                    className="border-0 bg-transparent text-sm w-60"
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleSearch(searchQuery)}
-                    className="h-10 px-3"
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-10 px-3"
-                  >
-                    <Mic className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Fullscreen Layer Controls */}
-              <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant={visibleLayers.crops ? 'default' : 'ghost'}
-                    onClick={() => toggleLayer('crops')}
-                    className="text-sm px-3"
-                  >
-                    🌾 Crops
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={visibleLayers.market ? 'default' : 'ghost'}
-                    onClick={() => toggleLayer('market')}
-                    className="text-sm px-3"
-                  >
-                    🛒 Markets
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={visibleLayers.alerts ? 'default' : 'ghost'}
-                    onClick={() => toggleLayer('alerts')}
-                    className="text-sm px-3"
-                  >
-                    ⚠️ Alerts
-                  </Button>
-                </div>
-              </div>
-
-              {/* Fullscreen Weather Info */}
-              {weatherData && (
-                <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-xl">🌤️</span>
-                    <div>
-                      <div className="font-medium">{Math.round(weatherData.current.temperature_2m)}°C</div>
-                      <div className="text-xs text-muted-foreground">Clear Sky</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Fullscreen AI Suggestions */}
-              {aiSuggestions.length > 0 && (
-                <div className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg p-4 max-w-sm shadow-lg">
-                  <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                    🤖 Smart Suggestions
-                  </h4>
-                  <div className="space-y-2">
-                    {aiSuggestions.slice(0, 3).map((suggestion, index) => (
-                      <p key={index} className="text-xs text-muted-foreground leading-relaxed">
-                        • {suggestion}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-              )}
+            <div className="w-full h-full">
+              <MapContent />
             </div>
           </div>
         </DialogContent>
@@ -557,3 +683,5 @@ export function InteractiveMap() {
     </>
   );
 }
+
+// export default InteractiveMap; // Temporarily removed from site
