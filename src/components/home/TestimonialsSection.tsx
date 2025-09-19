@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, Quote } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 import rajeshKumarAvatar from "@/assets/rajesh-kumar-avatar.jpg";
 import priyaSharmaAvatar from "@/assets/priya-sharma-avatar.jpg";
 import muruganAvatar from "@/assets/murugan-avatar.jpg";
@@ -9,6 +10,8 @@ import harpreetSinghAvatar from "@/assets/harpreet-singh-avatar.jpg";
 import lakshmiDeviAvatar from "@/assets/lakshmi-devi-avatar.jpg";
 
 export function TestimonialsSection() {
+  const { t } = useTranslation();
+  
   const testimonials = [
     {
       name: "Rajesh Kumar",
@@ -81,10 +84,13 @@ export function TestimonialsSection() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            What Farmers Say{" "}
-            <span className="text-primary">About AgriSmart</span>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 break-words hyphens-auto leading-tight">
+            {t("testimonials.title")}
           </h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto break-words leading-relaxed mb-2">
+            {t("testimonials.subtitle")}
+            <span className="text-primary ml-1">About AgriSmart</span>
+          </p>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Real stories from farmers across India who have transformed their 
             farming practices and increased their income using our platform.
