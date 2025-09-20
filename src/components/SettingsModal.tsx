@@ -41,6 +41,20 @@ import {
   X
 } from "lucide-react";
 
+interface UserFormData {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+}
+
+interface SessionData {
+  id: string;
+  device: string;
+  location: string;
+  lastActive: string;
+  current: boolean;
+}
+
 interface SettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,7 +63,8 @@ interface SettingsModalProps {
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [notifications, setNotifications] = useState(true);
   const [language, setLanguage] = useState("en");
-  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState<UserFormData>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user, isLoaded } = useUser();
@@ -57,31 +72,88 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
   const handleSignOut = async () => {
     try {
+      setIsSubmitting(true);
       await signOut();
       toast.success("Signed out successfully");
       onOpenChange(false);
     } catch (error) {
-      toast.error("Failed to sign out");
+      console.error("Sign out error:", error);
+      toast.error(
+        error instanceof Error 
+          ? `Failed to sign out: ${error.message}` 
+          : "Failed to sign out. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteAccount = async () => {
     try {
-      if (user) {
-        await user.delete();
-        toast.success("Account deleted successfully");
-        onOpenChange(false);
+      setIsSubmitting(true);
+      if (!user) {
+        throw new Error("No user found");
       }
+
+      // Add confirmation check
+      const confirmDelete = window.confirm(
+        "Are you absolutely sure you want to delete your account? This action cannot be undone."
+      );
+      
+      if (!confirmDelete) {
+        return;
+      }
+
+      await user.delete();
+      toast.success("Account deleted successfully");
+      onOpenChange(false);
     } catch (error) {
-      toast.error("Failed to delete account");
+      console.error("Account deletion error:", error);
+      toast.error(
+        error instanceof Error 
+          ? `Failed to delete account: ${error.message}` 
+          : "Failed to delete account. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdateProfile = async () => {
-    toast.success("Profile updated successfully");
+    try {
+      setIsSubmitting(true);
+      
+      // Validate form data
+      if (!formData.firstName?.trim() || !formData.lastName?.trim()) {
+        toast.error("First name and last name are required");
+        return;
+      }
+
+      if (formData.phoneNumber && !/^\+?[\d\s-]{10,}$/.test(formData.phoneNumber)) {
+        toast.error("Please enter a valid phone number");
+        return;
+      }
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Update user data
+      if (user) {
+        // Here you would typically call your update API
+        // await updateUserProfile(user.id, formData);
+      }
+
+      toast.success("Profile updated successfully");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast.error("Failed to update profile. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const mockSessions = [
+  const mockSessions: SessionData[] = [
     {
       id: "1",
       device: "Chrome on Windows",
@@ -134,12 +206,19 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 <CardContent className="space-y-6">
                   {/* Profile Picture */}
                   <div className="flex items-center gap-6">
-                    <Avatar className="w-20 h-20">
-                      <AvatarImage src={user?.imageUrl} />
-                      <AvatarFallback className="text-lg">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative group">
+                      <Avatar className="w-20 h-20 ring-2 ring-background">
+                        <AvatarImage src={user?.imageUrl} />
+                        <AvatarFallback className="text-lg bg-primary/10 text-primary">
+                          {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="sm" className="text-white" onClick={() => openUserProfile()}>
+                          <Camera className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                     <div>
                       <Button variant="outline" size="sm" onClick={() => openUserProfile()}>
                         <Camera className="h-4 w-4 mr-2" />
@@ -154,33 +233,43 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <Separator />
 
                   {/* Personal Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
+                      <Label htmlFor="firstName" className="font-medium">First Name</Label>
                       <Input 
                         id="firstName" 
-                        defaultValue={user?.firstName || ""} 
+                        value={formData.firstName || user?.firstName || ""} 
+                        onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                         placeholder="Enter first name"
+                        className="bg-card"
+                        required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
+                      <Label htmlFor="lastName" className="font-medium">Last Name</Label>
                       <Input 
                         id="lastName" 
-                        defaultValue={user?.lastName || ""} 
+                        value={formData.lastName || user?.lastName || ""} 
+                        onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                         placeholder="Enter last name"
+                        className="bg-card"
+                        required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email" className="font-medium">Email Address</Label>
                       <div className="flex items-center gap-2">
                         <Input 
                           id="email" 
                           type="email" 
                           defaultValue={user?.primaryEmailAddress?.emailAddress || ""} 
                           disabled
+                          className="bg-muted"
                         />
-                        <Badge variant={user?.primaryEmailAddress?.verification?.status === "verified" ? "default" : "secondary"}>
+                        <Badge 
+                          variant={user?.primaryEmailAddress?.verification?.status === "verified" ? "default" : "secondary"}
+                          className={user?.primaryEmailAddress?.verification?.status === "verified" ? "bg-success/10 text-success-foreground" : "bg-warning/10 text-warning-foreground"}
+                        >
                           {user?.primaryEmailAddress?.verification?.status === "verified" ? (
                             <>
                               <Check className="h-3 w-3 mr-1" />
@@ -196,15 +285,20 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone" className="font-medium">Phone Number</Label>
                       <div className="flex items-center gap-2">
                         <Input 
                           id="phone" 
                           type="tel" 
-                          defaultValue={user?.primaryPhoneNumber?.phoneNumber || ""} 
+                          value={formData.phoneNumber || user?.primaryPhoneNumber?.phoneNumber || ""} 
+                          onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
                           placeholder="+1 234 567 8900"
+                          className="bg-card"
                         />
-                        <Badge variant={user?.primaryPhoneNumber?.verification?.status === "verified" ? "default" : "secondary"}>
+                        <Badge 
+                          variant={user?.primaryPhoneNumber?.verification?.status === "verified" ? "default" : "secondary"}
+                          className={user?.primaryPhoneNumber?.verification?.status === "verified" ? "bg-success/10 text-success-foreground" : "bg-warning/10 text-warning-foreground"}
+                        >
                           {user?.primaryPhoneNumber?.verification?.status === "verified" ? (
                             <>
                               <Check className="h-3 w-3 mr-1" />
@@ -221,9 +315,23 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     </div>
                   </div>
 
-                  <div className="flex justify-end">
-                    <Button onClick={handleUpdateProfile}>
-                      Update Profile
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button 
+                      onClick={handleUpdateProfile} 
+                      className="w-full sm:w-auto"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <span className="animate-spin mr-2">⏳</span>
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          Update Profile
+                        </>
+                      )}
                     </Button>
                   </div>
                 </CardContent>

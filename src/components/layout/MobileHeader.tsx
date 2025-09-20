@@ -13,6 +13,7 @@ import {
   Bell,
   Cloud,
   Home, 
+  Shield,
   Camera, 
   ShoppingCart,
   Languages, 
@@ -61,6 +62,7 @@ export function MobileHeader() {
     { name: "Crops & Hybrids", path: "/hybrid", icon: Leaf },
     { name: "News & Blogs", path: "/blogs", icon: MessageCircle },
     { name: "Weather", path: "/weather", icon: Cloud },
+    { name: "Role Login", path: "/role-login", icon: Shield },
   ];
 
   return (

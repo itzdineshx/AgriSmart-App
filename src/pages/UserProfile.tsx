@@ -22,13 +22,14 @@ import {
   Settings,
   Leaf,
   Star,
-  Edit
+  Edit,
+  Trash2
 } from "lucide-react";
 
 export default function UserProfile() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   
-  const farmerData = {
+  const [farmerData, setFarmerData] = useState({
     name: "Rajesh Kumar",
     location: "Village Rampur, Punjab",
     phone: "+91 98765 43210",
@@ -37,9 +38,38 @@ export default function UserProfile() {
     farmSize: "15 acres",
     crops: ["Wheat", "Rice", "Sugarcane"],
     experience: "12 years",
+  });
+
+  // CRUD for crops
+  const [newCrop, setNewCrop] = useState("");
+  const [editCropIdx, setEditCropIdx] = useState<number|null>(null);
+  const [editCropName, setEditCropName] = useState("");
+
+  const handleAddCrop = () => {
+    if (newCrop.trim()) {
+      setFarmerData({ ...farmerData, crops: [...farmerData.crops, newCrop.trim()] });
+      setNewCrop("");
+    }
+  };
+  const handleEditCrop = (idx: number) => {
+    setEditCropIdx(idx);
+    setEditCropName(farmerData.crops[idx]);
+  };
+  const handleUpdateCrop = () => {
+    if (editCropIdx !== null && editCropName.trim()) {
+      const updatedCrops = [...farmerData.crops];
+      updatedCrops[editCropIdx] = editCropName.trim();
+      setFarmerData({ ...farmerData, crops: updatedCrops });
+      setEditCropIdx(null);
+      setEditCropName("");
+    }
+  };
+  const handleDeleteCrop = (idx: number) => {
+    setFarmerData({ ...farmerData, crops: farmerData.crops.filter((_, i) => i !== idx) });
   };
 
-  const activities = [
+  // CRUD for activities
+  const [activities, setActivities] = useState([
     {
       type: "diagnosis",
       title: "Wheat Disease Detected",
@@ -61,7 +91,40 @@ export default function UserProfile() {
       date: "2 weeks ago",
       status: "delivered",
     },
-  ];
+  ]);
+  const [activityForm, setActivityForm] = useState({
+    type: "diagnosis",
+    title: "",
+    description: "",
+    date: "",
+    status: "pending"
+  });
+  const [editActivityIdx, setEditActivityIdx] = useState<number|null>(null);
+
+  const handleAddActivity = () => {
+    if (activityForm.title && activityForm.description) {
+      setActivities([...activities, { ...activityForm }]);
+      setActivityForm({ type: "diagnosis", title: "", description: "", date: "", status: "pending" });
+    }
+  };
+  const handleEditActivity = (idx: number) => {
+    setEditActivityIdx(idx);
+    setActivityForm({ ...activities[idx] });
+  };
+  const handleUpdateActivity = () => {
+    if (editActivityIdx !== null) {
+      const updated = [...activities];
+      updated[editActivityIdx] = { ...activityForm };
+      setActivities(updated);
+      setEditActivityIdx(null);
+      setActivityForm({ type: "diagnosis", title: "", description: "", date: "", status: "pending" });
+    }
+  };
+  const handleDeleteActivity = (idx: number) => {
+    setActivities(activities.filter((_, i) => i !== idx));
+  };
+
+  // ...existing code...
 
   const stats = [
     { label: "Diagnoses", value: "23", icon: Camera },
@@ -101,6 +164,7 @@ export default function UserProfile() {
                   <Badge className="mt-2 bg-success text-success-foreground">
                     Verified Farmer
                   </Badge>
+            Trash2
                 </div>
               </div>
 
@@ -179,9 +243,25 @@ export default function UserProfile() {
                   <div>
                     <h4 className="font-semibold mb-2">Main Crops</h4>
                     <div className="flex flex-wrap gap-2">
-                      {farmerData.crops.map((crop) => (
-                        <Badge key={crop} variant="secondary">{crop}</Badge>
+                      {farmerData.crops.map((crop, idx) => (
+                        <span key={crop} className="flex items-center gap-1">
+                          {editCropIdx === idx ? (
+                            <>
+                              <input value={editCropName} onChange={e => setEditCropName(e.target.value)} className="border rounded px-2 py-1 text-sm" />
+                              <Button size="sm" variant="outline" onClick={handleUpdateCrop}>Save</Button>
+                              <Button size="sm" variant="ghost" onClick={() => { setEditCropIdx(null); setEditCropName(""); }}>Cancel</Button>
+                            </>
+                          ) : (
+                            <>
+                              <Badge variant="secondary">{crop}</Badge>
+                              <Button size="sm" variant="ghost" onClick={() => handleEditCrop(idx)}><Edit className="h-3 w-3" /></Button>
+                              <Button size="sm" variant="ghost" onClick={() => handleDeleteCrop(idx)}><Trash2 className="h-3 w-3" /></Button>
+                            </>
+                          )}
+                        </span>
                       ))}
+                      <input value={newCrop} onChange={e => setNewCrop(e.target.value)} placeholder="Add crop" className="border rounded px-2 py-1 text-sm" />
+                      <Button size="sm" variant="hero" onClick={handleAddCrop}>Add</Button>
                     </div>
                   </div>
                 </div>
@@ -190,6 +270,59 @@ export default function UserProfile() {
 
             {/* Quick Actions */}
             <QuickActions userType="farmer" />
+
+            {/* Activities CRUD */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Activities</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {activities.map((activity, idx) => (
+                    <div key={idx} className="border rounded p-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                      <div>
+                        <h4 className="font-semibold">{activity.title}</h4>
+                        <p className="text-sm text-muted-foreground">{activity.description}</p>
+                        <span className="text-xs text-muted-foreground">{activity.date}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleEditActivity(idx)}><Edit className="h-3 w-3" />Edit</Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDeleteActivity(idx)}><Trash2 className="h-3 w-3" />Delete</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 space-y-2">
+                  <h4 className="font-semibold">{editActivityIdx !== null ? "Edit Activity" : "Add Activity"}</h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <input name="title" value={activityForm.title} onChange={e => setActivityForm({ ...activityForm, title: e.target.value })} placeholder="Title" className="border rounded px-2 py-1" />
+                    <input name="description" value={activityForm.description} onChange={e => setActivityForm({ ...activityForm, description: e.target.value })} placeholder="Description" className="border rounded px-2 py-1" />
+                    <input name="date" value={activityForm.date} onChange={e => setActivityForm({ ...activityForm, date: e.target.value })} placeholder="Date" className="border rounded px-2 py-1" />
+                    <select name="type" value={activityForm.type} onChange={e => setActivityForm({ ...activityForm, type: e.target.value })} className="border rounded px-2 py-1">
+                      <option value="diagnosis">Diagnosis</option>
+                      <option value="market">Market</option>
+                      <option value="purchase">Purchase</option>
+                    </select>
+                    <select name="status" value={activityForm.status} onChange={e => setActivityForm({ ...activityForm, status: e.target.value })} className="border rounded px-2 py-1">
+                      <option value="pending">Pending</option>
+                      <option value="completed">Completed</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="delivered">Delivered</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    {editActivityIdx !== null ? (
+                      <Button size="sm" variant="hero" onClick={handleUpdateActivity}>Update</Button>
+                    ) : (
+                      <Button size="sm" variant="hero" onClick={handleAddActivity}>Add</Button>
+                    )}
+                    {editActivityIdx !== null && (
+                      <Button size="sm" variant="ghost" onClick={() => { setEditActivityIdx(null); setActivityForm({ type: "diagnosis", title: "", description: "", date: "", status: "pending" }); }}>Cancel</Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Column - Sidebar */}

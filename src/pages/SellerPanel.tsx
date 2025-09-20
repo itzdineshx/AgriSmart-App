@@ -39,7 +39,8 @@ export default function SellerPanel() {
     { label: "Rating", value: "4.8", icon: Star, color: "warning" },
   ];
 
-  const products = [
+  // CRUD state for products
+  const [products, setProducts] = useState([
     {
       id: 1,
       name: "Premium Tomatoes",
@@ -49,7 +50,8 @@ export default function SellerPanel() {
       sold: 150,
       status: "active",
       rating: 4.8,
-      image: premiumTomatoes
+      image: premiumTomatoes,
+      description: "Fresh premium tomatoes from organic farms."
     },
     {
       id: 2,
@@ -60,7 +62,8 @@ export default function SellerPanel() {
       sold: 25,
       status: "low-stock",
       rating: 4.9,
-      image: organicWheatSeeds
+      image: organicWheatSeeds,
+      description: "High-quality organic wheat seeds for healthy crops."
     },
     {
       id: 3,
@@ -71,9 +74,82 @@ export default function SellerPanel() {
       sold: 75,
       status: "out-of-stock",
       rating: 4.6,
-      image: npkFertilizer
+      image: npkFertilizer,
+      description: "Balanced NPK fertilizer for all crop types."
     }
-  ];
+  ]);
+
+  // Add/Edit/Delete state
+  const [editProductId, setEditProductId] = useState<number|null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    price: "",
+    stock: "",
+    description: ""
+  });
+
+  // Add product handler
+  const handleAddProduct = () => {
+    if (!formData.name || !formData.category || !formData.price || !formData.stock) return;
+    const newProduct = {
+      id: products.length ? Math.max(...products.map(p => p.id)) + 1 : 1,
+      name: formData.name,
+      category: formData.category,
+      price: Number(formData.price),
+      stock: Number(formData.stock),
+      sold: 0,
+      status: Number(formData.stock) === 0 ? "out-of-stock" : Number(formData.stock) < 20 ? "low-stock" : "active",
+      rating: 0,
+      image: premiumTomatoes, // default image
+      description: formData.description || ""
+    };
+    setProducts([...products, newProduct]);
+    setShowAddProduct(false);
+    setFormData({ name: "", category: "", price: "", stock: "", description: "" });
+  };
+
+  // Edit product handler
+  const handleEditProduct = (id: number) => {
+    const product = products.find(p => p.id === id);
+    if (product) {
+      setEditProductId(id);
+      setFormData({
+        name: product.name,
+        category: product.category,
+        price: String(product.price),
+        stock: String(product.stock),
+        description: product.description || ""
+      });
+      setShowAddProduct(true);
+    }
+  };
+
+  // Update product handler
+  const handleUpdateProduct = () => {
+    setProducts(products.map(p => p.id === editProductId ? {
+      ...p,
+      name: formData.name,
+      category: formData.category,
+      price: Number(formData.price),
+      stock: Number(formData.stock),
+      status: Number(formData.stock) === 0 ? "out-of-stock" : Number(formData.stock) < 20 ? "low-stock" : "active",
+      description: formData.description
+    } : p));
+    setEditProductId(null);
+    setShowAddProduct(false);
+    setFormData({ name: "", category: "", price: "", stock: "", description: "" });
+  };
+
+  // Delete product handler
+  const handleDeleteProduct = (id: number) => {
+    setProducts(products.filter(p => p.id !== id));
+  };
+
+  // Form change handler
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.id || e.target.name]: e.target.value });
+  };
 
   const recentOrders = [
     {
@@ -221,7 +297,7 @@ export default function SellerPanel() {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditProduct(product.id)}>
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
@@ -229,7 +305,7 @@ export default function SellerPanel() {
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleDeleteProduct(product.id)}>
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
@@ -249,18 +325,18 @@ export default function SellerPanel() {
       <CardContent className="space-y-6">
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="productName">Product Name</Label>
-            <Input id="productName" placeholder="Enter product name" />
+            <Label htmlFor="name">Product Name</Label>
+            <Input id="name" value={formData.name} onChange={handleFormChange} placeholder="Enter product name" />
           </div>
           <div>
             <Label htmlFor="category">Category</Label>
-            <select id="category" className="w-full p-2 border rounded-md">
-              <option>Select category</option>
-              <option>Vegetables</option>
-              <option>Fruits</option>
-              <option>Seeds</option>
-              <option>Fertilizers</option>
-              <option>Tools</option>
+            <select id="category" value={formData.category} onChange={handleFormChange} className="w-full p-2 border rounded-md">
+              <option value="">Select category</option>
+              <option value="Vegetables">Vegetables</option>
+              <option value="Fruits">Fruits</option>
+              <option value="Seeds">Seeds</option>
+              <option value="Fertilizers">Fertilizers</option>
+              <option value="Tools">Tools</option>
             </select>
           </div>
         </div>
@@ -268,17 +344,17 @@ export default function SellerPanel() {
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="price">Price (₹)</Label>
-            <Input id="price" type="number" placeholder="Enter price" />
+            <Input id="price" type="number" value={formData.price} onChange={handleFormChange} placeholder="Enter price" />
           </div>
           <div>
             <Label htmlFor="stock">Stock Quantity</Label>
-            <Input id="stock" type="number" placeholder="Enter stock quantity" />
+            <Input id="stock" type="number" value={formData.stock} onChange={handleFormChange} placeholder="Enter stock quantity" />
           </div>
         </div>
 
         <div>
           <Label htmlFor="description">Description</Label>
-          <Textarea id="description" placeholder="Describe your product..." />
+          <Textarea id="description" value={formData.description} onChange={handleFormChange} placeholder="Describe your product..." />
         </div>
 
         <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
@@ -288,14 +364,21 @@ export default function SellerPanel() {
         </div>
 
         <div className="flex gap-4">
-          <Button variant="hero" className="flex-1">
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Add Product
-          </Button>
+          {editProductId ? (
+            <Button variant="hero" className="flex-1" onClick={handleUpdateProduct}>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Update Product
+            </Button>
+          ) : (
+            <Button variant="hero" className="flex-1" onClick={handleAddProduct}>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Add Product
+            </Button>
+          )}
           <Button 
             variant="outline" 
             className="flex-1"
-            onClick={() => setShowAddProduct(false)}
+            onClick={() => { setShowAddProduct(false); setEditProductId(null); setFormData({ name: "", category: "", price: "", stock: "", description: "" }); }}
           >
             Cancel
           </Button>

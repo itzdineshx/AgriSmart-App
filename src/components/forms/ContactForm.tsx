@@ -66,9 +66,9 @@ export function ContactForm({ onSubmit, className = "" }: ContactFormProps) {
   };
 
   return (
-    <Card className={`shadow-elegant ${className}`}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className={`shadow-md bg-card ${className}`}>
+      <CardHeader className="space-y-1">
+        <CardTitle className="flex items-center gap-2 text-card-foreground">
           <MessageCircle className="h-5 w-5 text-primary" />
           Contact Support
         </CardTitle>
@@ -137,33 +137,23 @@ export function ContactForm({ onSubmit, className = "" }: ContactFormProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="message">Message</Label>
-            <Textarea
-              id="message"
-              value={formData.message}
-              onChange={(e) => handleChange("message", e.target.value)}
-              required
-              placeholder="Please provide detailed information about your inquiry..."
-              rows={5}
-            />
+          <div className="flex justify-end mt-6">
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+              size="lg"
+            >
+              {isSubmitting ? (
+                "Sending..."
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Message
+                </>
+              )}
+            </Button>
           </div>
-
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="w-full"
-            size="lg"
-          >
-            {isSubmitting ? (
-              "Sending..."
-            ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Send Message
-              </>
-            )}
-          </Button>
         </form>
       </CardContent>
     </Card>

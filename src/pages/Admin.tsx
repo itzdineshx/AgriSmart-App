@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import { QuickActions } from '@/components/dashboard/QuickActions';
@@ -36,7 +39,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 
 // Mock data for demonstration
-const mockUsers = [
+const initialUsers = [
   { id: 1, name: 'John Farmer', email: 'john@farm.com', role: 'user', status: 'active', joinDate: '2024-01-15' },
   { id: 2, name: 'Sarah Seller', email: 'sarah@seller.com', role: 'seller', status: 'active', joinDate: '2024-01-20' },
   { id: 3, name: 'Mike Producer', email: 'mike@produce.com', role: 'user', status: 'inactive', joinDate: '2024-02-01' },
@@ -60,6 +63,74 @@ const mockSystemHealth = {
 };
 
 export default function Admin() {
+  // CRUD state for users
+  const [users, setUsers] = useState(initialUsers);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [editUserId, setEditUserId] = useState<number|null>(null);
+  const [userForm, setUserForm] = useState({
+    name: '',
+    email: '',
+    role: 'user',
+    status: 'active',
+    joinDate: ''
+  });
+
+  // Add user handler
+  const handleAddUser = () => {
+    if (!userForm.name || !userForm.email) return;
+    const newUser = {
+      id: users.length ? Math.max(...users.map(u => u.id)) + 1 : 1,
+      ...userForm
+    };
+    setUsers([...users, newUser]);
+    setShowUserForm(false);
+    setUserForm({ name: '', email: '', role: 'user', status: 'active', joinDate: '' });
+  };
+
+  // Edit user handler
+  const handleEditUser = (id: number) => {
+    const user = users.find(u => u.id === id);
+    if (user) {
+      setEditUserId(id);
+      setUserForm({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        joinDate: user.joinDate
+      });
+      setShowUserForm(true);
+    }
+  };
+
+  // Update user handler
+  const handleUpdateUser = () => {
+    setUsers(users.map(u => u.id === editUserId ? {
+      ...u,
+      ...userForm
+    } : u));
+    setEditUserId(null);
+    setShowUserForm(false);
+    setUserForm({ name: '', email: '', role: 'user', status: 'active', joinDate: '' });
+  };
+
+  // Delete user handler
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+
+  const handleDeleteUser = () => {
+    if (userToDelete === null) return;
+    setUsers(users.filter(u => u.id !== userToDelete));
+    setUserToDelete(null);
+    toast({
+      title: "User deleted successfully",
+      description: "The user account has been permanently removed.",
+    });
+  };
+
+  // Form change handler
+  const handleUserFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setUserForm({ ...userForm, [e.target.name]: e.target.value });
+  };
   const { userRole, logout } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('dashboard');
@@ -84,39 +155,81 @@ export default function Admin() {
   );
 
   const UserRow = ({ user }: any) => (
-    <div className="flex items-center justify-between p-4 border rounded-lg">
-      <div className="flex items-center space-x-4">
-        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-          <Users className="h-5 w-5 text-primary" />
-        </div>
-        <div>
-          <p className="font-medium">{user.name}</p>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
+    <div className="grid grid-cols-6 gap-4 p-4 items-center border-t hover:bg-muted/30 transition-colors">
+      <div className="col-span-2">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+            <Users className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <div className="font-medium">{user.name}</div>
+            <div className="text-sm text-muted-foreground">{user.email}</div>
+          </div>
         </div>
       </div>
-      <div className="flex items-center space-x-3">
-        <Badge variant={user.role === 'seller' ? 'default' : 'secondary'}>
+      <div>
+        <Badge variant={user.role === 'seller' ? 'default' : 'secondary'} className="capitalize">
           {user.role}
         </Badge>
+      </div>
+      <div>
         <Badge 
           variant={
-            user.status === 'active' ? 'default' : 
-            user.status === 'pending' ? 'secondary' : 'outline'
+            user.status === 'active' ? 'success' : 
+            user.status === 'pending' ? 'warning' : 
+            'secondary'
           }
+          className="capitalize"
         >
           {user.status}
         </Badge>
-        <div className="flex space-x-1">
-          <Button size="sm" variant="ghost">
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="ghost">
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="ghost" className="text-destructive">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+      </div>
+      <div className="text-muted-foreground text-sm">
+        {user.joinDate}
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => handleEditUser(user.id)}
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-destructive hover:text-destructive/90"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Delete User Account
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete {user.name}'s account? This action cannot be undone
+                and will permanently remove all their data from our servers.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => {
+                  setUserToDelete(user.id);
+                  handleDeleteUser();
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete Account
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
@@ -250,17 +363,126 @@ export default function Admin() {
                   Filter
                 </Button>
               </div>
-              <Button>
+              <Button onClick={() => { setShowUserForm(true); setEditUserId(null); setUserForm({ name: '', email: '', role: 'user', status: 'active', joinDate: '' }); }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add User
               </Button>
             </div>
 
-            <div className="space-y-4">
-              {mockUsers.map(user => (
-                <UserRow key={user.id} user={user} />
-              ))}
-            </div>
+            {/* User Form Modal */}
+            {showUserForm && (
+              <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="bg-card rounded-lg shadow-lg p-6 w-full max-w-md border">
+                  <div className="flex items-center gap-2 mb-6">
+                    {editUserId ? <Edit className="h-5 w-5 text-primary" /> : <Plus className="h-5 w-5 text-primary" />}
+                    <h2 className="text-xl font-semibold text-card-foreground">{editUserId ? 'Edit User' : 'Add User'}</h2>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input 
+                        id="name" 
+                        name="name" 
+                        value={userForm.name} 
+                        onChange={handleUserFormChange} 
+                        placeholder="Enter full name" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input 
+                        id="email" 
+                        name="email" 
+                        type="email" 
+                        value={userForm.email} 
+                        onChange={handleUserFormChange} 
+                        placeholder="Enter email address" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Role</Label>
+                      <Select name="role" value={userForm.role} onValueChange={(value) => handleUserFormChange({ target: { name: 'role', value } })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">User</SelectItem>
+                          <SelectItem value="seller">Seller</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="status">Status</Label>
+                      <Select name="status" value={userForm.status} onValueChange={(value) => handleUserFormChange({ target: { name: 'status', value } })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="joinDate">Join Date</Label>
+                      <Input 
+                        id="joinDate" 
+                        name="joinDate" 
+                        type="date" 
+                        value={userForm.joinDate} 
+                        onChange={handleUserFormChange} 
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-4 mt-6">
+                    <Button 
+                      variant="default" 
+                      className="flex-1" 
+                      onClick={editUserId ? handleUpdateUser : handleAddUser}
+                    >
+                      {editUserId ? 'Update' : 'Add'} User
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1" 
+                      onClick={() => { 
+                        setShowUserForm(false); 
+                        setEditUserId(null); 
+                        setUserForm({ name: '', email: '', role: 'user', status: 'active', joinDate: '' }); 
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <Card>
+              <CardContent className="p-0">
+                <div className="rounded-md border">
+                  <div className="grid grid-cols-6 gap-4 p-4 bg-muted/50 text-sm font-medium">
+                    <div className="col-span-2">User</div>
+                    <div>Role</div>
+                    <div>Status</div>
+                    <div>Join Date</div>
+                    <div className="text-right">Actions</div>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {users
+                      .filter(user => 
+                        user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map(user => (
+                        <UserRow key={user.id} user={user} />
+                      ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Content Tab */}
