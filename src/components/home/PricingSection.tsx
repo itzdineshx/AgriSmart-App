@@ -81,17 +81,11 @@ export function PricingSection() {
   ];
 
   return (
-        <section className="py-20 bg-gradient-card relative overflow-hidden">
-      {/* Background Pattern */}
+    <section className="py-20 bg-gradient-card relative overflow-hidden">
+      {/* Background Elements */}
       <div className="absolute inset-0 opacity-5">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <pattern id="pricing-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-              <path d="M.5 100V.5H100" fill="none" stroke="currentColor" strokeOpacity="0.1"></path>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#pricing-pattern)"></rect>
-        </svg>
+        <div className="absolute top-20 left-20 w-60 h-60 border border-primary rounded-full animate-pulse" />
+        <div className="absolute bottom-20 right-20 w-40 h-40 border border-secondary rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

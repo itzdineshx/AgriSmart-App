@@ -1,4 +1,3 @@
-import { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,26 +8,23 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { FloatingChatbot } from "@/components/FloatingChatbot";
-import { LoadingScreen } from "@/components/LoadingScreen";
-
-// Lazy load pages
-const Index = lazy(() => import("./pages/Index"));
-const Diagnose = lazy(() => import("./pages/Diagnose"));
-const Buy = lazy(() => import("./pages/Buy"));
-const MarketAnalysis = lazy(() => import("./pages/MarketAnalysis"));
-const UserProfile = lazy(() => import("./pages/UserProfile"));
-const SellerPanel = lazy(() => import("./pages/SellerPanel"));
-const GovernmentSchemes = lazy(() => import("./pages/GovernmentSchemes"));
-const Weather = lazy(() => import("./pages/Weather"));
-const Blog = lazy(() => import("./pages/Blog"));
-const Auth = lazy(() => import("./pages/Auth"));
-const RoleLogin = lazy(() => import("./pages/RoleLogin"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const Chatbot = lazy(() => import("./pages/Chatbot"));
-const Admin = lazy(() => import("./pages/Admin"));
-const Recommendations = lazy(() => import("./pages/Recommendations"));
-const Hybrid = lazy(() => import("./pages/Hybrid"));
-const Community = lazy(() => import("./pages/Community"));
+import Index from "./pages/Index";
+import Diagnose from "./pages/Diagnose";
+import Buy from "./pages/Buy";
+import MarketAnalysis from "./pages/MarketAnalysis";
+import UserProfile from "./pages/UserProfile";
+import SellerPanel from "./pages/SellerPanel";
+import GovernmentSchemes from "./pages/GovernmentSchemes";
+import Weather from "./pages/Weather";
+import Blog from "./pages/Blog";
+import Auth from "./pages/Auth";
+import RoleLogin from "./pages/RoleLogin";
+import NotFound from "./pages/NotFound";
+import Chatbot from "./pages/Chatbot";
+import Admin from "./pages/Admin";
+import Recommendations from "./pages/Recommendations";
+import Hybrid from "./pages/Hybrid";
+import Community from "./pages/Community";
 
 const queryClient = new QueryClient();
 
@@ -42,34 +38,16 @@ const App = () => (
           <AuthProvider>
             <Routes>
             {/* Home page without layout to show custom design */}
-            <Route path="/" element={
-              <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                <Layout><Index /></Layout>
-              </Suspense>
-            } />
+            <Route path="/" element={<Layout><Index /></Layout>} />
             
             {/* All other pages with layout */}
-            <Route path="/diagnose" element={
-              <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                <Layout><Diagnose /></Layout>
-              </Suspense>
-            } />
-            <Route path="/buy" element={
-              <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                <Layout><Buy /></Layout>
-              </Suspense>
-            } />
-            <Route path="/market-analysis" element={
-              <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                <Layout><MarketAnalysis /></Layout>
-              </Suspense>
-            } />
+            <Route path="/diagnose" element={<Layout><Diagnose /></Layout>} />
+            <Route path="/buy" element={<Layout><Buy /></Layout>} />
+            <Route path="/market-analysis" element={<Layout><MarketAnalysis /></Layout>} />
             <Route path="/user-profile" element={
-              <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                <ProtectedRoute requiredRole="user">
-                  <Layout><UserProfile /></Layout>
-                </ProtectedRoute>
-              </Suspense>
+              <ProtectedRoute requiredRole="user">
+                <Layout><UserProfile /></Layout>
+              </ProtectedRoute>
             } />
             <Route path="/seller-panel" element={
               <ProtectedRoute requiredRole="seller">

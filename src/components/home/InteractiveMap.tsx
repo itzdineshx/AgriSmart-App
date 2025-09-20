@@ -448,18 +448,18 @@ export function InteractiveMap() {
   };
 
   const MapContent = () => (
-    <div className="relative w-full h-[500px] bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-2xl border border-primary/10">
+    <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-lg overflow-hidden">
       <MapContainer
-        key={`${mapCenter.lat}-${mapCenter.lng}-${mapZoom}`}
+        key={`${mapCenter.lat}-${mapCenter.lng}-${mapZoom}`} // Force remount when location changes
         center={[mapCenter.lat, mapCenter.lng]}
         zoom={mapZoom}
-        style={{ height: '100%', width: '100%', minHeight: '500px' }}
+        style={{ height: '100%', width: '100%', minHeight: '384px' }}
         scrollWheelZoom={true}
         zoomControl={true}
         attributionControl={true}
         maxZoom={18}
         minZoom={6}
-        className="rounded-xl z-0"
+        className="rounded-lg z-0"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -591,103 +591,71 @@ export function InteractiveMap() {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-12">
-        <Card className="shadow-2xl bg-white dark:bg-slate-900 border-2 border-primary/20 overflow-hidden rounded-2xl">
+      <div className="px-4 py-6">
+        <Card className="shadow-elegant bg-gradient-to-br from-card via-card to-card/80 border-primary/10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-green-500/5 pointer-events-none" />
-          <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-br from-primary/10 to-transparent opacity-20 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-green-500/10 to-transparent opacity-20 blur-3xl pointer-events-none" />
-          <CardHeader className="p-6 border-b border-primary/10 relative">
-            <CardTitle className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 shadow-inner border border-primary/20">
-                <MapPin className="h-8 w-8 text-primary" />
+          <CardHeader className="pb-3 relative">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <MapPin className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent">
-                  Interactive Farm Map
-                </h2>
-                <p className="text-base text-muted-foreground mt-2">
-                  Monitor your fields, markets, and real-time agricultural alerts across Punjab
+                <span className="bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent">
+                  Interactive Farm Map (Punjab)
+                </span>
+                <p className="text-xs text-muted-foreground font-normal mt-1">
+                  Monitor your fields, markets, and alerts with OpenStreetMap
                 </p>
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="relative space-y-8 p-6">
-            {/* Map Container with Enhanced Shadow */}
-            <div className="rounded-xl overflow-hidden shadow-2xl border-2 border-primary/10">
-              <MapContent />
-            </div>
+          <CardContent className="relative">
+            <MapContent />
             
             {/* Enhanced Map Legend */}
-            <div className="bg-card/50 rounded-xl p-6 border border-primary/10 shadow-lg">
-              <h3 className="text-base font-semibold text-foreground flex items-center gap-2 mb-4">
-                <Eye className="h-5 w-5 text-primary" />
-                Active Map Layers
-              </h3>
-              <div className="flex flex-wrap gap-3">
-                <Badge 
-                  variant="outline" 
-                  className={`text-sm py-1.5 px-3 hover:scale-105 transition-transform cursor-pointer shadow-sm ${
-                    visibleLayers.crops 
-                      ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800' 
-                      : 'opacity-50'
-                  }`}
-                  onClick={() => toggleLayer('crops')}
-                >
-                  🌾 Farm Plots ({mockData.farmPlots.length})
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`text-sm py-1.5 px-3 hover:scale-105 transition-transform cursor-pointer shadow-sm ${
-                    visibleLayers.market 
-                      ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800' 
-                      : 'opacity-50'
-                  }`}
-                  onClick={() => toggleLayer('market')}
-                >
-                  🛒 Markets ({mockData.nearbyMarkets.length + punjabLocations.length})
-                </Badge>
-                <Badge 
-                  variant="outline" 
-                  className={`text-sm py-1.5 px-3 hover:scale-105 transition-transform cursor-pointer shadow-sm ${
-                    visibleLayers.alerts 
-                      ? 'bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 border-red-200 dark:border-red-800' 
-                      : 'opacity-50'
-                  }`}
-                  onClick={() => toggleLayer('alerts')}
-                >
-                  ⚠️ Disease Alerts ({mockData.diseaseOutbreaks.length})
-                </Badge>
-              </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Badge 
+                variant="outline" 
+                className={`text-xs hover:scale-105 transition-transform cursor-pointer ${
+                  visibleLayers.crops 
+                    ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800' 
+                    : 'opacity-50'
+                }`}
+                onClick={() => toggleLayer('crops')}
+              >
+                🌾 Farm Plots ({mockData.farmPlots.length})
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className={`text-xs hover:scale-105 transition-transform cursor-pointer ${
+                  visibleLayers.market 
+                    ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800' 
+                    : 'opacity-50'
+                }`}
+                onClick={() => toggleLayer('market')}
+              >
+                🛒 Markets ({mockData.nearbyMarkets.length + punjabLocations.length})
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className={`text-xs hover:scale-105 transition-transform cursor-pointer ${
+                  visibleLayers.alerts 
+                    ? 'bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 border-red-200 dark:border-red-800' 
+                    : 'opacity-50'
+                }`}
+                onClick={() => toggleLayer('alerts')}
+              >
+                ⚠️ Disease Alerts ({mockData.diseaseOutbreaks.length})
+              </Badge>
             </div>
 
-            {/* Map Instructions with Enhanced Styling */}
-            <div className="space-y-4 rounded-xl border-2 border-primary/10 bg-card/50 p-6 shadow-lg">
-              <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                <Navigation className="h-5 w-5 text-primary" />
-                Quick Guide
-              </h3>
-              <div className="grid gap-3 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary/50"></div>
-                  <p>Click markers to see detailed farm, market, and alert information</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary/50"></div>
-                  <p>Use search to find specific places in Punjab</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary/50"></div>
-                  <p>"Get Location" will use your location or fallback to Punjab</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary/50"></div>
-                  <p>Toggle layer buttons to show/hide different data types</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary/50"></div>
-                  <p>Map defaults to Punjab region for reliable farming data</p>
-                </div>
-              </div>
+            {/* Map Instructions */}
+            <div className="mt-3 text-xs text-muted-foreground space-y-1">
+              <p>• Click markers to see detailed farm, market, and alert information</p>
+              <p>• Use search to find specific places in Punjab</p>
+              <p>• "Get Location" will use your location or fallback to Punjab</p>
+              <p>• Toggle layer buttons to show/hide different data types</p>
+              <p>• Map defaults to Punjab region for reliable farming data</p>
             </div>
           </CardContent>
         </Card>

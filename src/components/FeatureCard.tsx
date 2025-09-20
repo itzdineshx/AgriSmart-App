@@ -45,15 +45,15 @@ export function FeatureCard({
         </div>
         
         {/* Text */}
-        <h3 className="text-xl font-semibold text-foreground mb-2 break-words hyphens-auto min-h-[2.5rem]">{title}</h3>
-        <p className="text-muted-foreground mb-6 leading-relaxed break-words min-h-[4.5rem]">{description}</p>
+        <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
+        <p className="text-muted-foreground mb-6 leading-relaxed">{description}</p>
         
         {/* Action Button */}
         {action && (
           <Button
             onClick={action.onClick}
             variant={action.variant || "default"}
-            className="w-full min-h-[2.5rem] whitespace-normal break-words"
+            className="w-full"
           >
             {action.label}
           </Button>
