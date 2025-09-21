@@ -13,7 +13,21 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole, allowClerk = true }: ProtectedRouteProps) {
-  const { isAuthenticated, userRole, isClerkUser } = useAuth();
+  const { isAuthenticated, userRole, isClerkUser, isLoading } = useAuth();
+
+  // Show loading state while authentication is being determined
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // If Clerk user and allowClerk is true, allow access
   if (isClerkUser && allowClerk) {

@@ -18,6 +18,10 @@ export default function Auth() {
               src="/lovable-uploads/logo.png" 
               alt="AgriSmart Logo" 
               className="w-12 h-12 object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
             />
             <span className="font-bold text-2xl text-primary">AgriSmart</span>
           </Link>
@@ -46,7 +50,10 @@ export default function Auth() {
                     footerActionLink: "text-primary hover:text-primary/90"
                   }
                 }}
-                redirectUrl="/user-profile"
+                fallbackRedirectUrl="/"
+                forceRedirectUrl="/"
+                signInFallbackRedirectUrl="/"
+                signInForceRedirectUrl="/"
               />
             ) : (
               <SignIn 
@@ -61,7 +68,10 @@ export default function Auth() {
                     footerActionLink: "text-primary hover:text-primary/90"
                   }
                 }}
-                redirectUrl="/user-profile"
+                fallbackRedirectUrl="/"
+                forceRedirectUrl="/"
+                signUpFallbackRedirectUrl="/"
+                signUpForceRedirectUrl="/"
               />
             )}
             

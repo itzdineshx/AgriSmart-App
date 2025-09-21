@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    // Ensure SPA routing works in development
+    historyApiFallback: true,
+  },
+  preview: {
+    // Ensure SPA routing works in preview mode
+    port: 4173,
+    host: "::",
   },
   plugins: [
     react(),
@@ -40,5 +47,17 @@ export default defineConfig(({ mode }) => ({
     commonjsOptions: {
       include: [/lodash.debounce/, /node_modules/],
     },
+    // Ensure proper source maps for debugging
+    sourcemap: mode === "development",
+    // Optimize for SPA
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          clerk: ['@clerk/clerk-react'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu']
+        }
+      }
+    }
   },
 }));

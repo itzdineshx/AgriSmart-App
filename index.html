@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>AgriSmart - AI-Powered Smart Farming Platform</title>
+    
+    <!-- Base tag for proper routing -->
+    <base href="/" />
+    
     <!-- Elfsight Translator Widget -->
     <script src="https://elfsightcdn.com/platform.js"></script>
     <script>
@@ -28,10 +32,46 @@
     <meta name="twitter:title" content="AgriSmart - AI-Powered Smart Farming" />
     <meta name="twitter:description" content="Crop disease detection, market analysis & smart farming solutions" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <!-- Error handling script -->
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        console.error('Global error:', {message, source, lineno, colno, error});
+        return false;
+      };
+      
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('Unhandled promise rejection:', event.reason);
+      });
+    </script>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Fallback loading content -->
+      <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif;">
+        <div style="text-align: center;">
+          <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #059669; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+          <p style="color: #666; margin: 0;">Loading AgriSmart...</p>
+        </div>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Fallback for failed script loading -->
+    <script>
+      setTimeout(function() {
+        const root = document.getElementById('root');
+        if (root && root.innerHTML.includes('Loading AgriSmart...')) {
+          root.innerHTML = '<div style="padding: 20px; text-align: center; font-family: system-ui;"><h2>Unable to load AgriSmart</h2><p>Please check your internet connection and <a href="javascript:location.reload()">refresh the page</a>.</p></div>';
+        }
+      }, 10000);
+    </script>
   </body>
 </html>
