@@ -4,21 +4,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  RefreshCw,
+import {
+  Filter,
   MapPin,
-  AlertTriangle,
+  Calendar,
   TrendingUp,
-  Clock,
+  TrendingDown,
+  Minus,
+  RefreshCw,
+  Database,
+  AlertCircle,
+  Star,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Settings,
+  Target,
+  Globe,
   Wifi,
   WifiOff,
-  Target,
-  BarChart3,
+  X,
+  Clock,
+  AlertTriangle,
   Table as TableIcon,
-  Filter,
-  Download,
-  Settings,
-} from "lucide-react";
+  BarChart3
+} from 'lucide-react';
 import { 
   fetchMandiPrices, 
   MandiPrice, 
@@ -36,6 +46,7 @@ import {
 import MandiFilters from '@/components/market/MandiFilters';
 import MandiTable from '@/components/market/MandiTable';
 import MandiVisualizations from '@/components/market/MandiVisualizations';
+import { EnhancedLoading } from '@/components/common/EnhancedLoading';
 import { format, isToday, parseISO } from 'date-fns';
 
 export default function MarketAnalysis() {
@@ -50,6 +61,8 @@ export default function MarketAnalysis() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const [showSidePanel, setShowSidePanel] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<string>('');
 
   // Monitor online status
   useEffect(() => {
@@ -69,10 +82,12 @@ export default function MarketAnalysis() {
   useEffect(() => {
     const getUserLocation = async () => {
       try {
+        setLoadingStage('Detecting your location...');
         const { location } = await getPreferredLocation();
         setUserLocation(location);
         
         // Find nearest mandis
+        setLoadingStage('Finding nearby markets...');
         const nearest = findNearestMandis(location.lat, location.lng, 5);
         setNearestMandis(nearest);
         
@@ -81,6 +96,7 @@ export default function MarketAnalysis() {
         setFilters(prev => ({ ...prev, state: userState }));
       } catch (error) {
         console.warn('Failed to get user location:', error);
+        setLoadingStage('Using default location...');
       }
     };
 
@@ -94,10 +110,15 @@ export default function MarketAnalysis() {
       return;
     }
 
-    if (showLoading) setIsLoading(true);
+    if (showLoading) {
+      setIsLoading(true);
+      setShowSidePanel(false); // Close side panel during loading
+      setLoadingStage('Connecting to market data API...');
+    }
     setError(null);
 
     try {
+      setLoadingStage('Fetching latest market prices...');
       console.log('Fetching data with filters:', {
         commodity: filters.commodity,
         state: filters.state,
@@ -122,6 +143,7 @@ export default function MarketAnalysis() {
         searchTerm: filters.search,
       });
 
+      setLoadingStage('Processing market data...');
       console.log('Received data from API:', result.data.length, 'records');
       if (result.data.length > 0) {
         console.log('First record from API:', result.data[0]);
@@ -129,9 +151,11 @@ export default function MarketAnalysis() {
       
       setData(result.data);
       setLastUpdated(new Date());
+      setLoadingStage('');
     } catch (err) {
       console.error('Failed to fetch mandi data:', err);
       setError('Failed to fetch latest data. Showing cached data.');
+      setLoadingStage('');
     } finally {
       setIsLoading(false);
     }
@@ -284,7 +308,55 @@ export default function MarketAnalysis() {
   const nearestSummary = getNearestMandiSummary();
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-8">
+    <div className="min-h-screen bg-background pb-20 md:pb-8 relative">
+      {/* Enhanced Loading Overlay */}
+      {isLoading && <EnhancedLoading />}
+
+      {/* Side Panel Toggle Button */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowSidePanel(!showSidePanel)}
+        className="fixed top-4 right-4 z-40 bg-background/95 backdrop-blur-md border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+        disabled={isLoading}
+      >
+        {showSidePanel ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
+        <span className="ml-2 hidden sm:inline">
+          {showSidePanel ? 'Close' : 'Filters'}
+        </span>
+      </Button>
+
+      {/* Collapsible Side Panel */}
+      <div className={`fixed top-0 right-0 h-full w-80 lg:w-96 bg-background/98 backdrop-blur-xl border-l border-border shadow-2xl z-30 transform transition-transform duration-500 ease-in-out ${
+        showSidePanel ? 'translate-x-0' : 'translate-x-full'
+      }`}>
+        <div className="h-full overflow-y-auto p-4 space-y-4">
+          <div className="flex items-center justify-between mb-6 pt-12">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Filter className="h-5 w-5 text-primary" />
+              Market Filters
+            </h2>
+          </div>
+          
+          <MandiFilters
+            data={data}
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            isLoading={isLoading}
+            className="border-0 shadow-none bg-transparent"
+          />
+        </div>
+      </div>
+
+      {/* Main Content with overlay when panel is open */}
+      <div className={`transition-all duration-500 ${showSidePanel ? 'mr-80 lg:mr-96' : ''}`}>
+        {/* Overlay when side panel is open */}
+        {showSidePanel && (
+          <div 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20 lg:hidden"
+            onClick={() => setShowSidePanel(false)}
+          />
+        )}
       {/* Header - Mobile Optimized */}
       <div className="bg-gradient-primary text-primary-foreground p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
@@ -431,12 +503,27 @@ export default function MarketAnalysis() {
         )}
 
         {/* Filters */}
-        <MandiFilters
-          data={data}
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          isLoading={isLoading}
-        />
+        <div className="lg:hidden mb-6">
+          <Button
+            variant="outline"
+            onClick={() => setShowSidePanel(true)}
+            className="w-full justify-center gap-2"
+            disabled={isLoading}
+          >
+            <Filter className="h-4 w-4" />
+            Open Filters Panel
+          </Button>
+        </div>
+
+        {/* Desktop Filters (always visible on large screens) */}
+        <div className="hidden lg:block">
+          <MandiFilters
+            data={data}
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            isLoading={isLoading}
+          />
+        </div>
 
         {/* Main Content - Data Table and Charts */}
         <Tabs defaultValue="table" className="space-y-4">
@@ -457,8 +544,6 @@ export default function MarketAnalysis() {
             <MandiTable
               data={filteredData}
               isLoading={isLoading}
-              filters={filters}
-              onFiltersChange={setFilters}
               className="overflow-hidden"
             />
             
@@ -547,6 +632,7 @@ export default function MarketAnalysis() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppRouter } from "@/components/AppRouter";
 
@@ -22,11 +23,13 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <LanguageProvider>
-          <AuthProvider>
-            <AppRouter />
-          </AuthProvider>
-        </LanguageProvider>
+        <NotificationProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <AppRouter />
+            </AuthProvider>
+          </LanguageProvider>
+        </NotificationProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
