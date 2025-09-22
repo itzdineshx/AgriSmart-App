@@ -1,5 +1,7 @@
 import { fetchWeatherApi } from 'openmeteo';
+import { weatherCache } from '../utils/weatherCache';
 
+// Weather condition mappings for better UX
 export interface WeatherData {
   current: {
     time: Date;
@@ -115,17 +117,98 @@ export interface WeatherData {
     global_tilted_irradiance_instant: Float32Array;
     terrestrial_radiation_instant: Float32Array;
   };
+  daily: {
+    time: Date[];
+    weather_code: Float32Array;
+    temperature_2m_max: Float32Array;
+    temperature_2m_min: Float32Array;
+    apparent_temperature_max: Float32Array;
+    apparent_temperature_min: Float32Array;
+    sunrise: Float32Array;
+    sunset: Float32Array;
+    daylight_duration: Float32Array;
+    sunshine_duration: Float32Array;
+    uv_index_max: Float32Array;
+    uv_index_clear_sky_max: Float32Array;
+    precipitation_sum: Float32Array;
+    rain_sum: Float32Array;
+    showers_sum: Float32Array;
+    snowfall_sum: Float32Array;
+    precipitation_hours: Float32Array;
+    precipitation_probability_max: Float32Array;
+    wind_speed_10m_max: Float32Array;
+    wind_gusts_10m_max: Float32Array;
+    wind_direction_10m_dominant: Float32Array;
+    shortwave_radiation_sum: Float32Array;
+    et0_fao_evapotranspiration: Float32Array;
+  };
   location: {
     latitude: number;
     longitude: number;
     elevation: number;
+    timezone: string;
+    timezone_abbreviation: string;
+    utc_offset_seconds: number;
   };
+}
+
+// Enhanced daily forecast interface
+export interface DailyForecast {
+  date: Date;
+  weather_code: number;
+  temperature_max: number;
+  temperature_min: number;
+  precipitation_sum: number;
+  precipitation_probability: number;
+  wind_speed_max: number;
+  wind_direction: number;
+  uv_index_max: number;
+  sunrise: Date;
+  sunset: Date;
+  daylight_duration: number; // in hours
+  agriculture_conditions: {
+    irrigation_needed: boolean;
+    spraying_suitable: boolean;
+    field_work_suitable: boolean;
+    frost_risk: boolean;
+  };
+}
+
+// Enhanced hourly forecast interface
+export interface HourlyForecast {
+  time: Date;
+  temperature: number;
+  weatherCode: number;
+  condition: string;
+  precipitation: number;
+  precipitationProbability: number;
+  windSpeed: number;
+  humidity: number;
+  pressure: number;
+  visibility: number;
+  uvIndex: number;
+  soilTemperature: number;
+  soilMoisture: number;
+  evapotranspiration: number;
+}
+
+// Agricultural recommendation interface
+export interface AgricultureRecommendation {
+  type: 'alert' | 'recommendation' | 'planning';
+  category: 'temperature' | 'irrigation' | 'weather' | 'general';
+  title: string;
+  message: string;
+  priority: 'high' | 'medium' | 'low';
+  actionItems: string[];
 }
 
 export interface LocationData {
   latitude: number;
   longitude: number;
   address: string;
+  timezone?: string;
+  country?: string;
+  region?: string;
 }
 
 export const getCurrentLocation = (): Promise<LocationData> => {
@@ -146,12 +229,20 @@ export const getCurrentLocation = (): Promise<LocationData> => {
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_API_KEY}`
           );
           const data = await response.json();
-          const address = data.features?.[0]?.place_name || `${latitude.toFixed(6)}°N, ${longitude.toFixed(6)}°E`;
+          const feature = data.features?.[0];
+          const address = feature?.place_name || `${latitude.toFixed(6)}°N, ${longitude.toFixed(6)}°E`;
+          
+          // Extract additional location data
+          const context = feature?.context || [];
+          const country = context.find((c: any) => c.id.startsWith('country'))?.text || 'Unknown';
+          const region = context.find((c: any) => c.id.startsWith('region'))?.text || 'Unknown';
           
           resolve({
             latitude,
             longitude,
-            address
+            address,
+            country,
+            region
           });
         } catch (error) {
           console.error('Reverse geocoding error:', error);
@@ -164,11 +255,13 @@ export const getCurrentLocation = (): Promise<LocationData> => {
       },
       (error) => {
         console.error('Geolocation error:', error);
-        // Fallback to Delhi coordinates
+        // Fallback to Chennai coordinates for Indian users
         resolve({
-          latitude: 28.7041,
-          longitude: 77.1025,
-          address: 'New Delhi, India'
+          latitude: 13.0827,
+          longitude: 80.2707,
+          address: 'Chennai, Tamil Nadu, India',
+          country: 'India',
+          region: 'Tamil Nadu'
         });
       },
       {
@@ -180,16 +273,73 @@ export const getCurrentLocation = (): Promise<LocationData> => {
   });
 };
 
+// Enhanced weather data fetching with 7-day forecast and caching
 export const getWeatherData = async (latitude: number, longitude: number): Promise<WeatherData> => {
+  // Check cache first
+  const cachedData = weatherCache.get(latitude, longitude);
+  if (cachedData) {
+    return cachedData;
+  }
+
+  console.log('Fetching fresh weather data from API for:', latitude, longitude);
+
   const params = {
     latitude,
     longitude,
-    hourly: ["temperature_2m", "weather_code", "wind_speed_10m", "relative_humidity_2m", "pressure_msl", "wind_speed_80m", "dew_point_2m", "apparent_temperature", "precipitation_probability", "precipitation", "surface_pressure", "cloud_cover", "cloud_cover_low", "cloud_cover_mid", "cloud_cover_high", "rain", "showers", "snowfall", "snow_depth", "visibility", "evapotranspiration", "et0_fao_evapotranspiration", "vapour_pressure_deficit", "temperature_180m", "temperature_120m", "temperature_80m", "wind_gusts_10m", "wind_direction_180m", "wind_direction_120m", "wind_direction_80m", "wind_direction_10m", "wind_speed_180m", "wind_speed_120m", "soil_temperature_0cm", "soil_temperature_6cm", "soil_temperature_18cm", "soil_temperature_54cm", "soil_moisture_0_to_1cm", "soil_moisture_1_to_3cm", "soil_moisture_3_to_9cm", "soil_moisture_9_to_27cm", "soil_moisture_27_to_81cm", "uv_index", "uv_index_clear_sky", "is_day", "sunshine_duration", "wet_bulb_temperature_2m", "cape", "lifted_index", "convective_inhibition", "freezing_level_height", "boundary_layer_height", "total_column_integrated_water_vapour", "shortwave_radiation", "direct_radiation", "direct_normal_irradiance", "terrestrial_radiation", "global_tilted_irradiance", "diffuse_radiation", "direct_radiation_instant", "shortwave_radiation_instant", "diffuse_radiation_instant", "direct_normal_irradiance_instant", "global_tilted_irradiance_instant", "terrestrial_radiation_instant"],
-    current: ["temperature_2m", "relative_humidity_2m", "apparent_temperature", "is_day", "precipitation", "rain", "showers", "weather_code", "pressure_msl", "surface_pressure", "cloud_cover", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m"],
-    minutely_15: ["temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature", "precipitation", "wind_gusts_10m", "visibility", "cape", "lightning_potential", "is_day", "shortwave_radiation", "direct_radiation", "diffuse_radiation", "direct_normal_irradiance", "global_tilted_irradiance", "terrestrial_radiation", "global_tilted_irradiance_instant", "terrestrial_radiation_instant", "direct_normal_irradiance_instant", "diffuse_radiation_instant", "direct_radiation_instant", "shortwave_radiation_instant", "sunshine_duration", "freezing_level_height", "snowfall_height", "snowfall", "rain", "weather_code", "wind_speed_10m", "wind_speed_80m", "wind_direction_10m", "wind_direction_80m"],
-    past_days: 92,
-    forecast_hours: 120, // 5 days
-    past_hours: 24,
+    // Current weather
+    current: [
+      "temperature_2m", "relative_humidity_2m", "apparent_temperature", "is_day", 
+      "precipitation", "rain", "showers", "weather_code", "pressure_msl", 
+      "surface_pressure", "cloud_cover", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m"
+    ],
+    // Hourly data for detailed analysis
+    hourly: [
+      "temperature_2m", "weather_code", "wind_speed_10m", "relative_humidity_2m", 
+      "pressure_msl", "wind_speed_80m", "dew_point_2m", "apparent_temperature", 
+      "precipitation_probability", "precipitation", "surface_pressure", "cloud_cover", 
+      "cloud_cover_low", "cloud_cover_mid", "cloud_cover_high", "rain", "showers", 
+      "snowfall", "snow_depth", "visibility", "evapotranspiration", "et0_fao_evapotranspiration", 
+      "vapour_pressure_deficit", "temperature_180m", "temperature_120m", "temperature_80m", 
+      "wind_gusts_10m", "wind_direction_180m", "wind_direction_120m", "wind_direction_80m", 
+      "wind_direction_10m", "wind_speed_180m", "wind_speed_120m", "soil_temperature_0cm", 
+      "soil_temperature_6cm", "soil_temperature_18cm", "soil_temperature_54cm", 
+      "soil_moisture_0_to_1cm", "soil_moisture_1_to_3cm", "soil_moisture_3_to_9cm", 
+      "soil_moisture_9_to_27cm", "soil_moisture_27_to_81cm", "uv_index", "uv_index_clear_sky", 
+      "is_day", "sunshine_duration", "wet_bulb_temperature_2m", "cape", "lifted_index", 
+      "convective_inhibition", "freezing_level_height", "boundary_layer_height", 
+      "total_column_integrated_water_vapour", "shortwave_radiation", "direct_radiation", 
+      "direct_normal_irradiance", "terrestrial_radiation", "global_tilted_irradiance", 
+      "diffuse_radiation", "direct_radiation_instant", "shortwave_radiation_instant", 
+      "diffuse_radiation_instant", "direct_normal_irradiance_instant", 
+      "global_tilted_irradiance_instant", "terrestrial_radiation_instant"
+    ],
+    // Daily data for 7-day forecast
+    daily: [
+      "weather_code", "temperature_2m_max", "temperature_2m_min", "apparent_temperature_max", 
+      "apparent_temperature_min", "sunrise", "sunset", "daylight_duration", "sunshine_duration", 
+      "uv_index_max", "uv_index_clear_sky_max", "precipitation_sum", "rain_sum", "showers_sum", 
+      "snowfall_sum", "precipitation_hours", "precipitation_probability_max", 
+      "wind_speed_10m_max", "wind_gusts_10m_max", "wind_direction_10m_dominant", 
+      "shortwave_radiation_sum", "et0_fao_evapotranspiration"
+    ],
+    // Minutely data for short-term precision
+    minutely_15: [
+      "temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature", 
+      "precipitation", "wind_gusts_10m", "visibility", "cape", "lightning_potential", 
+      "is_day", "shortwave_radiation", "direct_radiation", "diffuse_radiation", 
+      "direct_normal_irradiance", "global_tilted_irradiance", "terrestrial_radiation", 
+      "global_tilted_irradiance_instant", "terrestrial_radiation_instant", 
+      "direct_normal_irradiance_instant", "diffuse_radiation_instant", 
+      "direct_radiation_instant", "shortwave_radiation_instant", "sunshine_duration", 
+      "freezing_level_height", "snowfall_height", "snowfall", "rain", "weather_code", 
+      "wind_speed_10m", "wind_speed_80m", "wind_direction_10m", "wind_direction_80m"
+    ],
+    past_days: 7,        // 7 days of historical data
+    forecast_days: 7,    // 7 days of forecast
+    timezone: "auto",    // Automatic timezone detection
+    temperature_unit: "celsius",
+    wind_speed_unit: "kmh",
+    precipitation_unit: "mm"
   };
 
   const url = "https://api.open-meteo.com/v1/forecast";
@@ -198,17 +348,20 @@ export const getWeatherData = async (latitude: number, longitude: number): Promi
   // Process first location
   const response = responses[0];
 
-  // Attributes for timezone and location
+  // Enhanced attributes for timezone and location
   const responseLatitude = response.latitude();
   const responseLongitude = response.longitude();
   const elevation = response.elevation();
   const utcOffsetSeconds = response.utcOffsetSeconds();
+  const timezone = response.timezone();
+  const timezoneAbbreviation = response.timezoneAbbreviation();
 
   const current = response.current()!;
   const minutely15 = response.minutely15()!;
   const hourly = response.hourly()!;
+  const daily = response.daily()!;
 
-  // Note: The order of weather variables in the URL query and the indices below need to match!
+  // Enhanced weather data with proper timezone handling
   const weatherData: WeatherData = {
     current: {
       time: new Date((Number(current.time()) + utcOffsetSeconds) * 1000),
@@ -328,14 +481,251 @@ export const getWeatherData = async (latitude: number, longitude: number): Promi
       global_tilted_irradiance_instant: hourly.variables(63)!.valuesArray(),
       terrestrial_radiation_instant: hourly.variables(64)!.valuesArray(),
     },
+    daily: {
+      time: [...Array((Number(daily.timeEnd()) - Number(daily.time())) / 86400)].map(
+        (_, i) => new Date((Number(daily.time()) + i * 86400 + utcOffsetSeconds) * 1000)
+      ),
+      weather_code: daily.variables(0)!.valuesArray(),
+      temperature_2m_max: daily.variables(1)!.valuesArray(),
+      temperature_2m_min: daily.variables(2)!.valuesArray(),
+      apparent_temperature_max: daily.variables(3)!.valuesArray(),
+      apparent_temperature_min: daily.variables(4)!.valuesArray(),
+      sunrise: daily.variables(5)!.valuesArray(),
+      sunset: daily.variables(6)!.valuesArray(),
+      daylight_duration: daily.variables(7)!.valuesArray(),
+      sunshine_duration: daily.variables(8)!.valuesArray(),
+      uv_index_max: daily.variables(9)!.valuesArray(),
+      uv_index_clear_sky_max: daily.variables(10)!.valuesArray(),
+      precipitation_sum: daily.variables(11)!.valuesArray(),
+      rain_sum: daily.variables(12)!.valuesArray(),
+      showers_sum: daily.variables(13)!.valuesArray(),
+      snowfall_sum: daily.variables(14)!.valuesArray(),
+      precipitation_hours: daily.variables(15)!.valuesArray(),
+      precipitation_probability_max: daily.variables(16)!.valuesArray(),
+      wind_speed_10m_max: daily.variables(17)!.valuesArray(),
+      wind_gusts_10m_max: daily.variables(18)!.valuesArray(),
+      wind_direction_10m_dominant: daily.variables(19)!.valuesArray(),
+      shortwave_radiation_sum: daily.variables(20)!.valuesArray(),
+      et0_fao_evapotranspiration: daily.variables(21)!.valuesArray(),
+    },
     location: {
       latitude: responseLatitude,
       longitude: responseLongitude,
       elevation: elevation,
+      timezone: timezone,
+      timezone_abbreviation: timezoneAbbreviation,
+      utc_offset_seconds: utcOffsetSeconds,
     }
   };
 
+  // Cache the fresh data
+  weatherCache.set(latitude, longitude, weatherData);
+
   return weatherData;
+};
+
+// Generate agricultural recommendations based on weather data
+export const generateAgricultureRecommendations = (weatherData: WeatherData): AgricultureRecommendation[] => {
+  const recommendations: AgricultureRecommendation[] = [];
+  const currentTemp = weatherData.current.temperature_2m;
+  const currentHumidity = weatherData.current.relative_humidity_2m;
+  const currentPrecipitation = weatherData.current.precipitation;
+  const currentWindSpeed = weatherData.current.wind_speed_10m;
+  const dailyData = weatherData.daily;
+
+  // High temperature alert
+  if (currentTemp > 35) {
+    recommendations.push({
+      type: 'alert',
+      category: 'temperature',
+      title: 'High Temperature Alert',
+      message: 'Extreme heat conditions. Ensure adequate irrigation and consider shade protection for sensitive crops.',
+      priority: 'high',
+      actionItems: [
+        'Increase irrigation frequency',
+        'Apply mulching to conserve soil moisture',
+        'Provide shade nets for delicate plants',
+        'Avoid spraying chemicals during peak hours'
+      ]
+    });
+  }
+
+  // Low temperature alert
+  if (currentTemp < 5) {
+    recommendations.push({
+      type: 'alert',
+      category: 'temperature',
+      title: 'Cold Weather Alert',
+      message: 'Risk of frost damage. Protect sensitive crops and consider covering young plants.',
+      priority: 'high',
+      actionItems: [
+        'Cover sensitive crops with frost cloth',
+        'Use water sprinklers for frost protection',
+        'Delay planting of warm-season crops',
+        'Harvest mature crops before damage occurs'
+      ]
+    });
+  }
+
+  // Precipitation recommendations
+  if (currentPrecipitation > 10) {
+    recommendations.push({
+      type: 'recommendation',
+      category: 'irrigation',
+      title: 'Heavy Rainfall Advisory',
+      message: 'Significant rainfall detected. Monitor field drainage and adjust irrigation schedules.',
+      priority: 'medium',
+      actionItems: [
+        'Ensure proper field drainage',
+        'Reduce or skip irrigation for 24-48 hours',
+        'Check for waterlogging in low areas',
+        'Apply fungicides if humidity remains high'
+      ]
+    });
+  } else if (currentPrecipitation === 0 && currentHumidity < 40) {
+    recommendations.push({
+      type: 'recommendation',
+      category: 'irrigation',
+      title: 'Dry Conditions',
+      message: 'Low humidity and no precipitation. Increase irrigation and monitor soil moisture.',
+      priority: 'medium',
+      actionItems: [
+        'Increase irrigation frequency',
+        'Check soil moisture levels',
+        'Apply organic mulch to retain moisture',
+        'Consider drip irrigation for efficiency'
+      ]
+    });
+  }
+
+  // Wind speed recommendations
+  if (currentWindSpeed > 15) {
+    recommendations.push({
+      type: 'alert',
+      category: 'weather',
+      title: 'High Wind Advisory',
+      message: 'Strong winds may damage crops and affect spraying operations.',
+      priority: 'medium',
+      actionItems: [
+        'Avoid pesticide/fertilizer spraying',
+        'Secure loose structures and equipment',
+        'Check and repair plant supports',
+        'Delay drone operations'
+      ]
+    });
+  }
+
+  // UV Index recommendations
+  const todayUVIndex = dailyData.uv_index_max[0];
+  if (todayUVIndex > 8) {
+    recommendations.push({
+      type: 'recommendation',
+      category: 'general',
+      title: 'High UV Index',
+      message: 'Very high UV levels detected. Protect workers and consider timing of outdoor activities.',
+      priority: 'medium',
+      actionItems: [
+        'Schedule field work for early morning or evening',
+        'Ensure workers use sun protection',
+        'Consider UV-protective covering for sensitive crops',
+        'Monitor for heat stress in plants'
+      ]
+    });
+  }
+
+  // Weekly forecast recommendations
+  const weeklyRainSum = dailyData.precipitation_sum.slice(0, 7).reduce((sum, rain) => sum + rain, 0);
+  if (weeklyRainSum > 50) {
+    recommendations.push({
+      type: 'planning',
+      category: 'irrigation',
+      title: 'Week Ahead: High Rainfall Expected',
+      message: 'Significant rainfall expected this week. Plan irrigation and field activities accordingly.',
+      priority: 'low',
+      actionItems: [
+        'Reduce planned irrigation schedules',
+        'Prepare drainage systems',
+        'Plan harvesting before heavy rain days',
+        'Stock up on fungicides for disease prevention'
+      ]
+    });
+  } else if (weeklyRainSum < 5) {
+    recommendations.push({
+      type: 'planning',
+      category: 'irrigation',
+      title: 'Week Ahead: Dry Conditions Expected',
+      message: 'Low rainfall expected this week. Plan for increased irrigation needs.',
+      priority: 'low',
+      actionItems: [
+        'Schedule additional irrigation',
+        'Check irrigation system functionality',
+        'Consider water conservation techniques',
+        'Monitor soil moisture more frequently'
+      ]
+    });
+  }
+
+  return recommendations;
+};
+
+// Process daily forecast data for enhanced visualization
+export const processDailyForecast = (weatherData: WeatherData): DailyForecast[] => {
+  const dailyForecasts: DailyForecast[] = [];
+  
+  // Ensure daily data exists
+  if (!weatherData?.daily?.time) {
+    console.warn('Daily weather data is not available');
+    return [];
+  }
+  
+  for (let i = 0; i < Math.min(weatherData.daily.time.length, 7); i++) {
+    try {
+      const date = weatherData.daily.time[i];
+      const sunrise = weatherData.daily.sunrise?.[i] ? new Date(weatherData.daily.sunrise[i] * 1000) : new Date();
+      const sunset = weatherData.daily.sunset?.[i] ? new Date(weatherData.daily.sunset[i] * 1000) : new Date();
+      
+      const forecast: DailyForecast = {
+        date,
+        weather_code: weatherData.daily.weather_code?.[i] || 0,
+        temperature_max: weatherData.daily.temperature_2m_max?.[i] || 0,
+        temperature_min: weatherData.daily.temperature_2m_min?.[i] || 0,
+        precipitation_sum: weatherData.daily.precipitation_sum?.[i] || 0,
+        precipitation_probability: weatherData.daily.precipitation_probability_max?.[i] || 0,
+        wind_speed_max: weatherData.daily.wind_speed_10m_max?.[i] || 0,
+        wind_direction: weatherData.daily.wind_direction_10m_dominant?.[i] || 0,
+        uv_index_max: weatherData.daily.uv_index_max?.[i] || 0,
+        sunrise,
+        sunset,
+        daylight_duration: (weatherData.daily.daylight_duration?.[i] || 0) / 3600, // Convert to hours
+        agriculture_conditions: {
+          irrigation_needed: (weatherData.daily.precipitation_sum?.[i] || 0) < 2 && (weatherData.daily.et0_fao_evapotranspiration?.[i] || 0) > 4,
+          spraying_suitable: (weatherData.daily.wind_speed_10m_max?.[i] || 0) < 10 && (weatherData.daily.precipitation_probability_max?.[i] || 0) < 30,
+          field_work_suitable: (weatherData.daily.precipitation_sum?.[i] || 0) < 1 && (weatherData.daily.wind_speed_10m_max?.[i] || 0) < 15,
+          frost_risk: (weatherData.daily.temperature_2m_min?.[i] || 0) < 2
+        }
+      };
+      
+      dailyForecasts.push(forecast);
+    } catch (error) {
+      console.error(`Error processing daily forecast for day ${i}:`, error);
+      // Continue processing other days
+    }
+  }
+  
+  return dailyForecasts;
+};
+
+// Cache management utilities
+export const clearWeatherCache = (): void => {
+  weatherCache.clear();
+};
+
+export const getWeatherCacheStats = () => {
+  return weatherCache.getStats();
+};
+
+export const updateWeatherCacheConfig = (config: Partial<import('../utils/weatherCache').CacheConfig>): void => {
+  weatherCache.updateConfig(config);
 };
 
 // Weather code to condition mapping

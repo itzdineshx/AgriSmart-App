@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 // import { LanguageToggle } from "@/components/LanguageToggle";
 // import { useLanguage } from "@/contexts/LanguageContext";
 import { 
@@ -128,10 +129,11 @@ export function Navigation() {
                 <Button variant="outline" size="icon">
                   <Search className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="icon" className="relative">
-                  <Bell className="h-4 w-4" />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full"></div>
-                </Button>
+                <NotificationBell 
+                  variant="outline"
+                  size="md"
+                  showBadge={true}
+                />
                 <ThemeToggle />
               </div>
 
@@ -269,10 +271,11 @@ export function Navigation() {
           
           <div className="flex items-center space-x-2">
             {/* Notifications and Theme for Mobile */}
-            <Button variant="outline" size="icon" className="relative">
-              <Bell className="h-4 w-4" />
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full"></div>
-            </Button>
+            <NotificationBell 
+              variant="outline"
+              size="sm"
+              showBadge={true}
+            />
             <ThemeToggle />
             <SignedOut>
               <Link to="/auth">

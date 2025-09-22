@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/clerk-react";
 import { toast } from "sonner";
 
@@ -28,6 +29,8 @@ import {
   LogOut
 } from "lucide-react";
 import { WeatherWidget } from "./WeatherWidget";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { NotificationTestModal } from "@/components/notifications/NotificationTest";
 
 export function MobileHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -172,10 +175,14 @@ export function MobileHeader() {
           </Dialog>
           
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="h-9 w-9 relative">
-            <Bell className="h-4 w-4" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full"></div>
-          </Button>
+          <NotificationBell />
+          
+          {/* Notification Test Modal (Development) */}
+          <NotificationTestModal>
+            <Button variant="ghost" size="icon" className="h-9 w-9" title="Test Notifications">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </NotificationTestModal>
           
           {/* Cart */}
           <Button variant="ghost" size="icon" className="h-9 w-9 relative">

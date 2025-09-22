@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Wifi } from "lucide-react";
 import { Link } from "react-router-dom";
+import { EnhancedLoading } from '@/components/common/EnhancedLoading';
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -51,16 +52,7 @@ export default function Auth() {
   }, [clerk]);
 
   if (!isClerkLoaded) {
-    return (
-      <div className="min-h-screen bg-gradient-feature flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading authentication...</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <EnhancedLoading />;
   }
 
   return (
