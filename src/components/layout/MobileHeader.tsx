@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/clerk-react";
+import { toast } from "sonner";
 
 import { 
   Menu, 
@@ -32,13 +33,68 @@ export function MobileHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { logout, isAuthenticated, isClerkUser, userRole } = useAuth();
   const { user } = useUser();
+  const { signOut } = useClerk();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  // Enhanced navigation handler that immediately closes menu
+  const handleNavigation = (path: string) => {
+    setIsMenuOpen(false); // Close menu immediately
+    navigate(path); // Navigate to the path
+  };
 
   const handleLogout = async () => {
-    logout();
-    setIsMenuOpen(false);
+    if (isLoggingOut) return; // Prevent multiple clicks
+    
+    try {
+      setIsLoggingOut(true);
+      console.log('Logout initiated...', { isClerkUser, isAuthenticated });
+      
+      // Show loading state
+      toast.loading("Signing out...");
+      
+      // Handle Clerk logout if user is signed in with Clerk
+      if (isClerkUser) {
+        console.log('Signing out Clerk user...');
+        await signOut();
+        console.log('Clerk signout completed');
+      }
+      
+      // Always call our logout function for role-based auth
+      console.log('Calling logout function...');
+      logout();
+      console.log('Logout function completed');
+      
+      // Close menu and navigate
+      setIsMenuOpen(false);
+      
+      // Show success message
+      toast.dismiss();
+      toast.success("Signed out successfully");
+      
+      // Navigate to home
+      navigate('/');
+      console.log('Navigation to home completed');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.dismiss();
+      toast.error("Error signing out. Redirecting to home...");
+      
+      // Fallback: just call our logout function
+      logout();
+      setIsMenuOpen(false);
+      navigate('/');
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -169,15 +225,14 @@ export function MobileHeader() {
                     </div>
 
                     {navItems.map((item) => (
-                      <Link
+                      <button
                         key={item.path}
-                        to={item.path}
-                        onClick={() => setIsMenuOpen(false)}
-                        className="flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => handleNavigation(item.path)}
+                        className="flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground w-full text-left"
                       >
                         <item.icon className="h-5 w-5" />
                         <span>{item.name}</span>
-                      </Link>
+                      </button>
                     ))}
                   </nav>
                 </div>
@@ -185,12 +240,14 @@ export function MobileHeader() {
                 {/* User Section */}
                 <div className="border-t border-border p-6">
                   <SignedOut>
-                    <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
-                      <Button className="w-full" variant="outline">
-                        <User className="h-4 w-4 mr-2" />
-                        Sign In
-                      </Button>
-                    </Link>
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={() => handleNavigation('/auth')}
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
                   </SignedOut>
                   
                   <SignedIn>
@@ -207,24 +264,24 @@ export function MobileHeader() {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Link 
-                          to="/user-profile" 
-                          onClick={() => setIsMenuOpen(false)}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
                           className="flex-1"
+                          onClick={() => handleNavigation('/user-profile')}
                         >
-                          <Button variant="outline" size="sm" className="w-full">
-                            <Settings className="h-4 w-4 mr-2" />
-                            Profile
-                          </Button>
-                        </Link>
+                          <Settings className="h-4 w-4 mr-2" />
+                          Profile
+                        </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={handleLogout}
+                          disabled={isLoggingOut}
                           className="flex-1"
                         >
                           <LogOut className="h-4 w-4 mr-2" />
-                          Logout
+                          {isLoggingOut ? "Signing out..." : "Logout"}
                         </Button>
                       </div>
                     </div>
@@ -243,24 +300,24 @@ export function MobileHeader() {
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Link 
-                          to="/user-profile" 
-                          onClick={() => setIsMenuOpen(false)}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
                           className="flex-1"
+                          onClick={() => handleNavigation('/user-profile')}
                         >
-                          <Button variant="outline" size="sm" className="w-full">
-                            <Settings className="h-4 w-4 mr-2" />
-                            Profile
-                          </Button>
-                        </Link>
+                          <Settings className="h-4 w-4 mr-2" />
+                          Profile
+                        </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={handleLogout}
+                          disabled={isLoggingOut}
                           className="flex-1"
                         >
                           <LogOut className="h-4 w-4 mr-2" />
-                          Logout
+                          {isLoggingOut ? "Signing out..." : "Logout"}
                         </Button>
                       </div>
                     </div>
