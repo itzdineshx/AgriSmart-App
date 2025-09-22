@@ -26,7 +26,8 @@ import {
   Leaf,
   MessageCircle,
   Settings,
-  LogOut
+  LogOut,
+  Zap
 } from "lucide-react";
 import { WeatherWidget } from "./WeatherWidget";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -40,6 +41,7 @@ export function MobileHeader() {
   const { logout, isAuthenticated, isClerkUser, userRole } = useAuth();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { addNotification } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -110,6 +112,134 @@ export function MobileHeader() {
     }
   };
 
+  const handleTestPushNotifications = async () => {
+    // Show immediate feedback
+    toast.loading('Sending test notifications...', { id: 'test-notifications' });
+    
+    // Request notification permission if not granted
+    if ('Notification' in window) {
+      let permission = Notification.permission;
+      
+      if (permission === 'default') {
+        permission = await Notification.requestPermission();
+      }
+      
+      if (permission === 'granted') {
+        // Send multiple test notifications with delays
+        const notifications = [
+          {
+            title: '🌡️ High Temperature Alert',
+            body: 'Temperature has reached 38°C in your area. Stay hydrated and avoid outdoor work.',
+            icon: '/favicon.ico',
+            tag: 'weather-temp',
+            inApp: {
+              type: 'weather' as const,
+              priority: 'high' as const,
+              title: 'High Temperature Alert',
+              message: 'Temperature has reached 38°C in your area. Stay hydrated and avoid outdoor work.',
+            }
+          },
+          {
+            title: '💰 Price Alert: Wheat',
+            body: 'Wheat prices increased by 12% to ₹2,450/quintal at Delhi Mandi.',
+            icon: '/favicon.ico',
+            tag: 'price-wheat',
+            inApp: {
+              type: 'price-alert' as const,
+              priority: 'high' as const,
+              title: 'Price Alert: Wheat',
+              message: 'Wheat prices increased by 12% to ₹2,450/quintal at Delhi Mandi.',
+              actionUrl: '/market-analysis',
+              actionText: 'View Market',
+            }
+          },
+          {
+            title: '🌧️ Heavy Rain Warning',
+            body: 'Heavy rainfall expected in next 2 hours. Secure outdoor equipment.',
+            icon: '/favicon.ico',
+            tag: 'weather-rain',
+            inApp: {
+              type: 'weather' as const,
+              priority: 'medium' as const,
+              title: 'Heavy Rain Warning',
+              message: 'Heavy rainfall expected in next 2 hours. Secure outdoor equipment.',
+              autoHide: true,
+              hideAfter: 8000,
+            }
+          },
+          {
+            title: '📈 Market Opportunity',
+            body: 'Tomato demand high in Mumbai market. Consider selling your stock.',
+            icon: '/favicon.ico',
+            tag: 'market-tomato',
+            inApp: {
+              type: 'market' as const,
+              priority: 'medium' as const,
+              title: 'Market Opportunity',
+              message: 'Tomato demand high in Mumbai market. Consider selling your stock.',
+              actionUrl: '/marketplace',
+              actionText: 'View Marketplace',
+              autoHide: true,
+              hideAfter: 10000,
+            }
+          },
+        ];
+
+        // Send push notifications with delays
+        notifications.forEach((notif, index) => {
+          setTimeout(() => {
+            // Send browser push notification
+            new Notification(notif.title, {
+              body: notif.body,
+              icon: notif.icon,
+              tag: notif.tag,
+              badge: '/favicon.ico',
+              requireInteraction: index < 2, // Keep high priority notifications visible
+            });
+            
+            // Also add to in-app notifications
+            addNotification(notif.inApp);
+          }, index * 2000); // 2 second delays between notifications
+        });
+
+        // Update toast after all notifications are scheduled
+        setTimeout(() => {
+          toast.success('4 test notifications sent! Check your browser notifications.', { 
+            id: 'test-notifications',
+            duration: 5000,
+          });
+        }, 1000);
+
+      } else {
+        toast.error('Notification permission denied. Please enable notifications in browser settings.', {
+          id: 'test-notifications',
+        });
+        
+        // Fallback: just add in-app notifications
+        addNotification({
+          type: 'system',
+          priority: 'medium',
+          title: 'Push Notifications Disabled',
+          message: 'Browser notifications are disabled. Please enable them in your browser settings to receive push notifications.',
+          actionText: 'How to Enable',
+        });
+      }
+    } else {
+      toast.error('Your browser does not support push notifications.', {
+        id: 'test-notifications',
+      });
+      
+      addNotification({
+        type: 'info',
+        priority: 'low',
+        title: 'Push Notifications Not Supported',
+        message: 'Your browser does not support push notifications. In-app notifications will still work.',
+        autoHide: true,
+        hideAfter: 5000,
+      });
+    }
+  };
+
   const navItems = [
     { name: "Home", path: "/", icon: Home },
     { name: "Diagnose", path: "/diagnose", icon: Camera },
@@ -176,6 +306,17 @@ export function MobileHeader() {
           
           {/* Notifications */}
           <NotificationBell />
+          
+          {/* Test Push Notifications Button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-9 w-9 text-amber-500 hover:text-amber-600 hover:bg-amber-50" 
+            title="Test Push Notifications (Dev Tool)"
+            onClick={handleTestPushNotifications}
+          >
+            <Zap className="h-4 w-4" />
+          </Button>
           
           {/* Notification Test Modal (Development) */}
           <NotificationTestModal>
