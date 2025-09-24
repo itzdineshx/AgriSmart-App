@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { GamificationProvider } from "@/contexts/GamificationContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppRouter } from "@/components/AppRouter";
 
@@ -26,7 +27,9 @@ const App = () => (
         <NotificationProvider>
           <LanguageProvider>
             <AuthProvider>
-              <AppRouter />
+              <GamificationProvider>
+                <AppRouter />
+              </GamificationProvider>
             </AuthProvider>
           </LanguageProvider>
         </NotificationProvider>

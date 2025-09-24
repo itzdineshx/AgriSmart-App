@@ -26,6 +26,8 @@ const Community = lazy(() => import("@/pages/Community"));
 const Farms = lazy(() => import("@/pages/Farms"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
 const Offices = lazy(() => import("@/pages/Offices"));
+const Gamification = lazy(() => import("@/pages/Gamification"));
+const Support = lazy(() => import("@/pages/Support"));
 
 // Loading component
 const PageLoading = () => (
@@ -176,6 +178,22 @@ export function AppRouter() {
             </LazyWrapper>
           } 
         />
+        <Route 
+          path="/gamification" 
+          element={
+            <LazyWrapper>
+              <Layout><Gamification /></Layout>
+            </LazyWrapper>
+          } 
+        />
+        <Route 
+          path="/support" 
+          element={
+            <LazyWrapper>
+              <Layout><Support /></Layout>
+            </LazyWrapper>
+          } 
+        />
 
         {/* Authentication pages */}
         <Route 
@@ -235,28 +253,12 @@ export function AppRouter() {
           } 
         />
 
-        {/* Placeholder routes */}
+        {/* Alias routes for consistency */}
         <Route 
           path="/crops-hybrid" 
           element={
             <LazyWrapper>
-              <Layout>
-                <div className="p-8 text-center">
-                  <h1 className="text-2xl">Crops & Hybrids - Coming Soon</h1>
-                </div>
-              </Layout>
-            </LazyWrapper>
-          } 
-        />
-        <Route 
-          path="/support" 
-          element={
-            <LazyWrapper>
-              <Layout>
-                <div className="p-8 text-center">
-                  <h1 className="text-2xl">Support & Community - Coming Soon</h1>
-                </div>
-              </Layout>
+              <Layout><Hybrid /></Layout>
             </LazyWrapper>
           } 
         />

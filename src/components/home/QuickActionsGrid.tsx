@@ -32,7 +32,6 @@ export function QuickActionsGrid() {
       emoji: "🌦️",
       description: "Local weather & forecast"
     },
-    
     {
       id: "marketplace",
       title: "Marketplace",
@@ -67,6 +66,14 @@ export function QuickActionsGrid() {
       description: "Latest agri news & tips"
     },
     {
+      id: "achievements",
+      title: "Achievements",
+      icon: Headphones,
+      route: "/gamification",
+      emoji: "🏆",
+      description: "Track your progress"
+    },
+    {
       id: "support",
       title: "Support",
       icon: Headphones,
@@ -78,7 +85,7 @@ export function QuickActionsGrid() {
 
   return (
     <div className="px-4 py-6">
-      <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
+      <h2 className="text-lg font-semibold text-foreground dark:text-foreground mb-4">Quick Actions</h2>
       
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {actions.map((action) => {
@@ -87,16 +94,16 @@ export function QuickActionsGrid() {
           if (action.featured) {
             return (
               <Card 
-                key={action.id} 
-                className="col-span-2 lg:col-span-1 bg-gradient-primary border-0 shadow-glow hover:shadow-primary transition-all duration-300 cursor-pointer group"
+                key={action.id}
+                className="col-span-2 lg:col-span-1 bg-gradient-to-br from-primary to-primary/80 dark:from-primary dark:to-primary/90 border-0 hover:shadow-lg transition-all duration-300 cursor-pointer group"
                 onClick={() => navigate(action.route)}
               >
                 <CardContent className="p-6 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 mb-4 group-hover:scale-110 transition-transform">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 dark:bg-white/10 mb-4 group-hover:scale-110 transition-transform">
                     <span className="text-2xl">{action.emoji}</span>
                   </div>
                   <h3 className="font-bold text-primary-foreground mb-1">{action.title}</h3>
-                  <p className="text-sm text-primary-foreground/80">{action.description}</p>
+                  <p className="text-sm text-primary-foreground/80 dark:text-primary-foreground/90">{action.description}</p>
                 </CardContent>
               </Card>
             );
@@ -105,14 +112,14 @@ export function QuickActionsGrid() {
           return (
             <Card 
               key={action.id}
-              className="bg-card hover:bg-accent/50 border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group"
+              className="bg-card dark:bg-card hover:bg-accent/50 dark:hover:bg-accent/20 border border-border dark:border-border hover:shadow-md transition-all duration-200 cursor-pointer group"
               onClick={() => navigate(action.route)}
             >
               <CardContent className="p-4 text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-muted mb-3 group-hover:scale-105 transition-transform">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-muted dark:bg-muted/50 mb-3 group-hover:scale-105 transition-transform">
                   <span className="text-lg">{action.emoji}</span>
                 </div>
-                <h3 className="font-semibold text-foreground text-sm mb-1">{action.title}</h3>
+                <h3 className="font-semibold text-card-foreground text-sm mb-1">{action.title}</h3>
                 <p className="text-xs text-muted-foreground">{action.description}</p>
               </CardContent>
             </Card>
