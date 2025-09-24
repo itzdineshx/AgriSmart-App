@@ -25,6 +25,10 @@ import {
   Edit,
   Trash2
 } from "lucide-react";
+import { FarmFieldMapping } from "@/components/dashboard/FarmFieldMapping";
+import { FinancialManagement } from "@/components/dashboard/FinancialManagement";
+import { CropPlanningCalendar } from "@/components/dashboard/CropPlanningCalendar";
+import { EquipmentManagement } from "@/components/dashboard/EquipmentManagement";
 
 export default function UserProfile() {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -123,8 +127,6 @@ export default function UserProfile() {
   const handleDeleteActivity = (idx: number) => {
     setActivities(activities.filter((_, i) => i !== idx));
   };
-
-  // ...existing code...
 
   const stats = [
     { label: "Diagnoses", value: "23", icon: Camera },
@@ -321,6 +323,46 @@ export default function UserProfile() {
                     )}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Farm Field Mapping */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Farm Field Mapping</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FarmFieldMapping />
+              </CardContent>
+            </Card>
+
+            {/* Financial Management */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Financial Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FinancialManagement />
+              </CardContent>
+            </Card>
+
+            {/* Crop Planning Calendar */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Crop Planning Calendar</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CropPlanningCalendar />
+              </CardContent>
+            </Card>
+
+            {/* Equipment Management */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Equipment Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EquipmentManagement />
               </CardContent>
             </Card>
           </div>
