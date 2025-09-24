@@ -315,6 +315,77 @@ const marketplaceCategories = [
   }
 ];
 
+const collaborationOpportunities = [
+  {
+    id: 1,
+    type: "farming-group",
+    title: "Organic Vegetable Co-op",
+    description: "Join our collaborative farming group growing organic vegetables. We share equipment, knowledge, and market our produce together.",
+    location: "Maharashtra",
+    members: 15,
+    leader: "Priya Sharma",
+    crops: ["Tomatoes", "Spinach", "Carrots"],
+    image: communityMarketplace,
+    status: "open"
+  },
+  {
+    id: 2,
+    type: "equipment-rental",
+    title: "Tractor Rental Service",
+    description: "Mahindra tractor available for rent. Perfect for plowing and transportation. ₹500/day with operator.",
+    location: "Punjab",
+    owner: "Rajesh Kumar",
+    equipment: "Mahindra 275 DI",
+    rate: "₹500/day",
+    availability: "Available",
+    image: equipmentMarketplace
+  },
+  {
+    id: 3,
+    type: "seed-donation",
+    title: "Hybrid Tomato Seeds Available",
+    description: "Donating 50kg of high-quality hybrid tomato seeds. First come, first served for small farmers.",
+    location: "Karnataka",
+    donor: "Krishnan Nair",
+    quantity: "50kg",
+    image: seedsMarketplace
+  },
+  {
+    id: 4,
+    type: "farming-group",
+    title: "Rice Cultivation Collective",
+    description: "Group of 20 farmers working together on rice cultivation. We share irrigation costs and labor during harvest season.",
+    location: "West Bengal",
+    members: 20,
+    leader: "Amit Singh",
+    crops: ["Rice", "Wheat"],
+    image: communityDiscussion,
+    status: "full"
+  },
+  {
+    id: 5,
+    type: "equipment-rental",
+    title: "Sprinkler Irrigation System",
+    description: "Modern sprinkler system for rent. Covers 2 acres. Save 40% water compared to traditional methods.",
+    location: "Rajasthan",
+    owner: "Sunita Devi",
+    equipment: "Sprinkler System",
+    rate: "₹200/day",
+    availability: "Booked until Dec 15",
+    image: neemOilSpray
+  },
+  {
+    id: 6,
+    type: "plant-donation",
+    title: "Fruit Tree Saplings",
+    description: "Donating mango and guava saplings to fellow farmers. Help establish orchards in your community.",
+    location: "Tamil Nadu",
+    donor: "Murugan",
+    quantity: "100 saplings",
+    image: harvestMarketplace
+  }
+];
+
 export default function Community() {
   const { t, language } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -408,10 +479,10 @@ export default function Community() {
               <span className="hidden sm:inline">{language === 'ta' ? 'நிகழ்வுகள்' : 'Events'}</span>
               <span className="sm:hidden">Events</span>
             </TabsTrigger>
-            <TabsTrigger value="marketplace" className="text-xs md:text-sm">
-              <ShoppingCart className="h-4 w-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">{language === 'ta' ? 'சந்தை' : 'Marketplace'}</span>
-              <span className="sm:hidden">Shop</span>
+            <TabsTrigger value="collaboration" className="text-xs md:text-sm">
+              <Users className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">{language === 'ta' ? 'ஒத்துழைப்பு' : 'Collaboration'}</span>
+              <span className="sm:hidden">Collab</span>
             </TabsTrigger>
           </TabsList>
 
@@ -720,30 +791,104 @@ export default function Community() {
             </div>
           </TabsContent>
 
-          {/* Marketplace Tab */}
-          <TabsContent value="marketplace" className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {marketplaceCategories.map((category, index) => (
-                <Card key={index} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                  {category.image && (
-                    <div className="aspect-square relative overflow-hidden rounded-t-lg">
-                      <img 
-                        src={category.image} 
-                        alt={category.category}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                      />
-                    </div>
-                  )}
-                  
-                  <CardContent className="p-4 sm:p-6 text-center">
-                    {!category.image && (
-                      <div className="text-4xl mb-4">{category.icon}</div>
-                    )}
-                    <h3 className="font-semibold mb-2">{category.category}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
-                    <Badge variant="secondary">
-                      {category.items} {language === 'ta' ? 'பொருட்கள்' : 'Items'}
+          {/* Collaboration Tab */}
+          <TabsContent value="collaboration" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {collaborationOpportunities.map((opportunity) => (
+                <Card key={opportunity.id} className="shadow-sm hover:shadow-md transition-shadow">
+                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                    <img
+                      src={opportunity.image}
+                      alt={opportunity.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <Badge className={`absolute top-3 right-3 ${
+                      opportunity.type === 'farming-group' ? 'bg-blue-500' :
+                      opportunity.type === 'equipment-rental' ? 'bg-green-500' :
+                      'bg-purple-500'
+                    } text-white`}>
+                      {opportunity.type === 'farming-group' ? 'Group' :
+                       opportunity.type === 'equipment-rental' ? 'Rental' :
+                       'Donation'}
                     </Badge>
+                  </div>
+
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <Badge variant="outline" className="capitalize">
+                        {opportunity.type.replace('-', ' ')}
+                      </Badge>
+                      <div className="text-right text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 inline mr-1" />
+                        {opportunity.location}
+                      </div>
+                    </div>
+
+                    <h3 className="font-semibold mb-2">{opportunity.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{opportunity.description}</p>
+
+                    <div className="space-y-2 mb-4">
+                      {opportunity.type === 'farming-group' && (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            {opportunity.members} members • Leader: {opportunity.leader}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {opportunity.crops.map((crop) => (
+                              <Badge key={crop} variant="outline" className="text-xs">
+                                {crop}
+                              </Badge>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {opportunity.type === 'equipment-rental' && (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">Owner:</span> {opportunity.owner}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">Equipment:</span> {opportunity.equipment}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-green-600">{opportunity.rate}</span>
+                            <Badge variant={opportunity.availability === 'Available' ? 'default' : 'secondary'} className="text-xs">
+                              {opportunity.availability}
+                            </Badge>
+                          </div>
+                        </>
+                      )}
+
+                      {(opportunity.type === 'seed-donation' || opportunity.type === 'plant-donation') && (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Heart className="h-4 w-4 text-red-500" />
+                            <span className="font-medium">Donor:</span> {opportunity.donor}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">Quantity:</span> {opportunity.quantity}
+                          </div>
+                          <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                            {opportunity.type}
+                          </Badge>
+                        </>
+                      )}
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      variant={opportunity.status === 'full' || opportunity.availability?.includes('Booked') ? "outline" : "default"}
+                      disabled={opportunity.status === 'full'}
+                    >
+                      {opportunity.type === 'farming-group'
+                        ? (opportunity.status === 'open' ? 'Join Group' : 'Group Full')
+                        : opportunity.type === 'equipment-rental'
+                        ? (opportunity.availability === 'Available' ? 'Book Now' : 'Check Availability')
+                        : 'Request Donation'
+                      }
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
