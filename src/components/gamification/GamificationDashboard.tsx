@@ -40,19 +40,19 @@ const DashboardStat: React.FC<DashboardStatsProps> = ({
   trend, 
   color = "text-primary" 
 }) => (
-  <Card className="shadow-elegant hover:shadow-lg transition-all duration-200">
+  <Card className="shadow-elegant hover:shadow-glow transition-all duration-300 bg-gradient-card border-border/50">
     <CardContent className="p-4 sm:p-6">
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-muted-foreground mb-1">{label}</p>
-          <p className="text-xl sm:text-2xl font-bold text-foreground truncate">{value}</p>
+          <p className="text-xl sm:text-2xl font-bold text-card-foreground truncate">{value}</p>
           {trend && (
-            <p className={`text-xs mt-1 ${color} opacity-80`}>
+            <p className={`text-xs mt-1 ${color}`}>
               {trend}
             </p>
           )}
         </div>
-        <div className={`${color} opacity-80 ml-3 flex-shrink-0`}>
+        <div className={`${color} ml-3 flex-shrink-0`}>
           {icon}
         </div>
       </div>
@@ -132,21 +132,21 @@ const GamificationDashboard: React.FC = () => {
     }
   ];
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'border-l-red-500 dark:border-l-red-400 bg-gradient-to-r from-red-50 to-red-100/50 dark:from-red-900/20 dark:to-red-800/20';
-      case 'medium': return 'border-l-yellow-500 dark:border-l-yellow-400 bg-gradient-to-r from-yellow-50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20';
-      default: return 'border-l-blue-500 dark:border-l-blue-400 bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/20';
-    }
-  };
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case 'high': return 'border-l-destructive bg-gradient-to-r from-destructive/5 to-destructive/10 dark:from-destructive/10 dark:to-destructive/20';
+    case 'medium': return 'border-l-warning bg-gradient-to-r from-warning/5 to-warning/10 dark:from-warning/10 dark:to-warning/20';
+    default: return 'border-l-info bg-gradient-to-r from-info/5 to-info/10 dark:from-info/10 dark:to-info/20';
+  }
+};
 
-  const getPriorityBadgeColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800';
-      case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800';
-      default: return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800';
-    }
-  };
+const getPriorityBadgeColor = (priority: string) => {
+  switch (priority) {
+    case 'high': return 'bg-destructive/10 dark:bg-destructive/20 text-destructive border border-destructive/20 dark:border-destructive/30';
+    case 'medium': return 'bg-warning/10 dark:bg-warning/20 text-warning border border-warning/20 dark:border-warning/30';
+    default: return 'bg-info/10 dark:bg-info/20 text-info border border-info/20 dark:border-info/30';
+  }
+};
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
@@ -162,10 +162,10 @@ const GamificationDashboard: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <Badge variant="outline" className="text-xs sm:text-sm">
+            <Badge variant="outline" className="text-sm">
               Level {userLevel.currentLevel}
             </Badge>
-            <Badge variant="default" className="text-xs sm:text-sm px-3 py-1">
+            <Badge variant="default" className="text-sm px-3 py-1">
               {userStats.totalPoints.toLocaleString()} Points
             </Badge>
           </div>
@@ -178,28 +178,28 @@ const GamificationDashboard: React.FC = () => {
           value={userLevel.currentLevel}
           icon={<Crown size={20} className="sm:w-6 sm:h-6" />}
           trend={`${levelProgress}% to next level`}
-          color="text-yellow-500 dark:text-yellow-400"
+          color="text-primary"
         />
         <DashboardStat
           label="Active Streak"
           value={`${weeklyStreak} days`}
           icon={<Flame size={20} className="sm:w-6 sm:h-6" />}
           trend="Keep it up!"
-          color="text-orange-500 dark:text-orange-400"
+          color="text-warning"
         />
         <DashboardStat
           label="Leaderboard Rank"
           value={`#${userRank}`}
           icon={<Trophy size={20} className="sm:w-6 sm:h-6" />}
           trend={userRank > 0 ? `+${userRank} this week` : `${userRank} this week`}
-          color="text-blue-500 dark:text-blue-400"
+          color="text-info"
         />
         <DashboardStat
           label="Achievements"
           value={`${achievements.filter(a => a.unlocked).length}/${achievements.length}`}
           icon={<Award size={20} className="sm:w-6 sm:h-6" />}
           trend={`${recentAchievements.length} recent`}
-          color="text-green-500 dark:text-green-400"
+          color="text-success"
         />
       </div>
 
@@ -253,35 +253,35 @@ const GamificationDashboard: React.FC = () => {
                   </div>
                   Level Progress
                 </CardTitle>
-                <CardDescription className="text-gray-600 dark:text-gray-400">
+                <CardDescription className="text-muted-foreground">
                   Your journey to becoming an agricultural expert
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-card-foreground">
                     Level {userLevel.currentLevel}
                   </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                  <span className="text-sm text-muted-foreground">
                     Level {userLevel.currentLevel + 1}
                   </span>
                 </div>
                 <div className="space-y-2">
                   <Progress 
                     value={levelProgress} 
-                    className="h-3 bg-gray-200 dark:bg-gray-700" 
+                    className="h-3 bg-muted" 
                   />
-                  <div className="flex justify-between text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
                     <span>{userLevel.currentXP} XP</span>
                     <span>{userLevel.xpToNextLevel} XP to next level</span>
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-xl p-4 sm:p-6 border border-primary/10">
-                  <h4 className="font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
+                <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 sm:p-6 border border-primary/20">
+                  <h4 className="font-semibold mb-3 text-card-foreground flex items-center gap-2">
                     <Star size={16} className="text-primary" />
                     Next Level Benefits:
                   </h4>
-                  <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                  <ul className="text-sm text-muted-foreground space-y-2">
                     <li className="flex items-start gap-2">
                       <span className="text-primary font-bold">•</span>
                       Unlock Premium Market Analytics
@@ -300,11 +300,11 @@ const GamificationDashboard: React.FC = () => {
             </Card>
 
             {/* Recent Activity */}
-            <Card className="border-0 shadow-lg dark:shadow-gray-900/20 bg-white dark:bg-gray-800">
+            <Card className="shadow-elegant">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                    <Clock className="text-blue-600 dark:text-blue-400" size={20} />
+                  <div className="p-2 bg-primary/10 rounded-xl">
+                    <Clock className="text-primary" size={20} />
                   </div>
                   Recent Activity
                 </CardTitle>
@@ -315,16 +315,16 @@ const GamificationDashboard: React.FC = () => {
                     key={achievement.id} 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800"
+                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-success/5 to-success/10 dark:from-success/10 dark:to-success/20 rounded-xl border border-success/20 dark:border-success/30"
                   >
-                    <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
-                      <Trophy size={16} className="text-green-600 dark:text-green-400" />
+                    <div className="p-2 bg-success/20 dark:bg-success/30 rounded-lg">
+                      <Trophy size={16} className="text-success" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <p className="text-sm font-medium text-card-foreground truncate">
                         {achievement.name}
                       </p>
-                      <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                      <p className="text-xs text-success font-medium">
                         Achievement unlocked!
                       </p>
                     </div>
@@ -335,16 +335,16 @@ const GamificationDashboard: React.FC = () => {
                     key={quest.id} 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800"
+                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-info/5 to-info/10 dark:from-info/10 dark:to-info/20 rounded-xl border border-info/20 dark:border-info/30"
                   >
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                      <Target size={16} className="text-blue-600 dark:text-blue-400" />
+                    <div className="p-2 bg-info/20 dark:bg-info/30 rounded-lg">
+                      <Target size={16} className="text-info" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <p className="text-sm font-medium text-card-foreground truncate">
                         {quest.name}
                       </p>
-                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      <p className="text-xs text-info font-medium">
                         Quest completed!
                       </p>
                     </div>
@@ -355,7 +355,7 @@ const GamificationDashboard: React.FC = () => {
           </div>
 
           {/* Personalized Recommendations */}
-          <Card className="border-0 shadow-lg dark:shadow-gray-900/20 bg-white dark:bg-gray-800">
+          <Card className="shadow-elegant">
             <CardHeader className="pb-6">
               <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
                 <div className="p-2 bg-primary/10 rounded-xl">
@@ -363,7 +363,7 @@ const GamificationDashboard: React.FC = () => {
                 </div>
                 Personalized Recommendations
               </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
+              <CardDescription className="text-muted-foreground">
                 Actions to boost your progress and earn more rewards
               </CardDescription>
             </CardHeader>
@@ -374,24 +374,24 @@ const GamificationDashboard: React.FC = () => {
                     key={rec.id}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`border-l-4 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all duration-200 ${getPriorityColor(rec.priority)}`}
+                    className={`border-l-4 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-elegant transition-all duration-200 ${getPriorityColor(rec.priority)}`}
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base leading-tight">
+                      <h4 className="font-semibold text-card-foreground text-sm sm:text-base leading-tight">
                         {rec.title}
                       </h4>
                       <Badge className={`text-xs font-medium px-2 py-1 rounded-full ${getPriorityBadgeColor(rec.priority)}`}>
                         {rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                    <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                       {rec.description}
                     </p>
                     
                     {rec.progress && (
                       <div className="mb-4">
                         <div className="flex justify-between text-xs font-medium mb-2">
-                          <span className="text-gray-700 dark:text-gray-300">Progress</span>
+                          <span className="text-muted-foreground">Progress</span>
                           <span className="text-primary">{rec.progress}% complete</span>
                         </div>
                         <Progress value={rec.progress} className="h-2" />
@@ -399,7 +399,7 @@ const GamificationDashboard: React.FC = () => {
                     )}
                     
                     <div className="flex items-center justify-between pt-2">
-                      <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                      <div className="text-xs text-muted-foreground space-y-1">
                         {rec.timeLeft && (
                           <div className="flex items-center gap-1">
                             <Clock size={10} />
@@ -422,7 +422,7 @@ const GamificationDashboard: React.FC = () => {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="text-xs hover:bg-primary hover:text-white transition-colors duration-200 border-primary/20 hover:border-primary"
+                        className="text-xs hover:bg-primary hover:text-primary-foreground transition-colors duration-200 border-primary/20 hover:border-primary"
                       >
                         {rec.action}
                         <ChevronRight size={12} className="ml-1" />
@@ -436,11 +436,11 @@ const GamificationDashboard: React.FC = () => {
 
           {/* Monthly Progress */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-            <Card className="border-0 shadow-lg dark:shadow-gray-900/20 bg-white dark:bg-gray-800">
+            <Card className="shadow-elegant">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                    <Calendar className="text-green-600 dark:text-green-400" size={20} />
+                  <div className="p-2 bg-secondary/10 rounded-xl">
+                    <Calendar className="text-secondary" size={20} />
                   </div>
                   Monthly Goal
                 </CardTitle>
@@ -448,7 +448,7 @@ const GamificationDashboard: React.FC = () => {
               <CardContent>
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span className="text-sm font-medium text-card-foreground">
                       Complete 20 farming activities
                     </span>
                     <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-1 rounded-full">
@@ -457,18 +457,18 @@ const GamificationDashboard: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <Progress value={monthlyGoalProgress} className="h-3" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       {monthlyGoalProgress}% complete • 5 activities remaining
                     </p>
                   </div>
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                  <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 dark:from-secondary/10 dark:to-secondary/20 rounded-xl p-4 border border-secondary/20 dark:border-secondary/30">
                     <div className="flex items-center gap-2 mb-2">
-                      <Gift size={16} className="text-blue-600 dark:text-blue-400" />
-                      <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                      <Gift size={16} className="text-secondary" />
+                      <p className="text-sm font-semibold text-secondary">
                         Reward Preview
                       </p>
                     </div>
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                    <p className="text-xs text-secondary-foreground">
                       1000 bonus points + Exclusive monthly badge
                     </p>
                   </div>
@@ -476,11 +476,11 @@ const GamificationDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg dark:shadow-gray-900/20 bg-white dark:bg-gray-800">
+            <Card className="shadow-elegant">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                    <Users className="text-purple-600 dark:text-purple-400" size={20} />
+                  <div className="p-2 bg-info/10 rounded-xl">
+                    <Users className="text-info" size={20} />
                   </div>
                   Community Standing
                 </CardTitle>
@@ -495,28 +495,28 @@ const GamificationDashboard: React.FC = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white">You</p>
+                      <p className="font-semibold text-card-foreground">You</p>
                       <p className="text-sm text-primary font-medium">Rank #{userRank}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-lg text-gray-900 dark:text-white">
+                      <p className="font-bold text-lg text-card-foreground">
                         {userStats.totalPoints.toLocaleString()}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">points</p>
+                      <p className="text-xs text-muted-foreground">points</p>
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Regional Rank</span>
-                      <span className="font-medium text-gray-900 dark:text-white">#12</span>
+                    <div className="flex justify-between items-center py-2 border-b border-border">
+                      <span className="text-sm text-muted-foreground">Regional Rank</span>
+                      <span className="font-medium text-card-foreground">#12</span>
                     </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Category Leader</span>
-                      <span className="font-medium text-gray-900 dark:text-white">Crop Health</span>
+                    <div className="flex justify-between items-center py-2 border-b border-border">
+                      <span className="text-sm text-muted-foreground">Category Leader</span>
+                      <span className="font-medium text-card-foreground">Crop Health</span>
                     </div>
                     <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Weekly Change</span>
-                      <span className="font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
+                      <span className="text-sm text-muted-foreground">Weekly Change</span>
+                      <span className="font-medium text-success flex items-center gap-1">
                         <TrendingUp size={12} />
                         +3 positions
                       </span>
@@ -531,39 +531,39 @@ const GamificationDashboard: React.FC = () => {
         {/* Achievements Tab */}
         <TabsContent value="achievements" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Recent Achievements</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {recentAchievements.map((achievement) => (
-                  <div key={achievement.id} className="flex items-center gap-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg">
-                    <div className="text-yellow-500">
+                  <div key={achievement.id} className="flex items-center gap-4 p-3 bg-gradient-to-r from-success/5 to-success/10 dark:from-success/10 dark:to-success/20 rounded-lg">
+                    <div className="text-success">
                       <Trophy size={24} />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">{achievement.name}</h4>
-                      <p className="text-sm text-gray-600">{achievement.description}</p>
+                      <h4 className="font-medium text-card-foreground">{achievement.name}</h4>
+                      <p className="text-sm text-muted-foreground">{achievement.description}</p>
                       <Badge className={`mt-1 text-xs ${getRarityColor(achievement.rarity)}`}>
                         {achievement.rarity}
                       </Badge>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium">+{achievement.points} pts</p>
+                      <p className="text-sm font-medium text-card-foreground">+{achievement.points} pts</p>
                     </div>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Progress Overview</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Achievements Unlocked</span>
-                  <span className="text-lg font-bold">
+                  <span className="text-sm font-medium text-card-foreground">Achievements Unlocked</span>
+                  <span className="text-lg font-bold text-card-foreground">
                     {achievements.filter(a => a.unlocked).length}/{achievements.length}
                   </span>
                 </div>
@@ -573,17 +573,17 @@ const GamificationDashboard: React.FC = () => {
                 />
                 
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">
+                  <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                       {achievements.filter(a => a.rarity === 'legendary' && a.unlocked).length}
                     </p>
-                    <p className="text-xs text-gray-600">Legendary</p>
+                    <p className="text-xs text-muted-foreground">Legendary</p>
                   </div>
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-purple-600">
+                  <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                       {achievements.filter(a => a.rarity === 'epic' && a.unlocked).length}
                     </p>
-                    <p className="text-xs text-gray-600">Epic</p>
+                    <p className="text-xs text-muted-foreground">Epic</p>
                   </div>
                 </div>
               </CardContent>
@@ -594,7 +594,7 @@ const GamificationDashboard: React.FC = () => {
         {/* Quests Tab */}
         <TabsContent value="quests" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
+            <Card className="lg:col-span-2 shadow-elegant">
               <CardHeader>
                 <CardTitle>Active Quests</CardTitle>
               </CardHeader>
@@ -603,30 +603,30 @@ const GamificationDashboard: React.FC = () => {
                   <div key={quest.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h4 className="font-medium">{quest.name}</h4>
-                        <p className="text-sm text-gray-600">{quest.description}</p>
+                        <h4 className="font-medium text-card-foreground">{quest.name}</h4>
+                        <p className="text-sm text-muted-foreground">{quest.description}</p>
                       </div>
                       <Badge className={`text-xs ${
-                        quest.type === 'daily' ? 'bg-green-100 text-green-800' :
-                        quest.type === 'weekly' ? 'bg-blue-100 text-blue-800' :
-                        'bg-purple-100 text-purple-800'
+                        quest.type === 'daily' ? 'bg-success/10 dark:bg-success/20 text-success border border-success/20 dark:border-success/30' :
+                        quest.type === 'weekly' ? 'bg-info/10 dark:bg-info/20 text-info border border-info/20 dark:border-info/30' :
+                        'bg-warning/10 dark:bg-warning/20 text-warning border border-warning/20 dark:border-warning/30'
                       }`}>
                         {quest.type}
                       </Badge>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Progress</span>
-                        <span>{quest.progress}/{quest.maxProgress}</span>
+                        <span className="text-muted-foreground">Progress</span>
+                        <span className="text-card-foreground">{quest.progress}/{quest.maxProgress}</span>
                       </div>
                       <Progress value={(quest.progress / quest.maxProgress) * 100} className="h-2" />
                     </div>
                     <div className="flex items-center justify-between mt-3">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-muted-foreground">
                         <Clock size={14} className="inline mr-1" />
                         {quest.duration}
                       </div>
-                      <div className="text-sm font-medium text-green-600">
+                      <div className="text-sm font-medium text-success">
                         +{quest.rewards.find(r => r.type === RewardType.POINTS)?.value || 0} XP
                       </div>
                     </div>
@@ -635,23 +635,23 @@ const GamificationDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Quest Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">{activeQuests.length}</p>
-                  <p className="text-sm text-gray-600">Active Quests</p>
+                <div className="text-center p-4 bg-gradient-to-br from-info/5 to-info/10 dark:from-info/10 dark:to-info/20 rounded-lg border border-info/20 dark:border-info/30">
+                  <p className="text-2xl font-bold text-info">{activeQuests.length}</p>
+                  <p className="text-sm text-muted-foreground">Active Quests</p>
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{completedQuests.length}</p>
-                  <p className="text-sm text-gray-600">Completed This Week</p>
+                <div className="text-center p-4 bg-gradient-to-br from-success/5 to-success/10 dark:from-success/10 dark:to-success/20 rounded-lg border border-success/20 dark:border-success/30">
+                  <p className="text-2xl font-bold text-success">{completedQuests.length}</p>
+                  <p className="text-sm text-muted-foreground">Completed This Week</p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Weekly Goal</span>
-                    <span className="font-medium">5/7</span>
+                    <span className="text-muted-foreground">Weekly Goal</span>
+                    <span className="font-medium text-card-foreground">5/7</span>
                   </div>
                   <Progress value={71} className="h-2" />
                 </div>
@@ -663,7 +663,7 @@ const GamificationDashboard: React.FC = () => {
         {/* Rewards Tab */}
         <TabsContent value="rewards" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Gift className="text-primary" size={20} />
@@ -677,11 +677,11 @@ const GamificationDashboard: React.FC = () => {
                       <Gift size={20} />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">{reward.name}</h4>
-                      <p className="text-sm text-gray-600">{reward.description}</p>
+                      <h4 className="font-medium text-card-foreground">{reward.name}</h4>
+                      <p className="text-sm text-muted-foreground">{reward.description}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{reward.value} pts</p>
+                      <p className="font-medium text-card-foreground">{reward.value} pts</p>
                       <Button 
                         size="sm" 
                         disabled={userStats.totalPoints < reward.value}
@@ -695,21 +695,21 @@ const GamificationDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Recent Rewards</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {redeemedRewards.slice(0, 3).map((reward) => (
-                  <div key={reward.id} className="flex items-center gap-4 p-3 bg-green-50 rounded-lg">
-                    <div className="text-green-600">
+                  <div key={reward.id} className="flex items-center gap-4 p-3 bg-gradient-to-r from-success/5 to-success/10 dark:from-success/10 dark:to-success/20 rounded-lg">
+                    <div className="text-success">
                       <Gift size={20} />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">{reward.name}</h4>
-                      <p className="text-sm text-gray-600">Redeemed recently</p>
+                      <h4 className="font-medium text-card-foreground">{reward.name}</h4>
+                      <p className="text-sm text-muted-foreground">Redeemed recently</p>
                     </div>
-                    <Badge variant="outline" className="text-green-600 border-green-600">
+                    <Badge variant="outline" className="text-success border-success">
                       Used
                     </Badge>
                   </div>
@@ -722,7 +722,7 @@ const GamificationDashboard: React.FC = () => {
         {/* Progress Tab */}
         <TabsContent value="progress" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Badge Collection</CardTitle>
               </CardHeader>
@@ -733,7 +733,7 @@ const GamificationDashboard: React.FC = () => {
                       <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2 ${getRarityColor(badge.rarity)}`}>
                         <Star size={24} />
                       </div>
-                      <p className="text-xs font-medium">{badge.name}</p>
+                      <p className="text-xs font-medium text-card-foreground">{badge.name}</p>
                       <Badge className={`text-xs mt-1 ${getRarityColor(badge.rarity)}`}>
                         {badge.rarity}
                       </Badge>
@@ -749,49 +749,57 @@ const GamificationDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Statistics</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <p className="text-xl font-bold text-blue-600">{userStats.questsCompleted}</p>
-                    <p className="text-xs text-gray-600">Quests Completed</p>
+                  <div className="text-center p-3 bg-gradient-to-br from-success/5 to-success/10 dark:from-success/10 dark:to-success/20 rounded-lg border border-success/20 dark:border-success/30">
+                    <p className="text-xl font-bold text-success">
+                      {userStats.questsCompleted}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Quests Completed</p>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <p className="text-xl font-bold text-green-600">{userStats.challengesWon}</p>
-                    <p className="text-xs text-gray-600">Challenges Won</p>
+                  <div className="text-center p-3 bg-gradient-to-br from-warning/5 to-warning/10 dark:from-warning/10 dark:to-warning/20 rounded-lg border border-warning/20 dark:border-warning/30">
+                    <p className="text-xl font-bold text-warning">
+                      {userStats.challengesWon}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Challenges Won</p>
                   </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <p className="text-xl font-bold text-purple-600">{userStats.currentStreak}</p>
-                    <p className="text-xs text-gray-600">Day Streak</p>
+                  <div className="text-center p-3 bg-gradient-to-br from-info/5 to-info/10 dark:from-info/10 dark:to-info/20 rounded-lg border border-info/20 dark:border-info/30">
+                    <p className="text-xl font-bold text-info">
+                      {userStats.currentStreak}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Day Streak</p>
                   </div>
-                  <div className="text-center p-3 bg-orange-50 rounded-lg">
-                    <p className="text-xl font-bold text-orange-600">{userStats.communityHelpPoints}</p>
-                    <p className="text-xs text-gray-600">Helpful Votes</p>
+                  <div className="text-center p-3 bg-gradient-to-br from-secondary/5 to-secondary/10 dark:from-secondary/10 dark:to-secondary/20 rounded-lg border border-secondary/20 dark:border-secondary/30">
+                    <p className="text-xl font-bold text-secondary">
+                      {userStats.communityHelpPoints}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Helpful Votes</p>
                   </div>
                 </div>
                 
                 <div className="space-y-3 mt-6">
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Knowledge Sharing</span>
-                      <span>85%</span>
+                      <span className="text-muted-foreground">Knowledge Sharing</span>
+                      <span className="text-card-foreground">85%</span>
                     </div>
                     <Progress value={85} className="h-2" />
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Community Engagement</span>
-                      <span>92%</span>
+                      <span className="text-muted-foreground">Community Engagement</span>
+                      <span className="text-card-foreground">92%</span>
                     </div>
                     <Progress value={92} className="h-2" />
                   </div>
                   <div>
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Learning Progress</span>
-                      <span>78%</span>
+                      <span className="text-muted-foreground">Learning Progress</span>
+                      <span className="text-card-foreground">78%</span>
                     </div>
                     <Progress value={78} className="h-2" />
                   </div>
