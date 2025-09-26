@@ -342,7 +342,7 @@ export function MobileHeader() {
 
           {/* Language Translator */}
           <div className="h-9 flex items-center">
-            <div className="elfsight-app-9fb4adf9-c81b-4f41-a0d1-d920653dd109" data-elfsight-app-lazy />
+            <div className="elfsight-app-ed03d8f1-e93e-47b7-8b7f-01c1baf28e5a" data-elfsight-app-lazy />
           </div>
 
           {/* Compact Weather Widget */}
@@ -378,7 +378,7 @@ export function MobileHeader() {
                   <nav className="px-6 space-y-2">
                     {/* Language Translator */}
                     <div className="px-3 py-2">
-                      <div className="elfsight-app-9fb4adf9-c81b-4f41-a0d1-d920653dd109" data-elfsight-app-lazy />
+                      <div className="elfsight-app-ed03d8f1-e93e-47b7-8b7f-01c1baf28e5a" data-elfsight-app-lazy />
                     </div>
 
                     {navItems.map((item) => (

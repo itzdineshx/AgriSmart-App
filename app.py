@@ -9,7 +9,7 @@ GEMINI_API_KEY = "AIzaSyDo2N-1K5Yf4RldYNBIFGQS2H7VnxKqkYA"
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Initialize the model
-model = genai.GenerativeModel('gemini-2.0-flash-exp')
+model = genai.GenerativeModel('gemini-2.5-flash-exp')
 
 def encode_image_to_base64(image):
     """Convert PIL image to base64 string"""
