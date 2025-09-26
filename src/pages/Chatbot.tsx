@@ -117,9 +117,9 @@ export default function Chatbot() {
       window.speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.8;
+      utterance.rate = 1.0;
       utterance.volume = 1.0;
-      utterance.pitch = 1.0;
+      utterance.pitch = 0.9;
       
       // Get available voices
       const voices = window.speechSynthesis.getVoices();
@@ -203,7 +203,7 @@ export default function Chatbot() {
       const currentMessage = { role: "user", parts: [{ text: userMsg }] };
       const fullConversation = [
         { role: "user", parts: [{ text: systemPrompt }] },
-        { role: "model", parts: [{ text: "வணக்கம்! நான் ஃப்ளோரா. உங்கள் தாவர நண்பன்!" }] },
+        { role: "model", parts: [{ text: "Hi, I'm Flora! Your Farming Friend!" }] },
         ...conversationHistory,
         currentMessage
       ];
