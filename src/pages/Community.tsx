@@ -7,7 +7,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserProgress, useLeaderboard, useQuests } from "@/hooks/useGamification";
+import { motion } from "framer-motion";
 import { 
   MessageCircle, 
   Heart, 
@@ -27,7 +30,11 @@ import {
   Clock,
   BookOpen,
   ShoppingCart,
-  AlertCircle
+  AlertCircle,
+  Trophy,
+  Crown,
+  Target,
+  Zap
 } from "lucide-react";
 
 // Import community images
@@ -315,6 +322,77 @@ const marketplaceCategories = [
   }
 ];
 
+const collaborationOpportunities = [
+  {
+    id: 1,
+    type: "farming-group",
+    title: "Organic Vegetable Co-op",
+    description: "Join our collaborative farming group growing organic vegetables. We share equipment, knowledge, and market our produce together.",
+    location: "Maharashtra",
+    members: 15,
+    leader: "Priya Sharma",
+    crops: ["Tomatoes", "Spinach", "Carrots"],
+    image: communityMarketplace,
+    status: "open"
+  },
+  {
+    id: 2,
+    type: "equipment-rental",
+    title: "Tractor Rental Service",
+    description: "Mahindra tractor available for rent. Perfect for plowing and transportation. ₹500/day with operator.",
+    location: "Punjab",
+    owner: "Rajesh Kumar",
+    equipment: "Mahindra 275 DI",
+    rate: "₹500/day",
+    availability: "Available",
+    image: equipmentMarketplace
+  },
+  {
+    id: 3,
+    type: "seed-donation",
+    title: "Hybrid Tomato Seeds Available",
+    description: "Donating 50kg of high-quality hybrid tomato seeds. First come, first served for small farmers.",
+    location: "Karnataka",
+    donor: "Krishnan Nair",
+    quantity: "50kg",
+    image: seedsMarketplace
+  },
+  {
+    id: 4,
+    type: "farming-group",
+    title: "Rice Cultivation Collective",
+    description: "Group of 20 farmers working together on rice cultivation. We share irrigation costs and labor during harvest season.",
+    location: "West Bengal",
+    members: 20,
+    leader: "Amit Singh",
+    crops: ["Rice", "Wheat"],
+    image: communityDiscussion,
+    status: "full"
+  },
+  {
+    id: 5,
+    type: "equipment-rental",
+    title: "Sprinkler Irrigation System",
+    description: "Modern sprinkler system for rent. Covers 2 acres. Save 40% water compared to traditional methods.",
+    location: "Rajasthan",
+    owner: "Sunita Devi",
+    equipment: "Sprinkler System",
+    rate: "₹200/day",
+    availability: "Booked until Dec 15",
+    image: neemOilSpray
+  },
+  {
+    id: 6,
+    type: "plant-donation",
+    title: "Fruit Tree Saplings",
+    description: "Donating mango and guava saplings to fellow farmers. Help establish orchards in your community.",
+    location: "Tamil Nadu",
+    donor: "Murugan",
+    quantity: "100 saplings",
+    image: harvestMarketplace
+  }
+];
+
 export default function Community() {
   const { t, language } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -323,6 +401,11 @@ export default function Community() {
   const [newPostTitle, setNewPostTitle] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  
+  // Gamification hooks
+  const { userLevel, userStats, levelProgress } = useUserProgress();
+  const { leaderboard, userRank } = useLeaderboard();
+  const { activeQuests, completedQuests } = useQuests();
 
   // Update search query when URL params change
   useEffect(() => {
@@ -408,10 +491,10 @@ export default function Community() {
               <span className="hidden sm:inline">{language === 'ta' ? 'நிகழ்வுகள்' : 'Events'}</span>
               <span className="sm:hidden">Events</span>
             </TabsTrigger>
-            <TabsTrigger value="marketplace" className="text-xs md:text-sm">
-              <ShoppingCart className="h-4 w-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">{language === 'ta' ? 'சந்தை' : 'Marketplace'}</span>
-              <span className="sm:hidden">Shop</span>
+            <TabsTrigger value="collaboration" className="text-xs md:text-sm">
+              <Users className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">{language === 'ta' ? 'ஒத்துழைப்பு' : 'Collaboration'}</span>
+              <span className="sm:hidden">Collab</span>
             </TabsTrigger>
           </TabsList>
 
@@ -541,6 +624,78 @@ export default function Community() {
 
               {/* Sidebar */}
               <div className="lg:col-span-1 space-y-6">
+                {/* Your Community Progress */}
+                <Card className="shadow-sm bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Crown className="h-5 w-5 text-blue-600" />
+                      Your Progress
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 space-y-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-900">Level {userLevel.currentLevel}</div>
+                      <div className="text-sm text-blue-700">{userStats.totalPoints.toLocaleString()} points</div>
+                      <Progress value={levelProgress} className="mt-2 h-2" />
+                      <p className="text-xs text-blue-600 mt-1">{levelProgress}% to next level</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-center">
+                      <div className="bg-white/70 rounded-lg p-2">
+                        <div className="text-lg font-bold text-green-700">{userStats.communityHelpPoints}</div>
+                        <div className="text-xs text-gray-600">Help Points</div>
+                      </div>
+                      <div className="bg-white/70 rounded-lg p-2">
+                        <div className="text-lg font-bold text-purple-700">{userRank}</div>
+                        <div className="text-xs text-gray-600">Community Rank</div>
+                      </div>
+                    </div>
+                    
+                    <Button size="sm" className="w-full" variant="outline">
+                      <Target className="h-4 w-4 mr-2" />
+                      View Full Dashboard
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Active Quests */}
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Target className="h-5 w-5 text-green-600" />
+                      Active Quests
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 space-y-3">
+                    {activeQuests.slice(0, 2).map((quest) => (
+                      <motion.div
+                        key={quest.id}
+                        whileHover={{ scale: 1.02 }}
+                        className="bg-green-50 border border-green-200 rounded-lg p-3"
+                      >
+                        <h4 className="font-medium text-sm text-green-900">{quest.name}</h4>
+                        <p className="text-xs text-green-700 mt-1">{quest.description}</p>
+                        <div className="mt-2">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span>Progress</span>
+                            <span>{quest.progress}/{quest.maxProgress}</span>
+                          </div>
+                          <Progress value={(quest.progress / quest.maxProgress) * 100} className="h-1" />
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <Badge variant="outline" className="text-xs">{quest.type}</Badge>
+                          <div className="text-xs text-green-600">
+                            +{quest.rewards.reduce((sum, r) => sum + (r.value || 0), 0)} XP
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                    {activeQuests.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center py-4">No active quests</p>
+                    )}
+                  </CardContent>
+                </Card>
+
                 {/* Categories - Mobile Horizontal Scroll */}
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
@@ -574,13 +729,16 @@ export default function Community() {
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Award className="h-5 w-5" />
+                      <Trophy className="h-5 w-5 text-yellow-500" />
                       {language === 'ta' ? 'முன்னணி பங்களிப்பாளர்கள்' : 'Top Contributors'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-3">
-                    {topContributors.slice(0, 3).map((contributor, index) => (
+                    {leaderboard.slice(0, 3).map((contributor, index) => (
                       <div key={index} className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-bold">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                        </div>
                         <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
                           <AvatarImage src={contributor.avatar} />
                           <AvatarFallback>{contributor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
@@ -590,12 +748,36 @@ export default function Community() {
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span className="truncate">{contributor.location}</span>
                             <Badge variant="outline" className="text-xs">
-                              {contributor.reputation}
+                              {contributor.points.toLocaleString()}
                             </Badge>
                           </div>
                         </div>
                       </div>
                     ))}
+                  </CardContent>
+                </Card>
+
+                {/* Quick Actions */}
+                <Card className="shadow-sm bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-orange-600" />
+                      Quick Actions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 space-y-2">
+                    <Button size="sm" variant="outline" className="w-full justify-start">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ask Question (+10 XP)
+                    </Button>
+                    <Button size="sm" variant="outline" className="w-full justify-start">
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Answer Question (+25 XP)
+                    </Button>
+                    <Button size="sm" variant="outline" className="w-full justify-start">
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share Success Story (+50 XP)
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
@@ -720,30 +902,104 @@ export default function Community() {
             </div>
           </TabsContent>
 
-          {/* Marketplace Tab */}
-          <TabsContent value="marketplace" className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {marketplaceCategories.map((category, index) => (
-                <Card key={index} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                  {category.image && (
-                    <div className="aspect-square relative overflow-hidden rounded-t-lg">
-                      <img 
-                        src={category.image} 
-                        alt={category.category}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                      />
-                    </div>
-                  )}
-                  
-                  <CardContent className="p-4 sm:p-6 text-center">
-                    {!category.image && (
-                      <div className="text-4xl mb-4">{category.icon}</div>
-                    )}
-                    <h3 className="font-semibold mb-2">{category.category}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
-                    <Badge variant="secondary">
-                      {category.items} {language === 'ta' ? 'பொருட்கள்' : 'Items'}
+          {/* Collaboration Tab */}
+          <TabsContent value="collaboration" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {collaborationOpportunities.map((opportunity) => (
+                <Card key={opportunity.id} className="shadow-sm hover:shadow-md transition-shadow">
+                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
+                    <img
+                      src={opportunity.image}
+                      alt={opportunity.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <Badge className={`absolute top-3 right-3 ${
+                      opportunity.type === 'farming-group' ? 'bg-blue-500' :
+                      opportunity.type === 'equipment-rental' ? 'bg-green-500' :
+                      'bg-purple-500'
+                    } text-white`}>
+                      {opportunity.type === 'farming-group' ? 'Group' :
+                       opportunity.type === 'equipment-rental' ? 'Rental' :
+                       'Donation'}
                     </Badge>
+                  </div>
+
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <Badge variant="outline" className="capitalize">
+                        {opportunity.type.replace('-', ' ')}
+                      </Badge>
+                      <div className="text-right text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 inline mr-1" />
+                        {opportunity.location}
+                      </div>
+                    </div>
+
+                    <h3 className="font-semibold mb-2">{opportunity.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">{opportunity.description}</p>
+
+                    <div className="space-y-2 mb-4">
+                      {opportunity.type === 'farming-group' && (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            {opportunity.members} members • Leader: {opportunity.leader}
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {opportunity.crops.map((crop) => (
+                              <Badge key={crop} variant="outline" className="text-xs">
+                                {crop}
+                              </Badge>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {opportunity.type === 'equipment-rental' && (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">Owner:</span> {opportunity.owner}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">Equipment:</span> {opportunity.equipment}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium text-green-600">{opportunity.rate}</span>
+                            <Badge variant={opportunity.availability === 'Available' ? 'default' : 'secondary'} className="text-xs">
+                              {opportunity.availability}
+                            </Badge>
+                          </div>
+                        </>
+                      )}
+
+                      {(opportunity.type === 'seed-donation' || opportunity.type === 'plant-donation') && (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Heart className="h-4 w-4 text-red-500" />
+                            <span className="font-medium">Donor:</span> {opportunity.donor}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">Quantity:</span> {opportunity.quantity}
+                          </div>
+                          <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                            {opportunity.type}
+                          </Badge>
+                        </>
+                      )}
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      variant={opportunity.status === 'full' || opportunity.availability?.includes('Booked') ? "outline" : "default"}
+                      disabled={opportunity.status === 'full'}
+                    >
+                      {opportunity.type === 'farming-group'
+                        ? (opportunity.status === 'open' ? 'Join Group' : 'Group Full')
+                        : opportunity.type === 'equipment-rental'
+                        ? (opportunity.availability === 'Available' ? 'Book Now' : 'Check Availability')
+                        : 'Request Donation'
+                      }
+                    </Button>
                   </CardContent>
                 </Card>
               ))}

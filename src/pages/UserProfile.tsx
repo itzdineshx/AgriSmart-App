@@ -3,12 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
 import { DashboardMetrics } from "@/components/dashboard/DashboardMetrics";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
 import { SettingsModal } from "@/components/SettingsModal";
+import { AchievementUnlockNotification, useAchievementNotifications } from "@/components/gamification/AchievementNotification";
+import { useUserProgress, useAchievements, useBadges } from "@/hooks/useGamification";
+import { motion } from "framer-motion";
 import { 
   User, 
   MapPin, 
@@ -23,11 +27,27 @@ import {
   Leaf,
   Star,
   Edit,
-  Trash2
+  Trash2,
+  Trophy,
+  Award,
+  Crown,
+  Target,
+  Zap,
+  Flame
 } from "lucide-react";
+import { FarmFieldMapping } from "@/components/dashboard/FarmFieldMapping";
+import { FinancialManagement } from "@/components/dashboard/FinancialManagement";
+import { CropPlanningCalendar } from "@/components/dashboard/CropPlanningCalendar";
+import { EquipmentManagement } from "@/components/dashboard/EquipmentManagement";
 
 export default function UserProfile() {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  
+  // Gamification hooks
+  const { userLevel, userStats, levelProgress } = useUserProgress();
+  const { recentAchievements, achievements } = useAchievements();
+  const { badges, recentBadges } = useBadges();
+  const { currentNotification, isVisible, hideNotification } = useAchievementNotifications();
   
   const [farmerData, setFarmerData] = useState({
     name: "Rajesh Kumar",
@@ -124,8 +144,6 @@ export default function UserProfile() {
     setActivities(activities.filter((_, i) => i !== idx));
   };
 
-  // ...existing code...
-
   const stats = [
     { label: "Diagnoses", value: "23", icon: Camera },
     { label: "Trades", value: "8", icon: ShoppingCart },
@@ -212,6 +230,144 @@ export default function UserProfile() {
           </CardContent>
         </Card>
 
+        {/* Gamification Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Current Level</p>
+                  <p className="text-2xl font-bold text-foreground">{userLevel.currentLevel}</p>
+                  <p className="text-xs text-muted-foreground">{levelProgress}% to next level</p>
+                </div>
+                <Crown className="h-8 w-8 text-yellow-500 dark:text-yellow-400" />
+              </div>
+              <Progress value={levelProgress} className="mt-2 h-2" />
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Points</p>
+                  <p className="text-2xl font-bold text-foreground">{userStats.totalPoints.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">+{userStats.weeklyPoints} this week</p>
+                </div>
+                <Star className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Achievements</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {achievements.filter(a => a.unlocked).length}/{achievements.length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{recentAchievements.length} recent</p>
+                </div>
+                <Trophy className="h-8 w-8 text-green-500 dark:text-green-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Badges Earned</p>
+                  <p className="text-2xl font-bold text-foreground">{badges.length}</p>
+                  <p className="text-xs text-muted-foreground">{recentBadges.length} new</p>
+                </div>
+                <Award className="h-8 w-8 text-purple-500 dark:text-purple-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Achievements */}
+        {recentAchievements.length > 0 && (
+          <Card className="shadow-elegant">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                Recent Achievements
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recentAchievements.slice(0, 3).map((achievement) => (
+                  <Card key={achievement.id} className="shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="text-yellow-500 dark:text-yellow-400">
+                          <Trophy size={24} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-foreground">{achievement.name}</h4>
+                          <p className="text-sm text-muted-foreground mt-1">{achievement.description}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline" className="text-xs">
+                              +{achievement.points} points
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {achievement.rarity}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Activity Streak */}
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Flame className="h-5 w-5 text-orange-500" />
+              Daily Activity Streak
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-3xl font-bold text-orange-500 dark:text-orange-400">{userStats.currentStreak}</p>
+                <p className="text-sm text-muted-foreground">Days in a row</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-foreground">Weekly Goal</p>
+                <p className="text-xs text-muted-foreground">Complete 5 activities</p>
+              </div>
+            </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-foreground">Progress this week</span>
+              <span className="text-sm font-medium text-foreground">4/5 activities</span>
+            </div>
+            <Progress value={80} className="h-2" />
+            <div className="flex gap-1 mt-3">
+              {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                <div
+                  key={day}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                    day <= 4
+                      ? 'bg-orange-500 dark:bg-orange-600 text-white'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {day <= 4 ? '✓' : day}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Dashboard Metrics */}
         <DashboardMetrics userType="farmer" />
 
@@ -247,7 +403,11 @@ export default function UserProfile() {
                         <span key={crop} className="flex items-center gap-1">
                           {editCropIdx === idx ? (
                             <>
-                              <input value={editCropName} onChange={e => setEditCropName(e.target.value)} className="border rounded px-2 py-1 text-sm" />
+                              <input 
+                                value={editCropName} 
+                                onChange={e => setEditCropName(e.target.value)} 
+                                className="border border-border rounded px-2 py-1 text-sm bg-background text-foreground" 
+                              />
                               <Button size="sm" variant="outline" onClick={handleUpdateCrop}>Save</Button>
                               <Button size="sm" variant="ghost" onClick={() => { setEditCropIdx(null); setEditCropName(""); }}>Cancel</Button>
                             </>
@@ -260,8 +420,13 @@ export default function UserProfile() {
                           )}
                         </span>
                       ))}
-                      <input value={newCrop} onChange={e => setNewCrop(e.target.value)} placeholder="Add crop" className="border rounded px-2 py-1 text-sm" />
-                      <Button size="sm" variant="hero" onClick={handleAddCrop}>Add</Button>
+                      <input 
+                        value={newCrop} 
+                        onChange={e => setNewCrop(e.target.value)} 
+                        placeholder="Add crop" 
+                        className="border border-border rounded px-2 py-1 text-sm bg-background text-foreground" 
+                      />
+                      <Button size="sm" variant="default" onClick={handleAddCrop}>Add</Button>
                     </div>
                   </div>
                 </div>
@@ -295,15 +460,43 @@ export default function UserProfile() {
                 <div className="mt-6 space-y-2">
                   <h4 className="font-semibold">{editActivityIdx !== null ? "Edit Activity" : "Add Activity"}</h4>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <input name="title" value={activityForm.title} onChange={e => setActivityForm({ ...activityForm, title: e.target.value })} placeholder="Title" className="border rounded px-2 py-1" />
-                    <input name="description" value={activityForm.description} onChange={e => setActivityForm({ ...activityForm, description: e.target.value })} placeholder="Description" className="border rounded px-2 py-1" />
-                    <input name="date" value={activityForm.date} onChange={e => setActivityForm({ ...activityForm, date: e.target.value })} placeholder="Date" className="border rounded px-2 py-1" />
-                    <select name="type" value={activityForm.type} onChange={e => setActivityForm({ ...activityForm, type: e.target.value })} className="border rounded px-2 py-1">
+                    <input 
+                      name="title" 
+                      value={activityForm.title} 
+                      onChange={e => setActivityForm({ ...activityForm, title: e.target.value })} 
+                      placeholder="Title" 
+                      className="border border-border rounded px-2 py-1 bg-background text-foreground" 
+                    />
+                    <input 
+                      name="description" 
+                      value={activityForm.description} 
+                      onChange={e => setActivityForm({ ...activityForm, description: e.target.value })} 
+                      placeholder="Description" 
+                      className="border border-border rounded px-2 py-1 bg-background text-foreground" 
+                    />
+                    <input 
+                      name="date" 
+                      value={activityForm.date} 
+                      onChange={e => setActivityForm({ ...activityForm, date: e.target.value })} 
+                      placeholder="Date" 
+                      className="border border-border rounded px-2 py-1 bg-background text-foreground" 
+                    />
+                    <select 
+                      name="type" 
+                      value={activityForm.type} 
+                      onChange={e => setActivityForm({ ...activityForm, type: e.target.value })} 
+                      className="border border-border rounded px-2 py-1 bg-background text-foreground"
+                    >
                       <option value="diagnosis">Diagnosis</option>
                       <option value="market">Market</option>
                       <option value="purchase">Purchase</option>
                     </select>
-                    <select name="status" value={activityForm.status} onChange={e => setActivityForm({ ...activityForm, status: e.target.value })} className="border rounded px-2 py-1">
+                    <select 
+                      name="status" 
+                      value={activityForm.status} 
+                      onChange={e => setActivityForm({ ...activityForm, status: e.target.value })} 
+                      className="border border-border rounded px-2 py-1 bg-background text-foreground"
+                    >
                       <option value="pending">Pending</option>
                       <option value="completed">Completed</option>
                       <option value="resolved">Resolved</option>
@@ -312,15 +505,55 @@ export default function UserProfile() {
                   </div>
                   <div className="flex gap-2 mt-2">
                     {editActivityIdx !== null ? (
-                      <Button size="sm" variant="hero" onClick={handleUpdateActivity}>Update</Button>
+                      <Button size="sm" variant="default" onClick={handleUpdateActivity}>Update</Button>
                     ) : (
-                      <Button size="sm" variant="hero" onClick={handleAddActivity}>Add</Button>
+                      <Button size="sm" variant="default" onClick={handleAddActivity}>Add</Button>
                     )}
                     {editActivityIdx !== null && (
                       <Button size="sm" variant="ghost" onClick={() => { setEditActivityIdx(null); setActivityForm({ type: "diagnosis", title: "", description: "", date: "", status: "pending" }); }}>Cancel</Button>
                     )}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Farm Field Mapping */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Farm Field Mapping</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FarmFieldMapping />
+              </CardContent>
+            </Card>
+
+            {/* Financial Management */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Financial Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FinancialManagement />
+              </CardContent>
+            </Card>
+
+            {/* Crop Planning Calendar */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Crop Planning Calendar</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CropPlanningCalendar />
+              </CardContent>
+            </Card>
+
+            {/* Equipment Management */}
+            <Card className="shadow-elegant mt-8">
+              <CardHeader>
+                <CardTitle>Equipment Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EquipmentManagement />
               </CardContent>
             </Card>
           </div>
@@ -338,6 +571,15 @@ export default function UserProfile() {
 
       {/* Settings Modal */}
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+
+      {/* Achievement Notifications */}
+      {isVisible && currentNotification && (
+        <AchievementUnlockNotification
+          achievement={currentNotification}
+          isVisible={isVisible}
+          onClose={hideNotification}
+        />
+      )}
     </div>
   );
 }

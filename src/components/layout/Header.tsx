@@ -64,9 +64,15 @@ export function Header() {
 
   const resourcesItems = [
     { name: "Government Schemes", path: "/government-schemes", icon: Users },
-    { name: "community", path: "/community", icon: Cloud },
+    { name: "Community", path: "/community", icon: Cloud },
     { name: "Crops & Hybrids", path: "/hybrid", icon: Leaf },
     { name: "News & Blogs", path: "/blogs", icon: MessageCircle },
+  ];
+
+  const moreItems = [
+    { name: "Gamification", path: "/gamification", icon: Sparkles },
+    { name: "Weather", path: "/weather", icon: Cloud },
+    { name: "Support", path: "/support", icon: MessageCircle },
   ];
 
 
@@ -154,6 +160,36 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-card border border-border">
                   {resourcesItems.map((item) => (
+                    <DropdownMenuItem key={item.path} asChild>
+                      <Link 
+                        to={item.path} 
+                        className={`cursor-pointer ${isActive(item.path) ? 'text-primary' : ''}`}
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        <span>{item.name}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* More Features Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium ${
+                      moreItems.some(item => isActive(item.path))
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>More</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-card border border-border">
+                  {moreItems.map((item) => (
                     <DropdownMenuItem key={item.path} asChild>
                       <Link 
                         to={item.path} 
@@ -390,6 +426,26 @@ export function Header() {
               <div className="border-t border-border pt-2 mt-2">
                 <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Resources</p>
                 {resourcesItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive(item.path)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    }`}
+                   >
+                     <item.icon className="h-5 w-5" />
+                     {item.name && <span className="font-medium">{item.name}</span>}
+                   </Link>
+                ))}
+              </div>
+
+              {/* More items */}
+              <div className="border-t border-border pt-2 mt-2">
+                <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">More Features</p>
+                {moreItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}

@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>AgriSmart - AI-Powered Smart Farming Platform</title>
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#22c55e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="AgriSmart" />
+    <link rel="apple-touch-icon" href="/lovable-uploads/logo.png" />
+    
     <!-- Base tag for proper routing -->
     <base href="/" />
     
@@ -44,6 +52,20 @@
         console.error('Unhandled promise rejection:', event.reason);
       });
     </script>
+    
+    <!-- Crypto polyfill for environments without crypto support -->
+    <script>
+      if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
+        window.crypto = {
+          getRandomValues: function(array) {
+            for (var i = 0; i < array.length; i++) {
+              array[i] = Math.floor(Math.random() * 256);
+            }
+            return array;
+          }
+        };
+      }
+    </script>
   </head>
 
   <body>
@@ -63,6 +85,46 @@
       </style>
     </div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+              
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (newWorker) {
+                  newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      // New service worker available
+                      console.log('New service worker available');
+                    }
+                  });
+                }
+              });
+            })
+            .catch((error) => {
+              console.log('ServiceWorker registration failed: ', error);
+            });
+            
+          // Request notification permission on page load for better UX
+          if ('Notification' in window && Notification.permission === 'default') {
+            // Don't ask immediately, let user interact first
+            setTimeout(() => {
+              if (document.visibilityState === 'visible') {
+                Notification.requestPermission().then((permission) => {
+                  console.log('Notification permission:', permission);
+                });
+              }
+            }, 5000);
+          }
+        });
+      }
+    </script>
     
     <!-- Fallback for failed script loading -->
     <script>

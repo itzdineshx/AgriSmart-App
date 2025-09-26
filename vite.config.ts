@@ -20,13 +20,13 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     nodePolyfills({
-      // Whether to polyfill specific globals.
+      // Enable all polyfills
+      include: ['buffer', 'process', 'crypto'],
       globals: {
         Buffer: true,
         global: true,
         process: true,
       },
-      // Whether to polyfill `node:` protocol imports.
       protocolImports: true,
     }),
     mode === "development" && componentTagger()
