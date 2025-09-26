@@ -1,0 +1,9 @@
+This is a test agricultural document about tomato farming.
+
+Key points:
+- Plant tomatoes in well-drained soil
+- Water regularly but avoid overwatering
+- Watch for common diseases like blight
+- Harvest when fruits are red and firm
+
+Please analyze this document and provide farming advice.
