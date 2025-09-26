@@ -152,9 +152,16 @@ export default function MarketAnalysis() {
       setData(result.data);
       setLastUpdated(new Date());
       setLoadingStage('');
+      
+      // Check if we got fallback data and notify user
+      if (result.fallback) {
+        setError(result.message || 'API temporarily unavailable - showing sample data for reference');
+      } else {
+        setError(''); // Clear any previous errors
+      }
     } catch (err) {
       console.error('Failed to fetch mandi data:', err);
-      setError('Failed to fetch latest data. Showing cached data.');
+      setError('Unable to fetch data. Please check your internet connection and try again.');
       setLoadingStage('');
     } finally {
       setIsLoading(false);

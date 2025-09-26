@@ -2,6 +2,13 @@
 export const API_KEY = '579b464db66ec23bdd00000155389df796544a8c7e34f05e167005a7';
 export const BASE_URL = 'https://api.data.gov.in/resource/35985678-0d79-46b4-9ed6-6f13308a1d24';
 
+// Alternative endpoints in case of CORS issues
+export const CORS_PROXIES = [
+  'https://cors-anywhere.herokuapp.com/',
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?',
+] as const;
+
 // Working API endpoint for real-time mandi data
 // Source: Variety-wise Daily Market Prices Data of Commodity
 // Organization: Ministry of Agriculture and Farmers Welfare - Directorate of Marketing and Inspection (DMI)
@@ -380,7 +387,7 @@ export const fetchMandiPrices = async (
     userLocation?: { lat: number; lng: number };
     searchTerm?: string;
   } = {}
-): Promise<{ data: MandiPrice[]; total: number }> => {
+): Promise<{ data: MandiPrice[]; total: number; fallback?: boolean; message?: string }> => {
   console.log('Fetching real-time mandi prices with filters:', filters);
   
   try {
@@ -422,23 +429,34 @@ export const fetchMandiPrices = async (
 
     console.log('API Request URL:', `${BASE_URL}?${params.toString()}`);
 
-    const response = await fetch(`${BASE_URL}?${params.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      // Add these options to handle CORS and network issues
-      mode: 'cors',
-      cache: 'no-cache',
-      redirect: 'follow',
-    });
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      console.log('❌ API request timed out after 10 seconds');
+    }, 10000); // 10 second timeout
+
+    try {
+      const response = await fetch(`${BASE_URL}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (compatible; AgriSmart/1.0)',
+        },
+        // Add these options to handle CORS and network issues
+        mode: 'cors',
+        cache: 'no-cache',
+        redirect: 'follow',
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      console.log('API Response status:', response.status);
     
-    console.log('API Response status:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
     const result = await response.json();
     console.log('API Response:', result);
@@ -524,6 +542,25 @@ export const fetchMandiPrices = async (
     } else {
       throw new Error('No records found in API response');
     }
+    
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      // Handle AbortError (timeout)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('API request timed out after 10 seconds');
+        throw new Error('API request timeout - server may be down or slow');
+      }
+      
+      // Provide more specific error messages
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('CORS or network connectivity issue detected');
+        throw new Error('Unable to connect to government API - CORS or network issue');
+      }
+      
+      console.error('Network error during API request:', error);
+      throw error;
+    }
   } catch (error) {
     console.error('Error fetching real-time mandi prices:', error);
     
@@ -587,7 +624,9 @@ export const fetchMandiPrices = async (
       }
     }
     
-    throw error; // Re-throw original error if retry fails
+    // Final fallback: provide sample data when API is completely down
+    console.warn('🚨 API completely unavailable, providing sample fallback data');
+    return getFallbackMandiData(filters);
   }
 };
 
@@ -758,5 +797,122 @@ export const debugApiData = (data: MandiPrice[]) => {
       (item.market?.toLowerCase().includes('chennai') || 
        item.district?.toLowerCase().includes('chennai'))
     )
+  };
+};
+
+// Fallback data when API is completely down
+const getFallbackMandiData = (filters: any) => {
+  console.log('🔄 Generating fallback data for filters:', filters);
+  
+  // Get today's date
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const fallbackData: MandiPrice[] = [
+    {
+      commodity: 'Tomato',
+      variety: 'Local',
+      min_price: 800,
+      max_price: 1200,
+      modal_price: 1000,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Koyambedu',
+      district: 'Chennai',
+      state: 'Tamil Nadu',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 8,
+      max_price_per_kg: 12,
+      modal_price_per_kg: 10
+    },
+    {
+      commodity: 'Onion',
+      variety: 'Local',
+      min_price: 1500,
+      max_price: 2000,
+      modal_price: 1800,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Koyambedu',
+      district: 'Chennai',
+      state: 'Tamil Nadu',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 15,
+      max_price_per_kg: 20,
+      modal_price_per_kg: 18
+    },
+    {
+      commodity: 'Potato',
+      variety: 'Local',
+      min_price: 1200,
+      max_price: 1800,
+      modal_price: 1500,
+      price_date: yesterday.toISOString().split('T')[0],
+      market: 'Nilgiris',
+      district: 'Nilgiris',
+      state: 'Tamil Nadu',
+      arrival_date: yesterday.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 12,
+      max_price_per_kg: 18,
+      modal_price_per_kg: 15
+    },
+    {
+      commodity: 'Rice',
+      variety: 'Common',
+      min_price: 2200,
+      max_price: 2800,
+      modal_price: 2500,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Tiruchirappalli',
+      district: 'Tiruchirappalli',
+      state: 'Tamil Nadu',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 22,
+      max_price_per_kg: 28,
+      modal_price_per_kg: 25
+    },
+    {
+      commodity: 'Wheat',
+      variety: 'Local',
+      min_price: 2100,
+      max_price: 2400,
+      modal_price: 2250,
+      price_date: yesterday.toISOString().split('T')[0],
+      market: 'Coimbatore',
+      district: 'Coimbatore',
+      state: 'Tamil Nadu',
+      arrival_date: yesterday.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 21,
+      max_price_per_kg: 24,
+      modal_price_per_kg: 22.5
+    }
+  ];
+  
+  // Apply basic filtering if specified
+  let filteredData = fallbackData;
+  
+  if (filters.state && filters.state !== 'All') {
+    filteredData = filteredData.filter(item => 
+      item.state?.toLowerCase().includes(filters.state.toLowerCase())
+    );
+  }
+  
+  if (filters.commodity && filters.commodity !== 'All') {
+    filteredData = filteredData.filter(item => 
+      item.commodity?.toLowerCase().includes(filters.commodity.toLowerCase())
+    );
+  }
+  
+  console.log(`📋 Returning ${filteredData.length} fallback records`);
+  
+  return {
+    data: filteredData,
+    total: filteredData.length,
+    fallback: true,
+    message: 'API temporarily unavailable - showing sample data'
   };
 };
