@@ -340,14 +340,8 @@ export function MobileHeader() {
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full"></div>
           </Button>
 
-          {/* Language Translator */}
-          <div className="h-9 flex items-center">
-            <div className="elfsight-app-ed03d8f1-e93e-47b7-8b7f-01c1baf28e5a" data-elfsight-app-lazy />
-          </div>
-
           {/* Compact Weather Widget */}
           <WeatherWidget />
-          
           
           {/* Hamburger Menu */}
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
