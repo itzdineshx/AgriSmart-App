@@ -17,14 +17,6 @@ export function QuickActionsGrid() {
 
   const actions = [
     {
-      id: "diagnose",
-      title: "Diagnose Crop",
-      icon: Camera,
-      route: "/diagnose",
-      emoji: "🧪",
-      description: "AI crop analysis"
-    },
-    {
       id: "weather",
       title: "Weather & Forecast",
       icon: Cloud,
