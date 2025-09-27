@@ -17,6 +17,14 @@ export function QuickActionsGrid() {
 
   const actions = [
     {
+      id: "diagnose",
+      title: "Diagnose Crop",
+      icon: Camera,
+      route: "/diagnose",
+      emoji: "🧪",
+      description: "AI crop analysis"
+    },
+    {
       id: "weather",
       title: "Weather & Forecast",
       icon: Cloud,
@@ -32,14 +40,6 @@ export function QuickActionsGrid() {
       emoji: "🛒",
       description: "Buy & sell crops",
       featured: true
-    },
-    {
-      id: "community",
-      title: "Community",
-      icon: Users,
-      route: "/community",
-      emoji: "👥",
-      description: "Connect with farmers"
     },
     {
       id: "reports",
