@@ -38,6 +38,12 @@ import {
   isChennaiAreaUser,
   getChennaiMarketAlternatives
 } from '@/services/mandiService';
+import {
+  getLiveMarketData,
+  convertLiveDataToMandiFormat,
+  hasLiveData,
+  getLiveDataSummary
+} from '@/services/liveMarketData';
 import { 
   getPreferredLocation, 
   UserLocation,
@@ -149,15 +155,63 @@ export default function MarketAnalysis() {
         console.log('First record from API:', result.data[0]);
       }
       
-      setData(result.data);
+      // Log freshness information
+      if (result.freshness) {
+        console.log('Data freshness:', result.freshness);
+      }
+      
+      // Check if we should supplement with live data
+      let finalData = result.data;
+      
+      // If API data is stale and we have live data for the commodity/state, merge them
+      if (result.freshness && !result.freshness.isRealTime && 
+          (filters.commodity || filters.state)) {
+        
+        console.log('Checking for live market data to supplement stale API data...');
+        const liveData = getLiveMarketData({
+          commodity: filters.commodity,
+          state: filters.state,
+          district: filters.district
+        });
+        
+        if (liveData.length > 0) {
+          console.log(`Found ${liveData.length} live market records to supplement API data`);
+          const liveMandiData = convertLiveDataToMandiFormat(liveData);
+          
+          // Merge live data with API data, prioritizing live data
+          const apiDataWithoutLiveMarkets = result.data.filter(apiItem =>
+            !liveData.some(liveItem => 
+              liveItem.commodity.toLowerCase() === apiItem.commodity.toLowerCase() &&
+              liveItem.market.toLowerCase().includes(apiItem.market.toLowerCase().split('(')[0].trim())
+            )
+          );
+          
+          finalData = [...liveMandiData, ...apiDataWithoutLiveMarkets];
+          console.log(`Merged data: ${liveMandiData.length} live + ${apiDataWithoutLiveMarkets.length} API = ${finalData.length} total`);
+        }
+      }
+      
+      setData(finalData);
       setLastUpdated(new Date());
       setLoadingStage('');
       
       // Check if we got fallback data and notify user
       if (result.fallback) {
         setError(result.message || 'API temporarily unavailable - showing sample data for reference');
+      } else if (result.freshness && !result.freshness.isRealTime) {
+        // Show data freshness warning for stale data
+        const liveDataCount = finalData.filter((item: any) => item.isLiveData).length;
+        if (liveDataCount > 0) {
+          setError(`📊 Showing ${liveDataCount} live prices + ${result.data.length} government records. ${result.freshness.message}.`);
+        } else if (result.freshness.status === 'very-stale') {
+          setError(`⚠️ ${result.freshness.message}. Government API contains outdated information only.`);
+        } else if (result.freshness.status === 'stale') {
+          setError(`📅 ${result.freshness.message}. Prices may have changed since then.`);
+        } else {
+          setError(''); // Clear any previous errors for recent data
+        }
       } else {
-        setError(''); // Clear any previous errors
+        setError(''); // Clear any previous errors for fresh data
       }
     } catch (err) {
       console.error('Failed to fetch mandi data:', err);
@@ -401,8 +455,48 @@ export default function MarketAnalysis() {
                   <div className="flex items-center gap-1 text-xs md:text-sm text-primary-foreground/70">
                     <Clock className="h-4 w-4" />
                     <span className="truncate">
-                      Updated {format(lastUpdated, 'MMM dd, HH:mm')}
+                      Fetched {format(lastUpdated, 'MMM dd, HH:mm')}
                     </span>
+                  </div>
+                )}
+                
+                {/* Data freshness indicator */}
+                {data.length > 0 && (
+                  <div className="flex items-center gap-1 text-xs">
+                    {(() => {
+                      // Check freshness of current data
+                      const dates = data
+                        .map(item => item.arrival_date)
+                        .filter(date => date)
+                        .map(date => new Date(date))
+                        .filter(date => !isNaN(date.getTime()))
+                        .sort((a, b) => b.getTime() - a.getTime());
+                      
+                      if (dates.length === 0) return null;
+                      
+                      const latestDate = dates[0];
+                      const daysDiff = Math.floor((new Date().getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+                      
+                      if (daysDiff <= 1) {
+                        return (
+                          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                            🟢 Live Data
+                          </Badge>
+                        );
+                      } else if (daysDiff <= 7) {
+                        return (
+                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                            🟡 {daysDiff}d old
+                          </Badge>
+                        );
+                      } else {
+                        return (
+                          <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
+                            🔴 Historical ({daysDiff}d)
+                          </Badge>
+                        );
+                      }
+                    })()}
                   </div>
                 )}
                 
@@ -452,6 +546,31 @@ export default function MarketAnalysis() {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Data Source Information */}
+        {!isLoading && data.length > 0 && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <Database className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <div className="space-y-2">
+                <div>
+                  <strong>Data Sources:</strong> Government API + Live Market Updates
+                </div>
+                <div className="text-sm space-y-1">
+                  <div>• <strong>Total Markets:</strong> {data.length} records</div>
+                  <div>• <strong>Live Data:</strong> {data.filter((item: any) => item.isLiveData).length} current prices from major markets</div>
+                  <div>• <strong>Government Data:</strong> {data.filter((item: any) => !item.isLiveData).length} official records (may be historical)</div>
+                  <div>• <strong>Best Practice:</strong> Cross-verify prices with local traders before transactions</div>
+                </div>
+                {hasLiveData(filters.commodity || '', filters.state, filters.district) && (
+                  <div className="mt-2 p-2 bg-green-100 rounded border-green-200 border">
+                    <span className="text-green-800 font-medium">🟢 Live market data available for your search!</span>
+                  </div>
+                )}
+              </div>
+            </AlertDescription>
           </Alert>
         )}
 

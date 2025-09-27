@@ -144,7 +144,7 @@ export default function Chatbot() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyB7_4jF675ctOel_Ndyf0KAL3Ay8wFpJkM";
+    const apiKey = "AIzaSyB7_4jF675ctOel_Ndyf0KAL3Ay8wFpJkM";
     console.log('Gemini API Key loaded:', apiKey ? `${apiKey.slice(0, 10)}...` : 'NOT LOADED');
     setGeminiApiKey(apiKey);
 

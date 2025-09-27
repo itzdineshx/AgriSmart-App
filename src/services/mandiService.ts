@@ -387,7 +387,21 @@ export const fetchMandiPrices = async (
     userLocation?: { lat: number; lng: number };
     searchTerm?: string;
   } = {}
-): Promise<{ data: MandiPrice[]; total: number; fallback?: boolean; message?: string }> => {
+): Promise<{ 
+  data: MandiPrice[]; 
+  total: number; 
+  fallback?: boolean; 
+  message?: string;
+  freshness?: {
+    status: string;
+    message: string;
+    freshness: string;
+    lastUpdate: Date | null;
+    isRealTime: boolean;
+    totalRecords?: number;
+    freshRecords?: number;
+  };
+}> => {
   console.log('Fetching real-time mandi prices with filters:', filters);
   
   try {
@@ -412,13 +426,11 @@ export const fetchMandiPrices = async (
     }
     
     // Handle date filtering
-    if (filters.onlyRecentData !== false && !filters.date) {
-      // For recent data, we'll fetch all data and filter on the client side
-      // since the API doesn't support date range operators like >=
-      console.log('Fetching recent data - will filter client-side');
-    }
-    
-    if (filters.date) {
+      if (filters.onlyRecentData !== false && !filters.date) {
+        // For recent data, we'll fetch all data and filter on the client side
+        // since the API doesn't support date range operators like >=
+        console.log('Fetching recent data - will filter client-side for last 7 days');
+      }    if (filters.date) {
       // Convert YYYY-MM-DD to DD-MM-YYYY format for API
       const dateParts = filters.date.split('-');
       if (dateParts.length === 3) {
@@ -433,8 +445,8 @@ export const fetchMandiPrices = async (
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-      console.log('❌ API request timed out after 10 seconds');
-    }, 10000); // 10 second timeout
+      console.log('❌ API request timed out after 30 seconds');
+    }, 30000); // 30 second timeout for slow government API
 
     try {
       const response = await fetch(`${BASE_URL}?${params.toString()}`, {
@@ -486,13 +498,13 @@ export const fetchMandiPrices = async (
       // Apply client-side filtering for recent data if needed
       if (filters.onlyRecentData !== false && !filters.date) {
         // Since we're sorting by date desc, the API gives us recent data first
-        // Filter to show data from the last 3 days to ensure good coverage
+        // Filter to show data from the last 7 days to ensure better coverage
         const today = new Date();
-        const threeDaysAgo = new Date(today);
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         
         console.log('Today:', today.toISOString().split('T')[0]);
-        console.log('Filtering for data from:', threeDaysAgo.toISOString().split('T')[0], 'onwards');
+        console.log('Filtering for data from:', sevenDaysAgo.toISOString().split('T')[0], 'onwards');
         
         // First, let's see what date ranges we have in the data
         const dates = transformedData
@@ -510,34 +522,39 @@ export const fetchMandiPrices = async (
           );
         }
         
-        // Filter for recent data (last 3 days from today for better coverage)
+        // Filter for recent data (last 7 days from today for better coverage)
         const filteredForRecent = transformedData.filter(item => {
           if (!item.arrival_date) return false; // Don't keep items without dates for recent filter
           
           try {
             const itemDate = new Date(item.arrival_date);
-            return itemDate >= threeDaysAgo;
+            return itemDate >= sevenDaysAgo;
           } catch (error) {
             console.warn('Error parsing date:', item.arrival_date, error);
             return false;
           }
         });
         
-        console.log(`Found ${filteredForRecent.length} records from last 3 days (since ${threeDaysAgo.toISOString().split('T')[0]})`);
+        console.log(`Found ${filteredForRecent.length} records from last 7 days (since ${sevenDaysAgo.toISOString().split('T')[0]})`);
         
         // If no recent data found, inform user and keep all data
         if (filteredForRecent.length === 0) {
-          console.log('No data found from last 3 days. API may contain only historical data.');
-          console.log('Keeping all data. To see recent data, the API needs to be updated with current dates.');
+          console.log('No data found from last 7 days. API contains only historical data.');
+          console.log('Keeping all data. To see current market prices, this API needs daily updates.');
           // Don't filter - keep all data so user sees something
         } else {
           transformedData = filteredForRecent;
         }
       }
       
+      const freshness = checkDataFreshness(transformedData);
+      console.log('Data freshness assessment:', freshness);
+      
       return {
         data: transformedData,
         total: transformedData.length,
+        freshness: freshness,
+        message: freshness.message
       };
     } else {
       throw new Error('No records found in API response');
@@ -613,9 +630,13 @@ export const fetchMandiPrices = async (
               });
             }
             
+            const retryFreshness = checkDataFreshness(transformedData);
+            
             return {
               data: transformedData,
               total: transformedData.length,
+              freshness: retryFreshness,
+              message: retryFreshness.message
             };
           }
         }
@@ -776,6 +797,86 @@ export const searchMarketsWithChennaiSupport = (searchTerm: string, allMarkets: 
     market.toLowerCase().includes(normalizedSearch)
   ).slice(0, 10);
 };
+// Check data freshness and provide status
+export const checkDataFreshness = (data: MandiPrice[]) => {
+  if (!data || data.length === 0) {
+    return {
+      status: 'no-data',
+      message: 'No market data available',
+      freshness: 'unknown',
+      lastUpdate: null,
+      isRealTime: false
+    };
+  }
+
+  // Get the most recent date in the data
+  const validDates = data
+    .map(item => item.arrival_date)
+    .filter(date => date)
+    .map(date => new Date(date))
+    .filter(date => !isNaN(date.getTime()))
+    .sort((a, b) => b.getTime() - a.getTime());
+
+  if (validDates.length === 0) {
+    return {
+      status: 'no-dates',
+      message: 'Market data available but dates are invalid',
+      freshness: 'unknown',
+      lastUpdate: null,
+      isRealTime: false
+    };
+  }
+
+  const latestDate = validDates[0];
+  const today = new Date();
+  const daysDiff = Math.floor((today.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  let status: string;
+  let message: string;
+  let freshness: string;
+  let isRealTime: boolean;
+
+  if (daysDiff <= 1) {
+    status = 'fresh';
+    message = 'Market data is up-to-date';
+    freshness = 'current';
+    isRealTime = true;
+  } else if (daysDiff <= 7) {
+    status = 'recent';
+    message = `Market data is ${daysDiff} days old`;
+    freshness = 'recent';
+    isRealTime = false;
+  } else if (daysDiff <= 30) {
+    status = 'stale';
+    message = `Market data is ${daysDiff} days old - may not reflect current prices`;
+    freshness = 'outdated';
+    isRealTime = false;
+  } else {
+    status = 'very-stale';
+    message = `Market data is ${daysDiff} days old - historical data only`;
+    freshness = 'historical';
+    isRealTime = false;
+  }
+
+  return {
+    status,
+    message,
+    freshness,
+    lastUpdate: latestDate,
+    isRealTime,
+    totalRecords: data.length,
+    freshRecords: data.filter(item => {
+      try {
+        const itemDate = new Date(item.arrival_date || '');
+        const itemDaysDiff = Math.floor((today.getTime() - itemDate.getTime()) / (1000 * 60 * 60 * 24));
+        return itemDaysDiff <= 7;
+      } catch {
+        return false;
+      }
+    }).length
+  };
+};
+
 export const debugApiData = (data: MandiPrice[]) => {
   const states = [...new Set(data.map(item => item.state))].sort();
   const markets = [...new Set(data.map(item => item.market))].sort();
@@ -788,10 +889,15 @@ export const debugApiData = (data: MandiPrice[]) => {
   console.log('Total markets:', markets.length);
   console.log('Tamil Nadu markets:', tamilNaduMarkets);
   
+  // Add freshness check
+  const freshness = checkDataFreshness(data);
+  console.log('Data freshness:', freshness);
+  
   return {
     states,
     totalMarkets: markets.length,
     tamilNaduMarkets,
+    freshness,
     chennaiData: data.filter(item => 
       item.state === 'Tamil Nadu' && 
       (item.market?.toLowerCase().includes('chennai') || 
@@ -802,14 +908,18 @@ export const debugApiData = (data: MandiPrice[]) => {
 
 // Fallback data when API is completely down
 const getFallbackMandiData = (filters: any) => {
-  console.log('🔄 Generating fallback data for filters:', filters);
+  console.log('🔄 Generating expanded fallback data for filters:', filters);
   
-  // Get today's date
+  // Get today's date and previous days
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
+  const twoDaysAgo = new Date(today);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
   
+  // Comprehensive fallback data with realistic Indian market prices
   const fallbackData: MandiPrice[] = [
+    // Tamil Nadu Markets
     {
       commodity: 'Tomato',
       variety: 'Local',
@@ -833,8 +943,8 @@ const getFallbackMandiData = (filters: any) => {
       max_price: 2000,
       modal_price: 1800,
       price_date: today.toISOString().split('T')[0],
-      market: 'Koyambedu',
-      district: 'Chennai',
+      market: 'Chengalpattu(Uzhavar Sandhai )',
+      district: 'Chengalpattu',
       state: 'Tamil Nadu',
       arrival_date: today.toISOString().split('T')[0],
       grade: 'FAQ',
@@ -849,7 +959,7 @@ const getFallbackMandiData = (filters: any) => {
       max_price: 1800,
       modal_price: 1500,
       price_date: yesterday.toISOString().split('T')[0],
-      market: 'Nilgiris',
+      market: 'Ooty',
       district: 'Nilgiris',
       state: 'Tamil Nadu',
       arrival_date: yesterday.toISOString().split('T')[0],
@@ -889,6 +999,235 @@ const getFallbackMandiData = (filters: any) => {
       min_price_per_kg: 21,
       max_price_per_kg: 24,
       modal_price_per_kg: 22.5
+    },
+    {
+      commodity: 'Cabbage',
+      variety: 'Local',
+      min_price: 600,
+      max_price: 900,
+      modal_price: 750,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Guduvancheri(Uzhavar Sandhai )',
+      district: 'Chengalpattu',
+      state: 'Tamil Nadu',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 6,
+      max_price_per_kg: 9,
+      modal_price_per_kg: 7.5
+    },
+    {
+      commodity: 'Brinjal',
+      variety: 'Long',
+      min_price: 1000,
+      max_price: 1400,
+      modal_price: 1200,
+      price_date: yesterday.toISOString().split('T')[0],
+      market: 'Salem',
+      district: 'Salem',
+      state: 'Tamil Nadu',
+      arrival_date: yesterday.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 10,
+      max_price_per_kg: 14,
+      modal_price_per_kg: 12
+    },
+    // Maharashtra Markets
+    {
+      commodity: 'Tomato',
+      variety: 'Hybrid',
+      min_price: 900,
+      max_price: 1300,
+      modal_price: 1100,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Pune',
+      district: 'Pune',
+      state: 'Maharashtra',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 9,
+      max_price_per_kg: 13,
+      modal_price_per_kg: 11
+    },
+    {
+      commodity: 'Onion',
+      variety: 'Nasik Red',
+      min_price: 1400,
+      max_price: 1900,
+      modal_price: 1650,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Nashik',
+      district: 'Nashik',
+      state: 'Maharashtra',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 14,
+      max_price_per_kg: 19,
+      modal_price_per_kg: 16.5
+    },
+    {
+      commodity: 'Wheat',
+      variety: 'Durum',
+      min_price: 2300,
+      max_price: 2600,
+      modal_price: 2450,
+      price_date: yesterday.toISOString().split('T')[0],
+      market: 'Aurangabad',
+      district: 'Aurangabad',
+      state: 'Maharashtra',
+      arrival_date: yesterday.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 23,
+      max_price_per_kg: 26,
+      modal_price_per_kg: 24.5
+    },
+    // Punjab Markets
+    {
+      commodity: 'Wheat',
+      variety: 'PBW 343',
+      min_price: 2000,
+      max_price: 2300,
+      modal_price: 2150,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Ludhiana',
+      district: 'Ludhiana',
+      state: 'Punjab',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 20,
+      max_price_per_kg: 23,
+      modal_price_per_kg: 21.5
+    },
+    {
+      commodity: 'Rice',
+      variety: 'Basmati',
+      min_price: 3500,
+      max_price: 4200,
+      modal_price: 3850,
+      price_date: yesterday.toISOString().split('T')[0],
+      market: 'Amritsar',
+      district: 'Amritsar',
+      state: 'Punjab',
+      arrival_date: yesterday.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 35,
+      max_price_per_kg: 42,
+      modal_price_per_kg: 38.5
+    },
+    {
+      commodity: 'Potato',
+      variety: 'Jyoti',
+      min_price: 800,
+      max_price: 1200,
+      modal_price: 1000,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Jalandhar',
+      district: 'Jalandhar',
+      state: 'Punjab',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 8,
+      max_price_per_kg: 12,
+      modal_price_per_kg: 10
+    },
+    // Karnataka Markets
+    {
+      commodity: 'Tomato',
+      variety: 'Bangalore',
+      min_price: 700,
+      max_price: 1100,
+      modal_price: 900,
+      price_date: today.toISOString().split('T')[0],
+      market: 'KR Market',
+      district: 'Bangalore',
+      state: 'Karnataka',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 7,
+      max_price_per_kg: 11,
+      modal_price_per_kg: 9
+    },
+    {
+      commodity: 'Coffee',
+      variety: 'Arabica',
+      min_price: 15000,
+      max_price: 18000,
+      modal_price: 16500,
+      price_date: twoDaysAgo.toISOString().split('T')[0],
+      market: 'Chikmagalur',
+      district: 'Chikmagalur',
+      state: 'Karnataka',
+      arrival_date: twoDaysAgo.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 150,
+      max_price_per_kg: 180,
+      modal_price_per_kg: 165
+    },
+    // Gujarat Markets
+    {
+      commodity: 'Cotton',
+      variety: 'MCU-5',
+      min_price: 5800,
+      max_price: 6200,
+      modal_price: 6000,
+      price_date: yesterday.toISOString().split('T')[0],
+      market: 'Rajkot',
+      district: 'Rajkot',
+      state: 'Gujarat',
+      arrival_date: yesterday.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 58,
+      max_price_per_kg: 62,
+      modal_price_per_kg: 60
+    },
+    {
+      commodity: 'Groundnut',
+      variety: 'Bold',
+      min_price: 4500,
+      max_price: 5000,
+      modal_price: 4750,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Junagadh',
+      district: 'Junagadh',
+      state: 'Gujarat',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 45,
+      max_price_per_kg: 50,
+      modal_price_per_kg: 47.5
+    },
+    // Rajasthan Markets
+    {
+      commodity: 'Mustard',
+      variety: 'Local',
+      min_price: 5200,
+      max_price: 5600,
+      modal_price: 5400,
+      price_date: yesterday.toISOString().split('T')[0],
+      market: 'Bharatpur',
+      district: 'Bharatpur',
+      state: 'Rajasthan',
+      arrival_date: yesterday.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 52,
+      max_price_per_kg: 56,
+      modal_price_per_kg: 54
+    },
+    {
+      commodity: 'Bajra',
+      variety: 'Local',
+      min_price: 1800,
+      max_price: 2200,
+      modal_price: 2000,
+      price_date: today.toISOString().split('T')[0],
+      market: 'Jodhpur',
+      district: 'Jodhpur',
+      state: 'Rajasthan',
+      arrival_date: today.toISOString().split('T')[0],
+      grade: 'FAQ',
+      min_price_per_kg: 18,
+      max_price_per_kg: 22,
+      modal_price_per_kg: 20
     }
   ];
   
@@ -909,10 +1248,18 @@ const getFallbackMandiData = (filters: any) => {
   
   console.log(`📋 Returning ${filteredData.length} fallback records`);
   
+  const fallbackFreshness = checkDataFreshness(filteredData);
+  
   return {
     data: filteredData,
     total: filteredData.length,
     fallback: true,
-    message: 'API temporarily unavailable - showing sample data'
+    message: 'Government API unavailable - showing representative market data for reference',
+    freshness: {
+      ...fallbackFreshness,
+      status: 'fallback',
+      message: 'Sample data provided - actual prices may vary',
+      isRealTime: false
+    }
   };
 };
