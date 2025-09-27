@@ -10,7 +10,7 @@ export function FloatingChatbot() {
   return (
     <Button
       onClick={() => navigate('/chatbot')}
-      className={`fixed right-6 z-50 w-14 h-14 rounded-full shadow-elegant bg-gradient-primary text-primary-foreground hover:scale-110 transition-all duration-300 ${
+      className={`fixed right-6 z-50 w-14 h-14 rounded-full ${
         isMobile ? 'bottom-24' : 'bottom-6'
       }`}
       size="icon"
