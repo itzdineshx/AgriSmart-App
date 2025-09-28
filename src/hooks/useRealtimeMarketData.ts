@@ -244,6 +244,7 @@ export const useRealtimeMarketData = (
         try {
           const { location } = await getPreferredLocation();
           setUserLocation({ lat: location.lat, lng: location.lng });
+          filtersToUse.userLocation = { lat: location.lat, lng: location.lng };
         } catch (error) {
           console.warn('Could not get user location:', error);
         }
@@ -252,6 +253,7 @@ export const useRealtimeMarketData = (
       // Fetch data with location context
       const result = await fetchMandiPrices({
         ...filtersToUse,
+        userLocation: userLocation || filtersToUse.userLocation,
         prioritizeChennai: true, // Enable Chennai prioritization
       });
 

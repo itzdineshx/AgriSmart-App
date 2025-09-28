@@ -3,9 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { EnhancedLoading } from '@/components/common/EnhancedLoading';
-import { RealtimeSyncIndicator } from '@/components/weather/RealtimeSyncIndicator';
-import { useRealtimeWeather } from '@/hooks/useRealtimeWeather';
 import { 
   Cloud, 
   Sun, 
@@ -24,6 +21,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Info,
+  Loader2,
   RefreshCw,
   Map,
   Gauge,
@@ -40,7 +38,6 @@ import {
   Sprout
 } from "lucide-react";
 import { useWeather } from "@/hooks/useWeather";
-import { useRealtimeWeather } from '@/hooks/useRealtimeWeather';
 import { 
   getWeatherCondition, 
   generateAgricultureRecommendations, 
@@ -63,22 +60,7 @@ import {
 } from "@/utils/weatherUtils";
 
 export default function Weather() {
-  // Use real-time weather hook with enhanced sync capabilities
-  const {
-    weatherData,
-    location,
-    loading,
-    error,
-    syncStatus,
-    config,
-    refreshWeatherData,
-    updateLocation,
-    toggleAutoRefresh,
-    updateRefreshInterval,
-    clearCache,
-    getCacheStats
-  } = useRealtimeWeather();
-  
+  const { weatherData, location, loading, error, refetch } = useWeather();
   const [selectedLocation, setSelectedLocation] = useState<{lat: number, lng: number, address: string} | null>(null);
   const [agricultureRecommendations, setAgricultureRecommendations] = useState<AgricultureRecommendation[]>([]);
   const [dailyForecasts, setDailyForecasts] = useState<DailyForecast[]>([]);
@@ -100,11 +82,18 @@ export default function Weather() {
 
   // Get cache data
   const cacheData = useMemo(() => {
-    return getCacheStats();
-  }, [weatherData, getCacheStats]);
+    return getWeatherCacheStats();
+  }, [weatherData]);
 
   if (loading) {
-    return <EnhancedLoading />;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading weather data...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -134,11 +123,11 @@ export default function Weather() {
     condition: getWeatherCondition(weatherData.current.weather_code),
     humidity: weatherData.current.relative_humidity_2m,
     windSpeed: Math.round(weatherData.current.wind_speed_10m),
-    location: typeof location === 'string' ? location : location?.address || "Unknown Location",
+    location: typeof location === 'string' ? location : location?.name || "Unknown Location",
     feelsLike: Math.round(weatherData.current.apparent_temperature),
-    uvIndex: 0, // Default value as property doesn't exist
+    uvIndex: weatherData.current.uv_index_max || 0,
     pressure: Math.round(weatherData.current.surface_pressure),
-    visibility: 10, // Default value as property doesn't exist
+    visibility: Math.round((weatherData.current.visibility || 24140) / 1000), // Convert to km
     precipitation: weatherData.current.precipitation || 0
   };
 
@@ -147,35 +136,34 @@ export default function Weather() {
 
   const CurrentWeatherIcon = conditionText.includes('cloud') ? Cloud :
                            conditionText.includes('rain') ? CloudRain :
-                           conditionText.includes('snow') ? CloudSnow :
-                           conditionText.includes('storm') ? Zap : Sun;
-
-  // Simple forecast data from daily forecasts
-  const forecastData = dailyForecasts.slice(0, 7).map((forecast, index) => {
-    const conditionText = getWeatherCondition(forecast.weather_code || 0);
-    const condition = typeof conditionText === 'string' ? conditionText : conditionText.condition;
+  const forecastData = dailyForecasts.map((forecast, index) => {
+    const conditionText = typeof forecast.condition === 'string' ? 
+      forecast.condition : forecast.condition?.condition || 'Clear';
     
     return {
       day: index === 0 ? 'Today' : 
            index === 1 ? 'Tomorrow' : 
            new Date(forecast.date).toLocaleDateString('en-US', { weekday: 'short' }),
       date: index === 0 ? '' : new Date(forecast.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      high: Math.round(forecast.temperature_max || 25),
-      low: Math.round(forecast.temperature_min || 15),
-      condition: condition,
-      icon: condition.includes('cloud') ? Cloud :
-            condition.includes('rain') ? CloudRain :
-            condition.includes('snow') ? CloudSnow :
-            condition.includes('storm') ? Zap : Sun,
+      high: Math.round(forecast.temperature_max),
+      low: Math.round(forecast.temperature_min),
+      condition: conditionText,
+      icon: conditionText.includes('cloud') ? Cloud :
+            conditionText.includes('rain') ? CloudRain :
+            conditionText.includes('snow') ? CloudSnow :
+            conditionText.includes('storm') ? Zap : Sun,
       rainChance: Math.round(forecast.precipitation_probability || 0),
       precipitation: forecast.precipitation_sum || 0,
-      windSpeed: Math.round(forecast.wind_speed_max || 10),
-      uvIndex: Math.round(forecast.uv_index_max || 5),
-      agriculture: forecast.agriculture_conditions || {},
+      windSpeed: Math.round(forecast.wind_speed_max || 0),
+      uvIndex: Math.round(forecast.uv_index_max || 0),
+      agriculture: forecast.agriculture_conditions,
       sunrise: forecast.sunrise,
       sunset: forecast.sunset
     };
-  });
+  });riculture: forecast.agricultureConditions,
+    sunrise: forecast.sunrise,
+    sunset: forecast.sunset
+  }));
 
   // Enhanced agricultural data
   const agriculturalData = {
@@ -245,47 +233,34 @@ export default function Weather() {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
-      {/* Header */}
+                {typeof currentWeather.location === 'string' ? currentWeather.location : currentWeather.location}
       <div className="bg-gradient-primary text-primary-foreground p-6 md:p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Real-time Sync Indicator */}
-          <div className="mb-4">
-            <RealtimeSyncIndicator
-              syncStatus={syncStatus}
-              onRefresh={refreshWeatherData}
-              onToggleAutoRefresh={toggleAutoRefresh}
-              onUpdateInterval={updateRefreshInterval}
-              refreshInterval={config.autoRefreshInterval}
-              compact={true}
-              className="bg-white/10 border-white/20"
-            />
-          </div>
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Weather & Farming Guide</h1>
-              <p className="text-primary-foreground/90 flex items-center gap-2 text-sm md:text-base">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">Weather & Farming Guide</h1>
+              <p className="text-primary-foreground/90 flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 {currentWeather.location}
               </p>
             </div>
             <Dialog open={isMapOpen} onOpenChange={setIsMapOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20 w-full sm:w-auto">
+                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
                   <Map className="h-4 w-4 mr-2" />
                   Change Location
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Select Weather Location</DialogTitle>
-                  <DialogDescription>
-                    Choose a location on the map to get weather forecasts and agricultural recommendations for that area.
-                  </DialogDescription>
+                <WeatherMapModal 
+                  onLocationSelect={handleLocationSelect}
+                  currentLocation={typeof location === 'string' ? location : location?.name}
+                /></DialogDescription>
                 </DialogHeader>
                 <WeatherMapModal 
                   onLocationSelect={handleLocationSelect}
-                  currentLocation={undefined}
+                  currentLocation={location}
                 />
               </DialogContent>
             </Dialog>
@@ -296,21 +271,21 @@ export default function Weather() {
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
         {/* Current Weather */}
         <Card className="shadow-elegant">
-          <CardContent className="p-4 md:p-6">
+                    <p className="text-muted-foreground">{conditionText}</p>
             <div className="grid md:grid-cols-2 gap-6">
               {/* Main Weather */}
               <div className="text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                  <CurrentWeatherIcon className="h-12 w-12 md:h-16 md:w-16 text-primary" />
-                  <div>
-                    <p className="text-3xl md:text-4xl font-bold">{currentWeather.temperature}°C</p>
-                    <p className="text-muted-foreground text-sm md:text-base">{conditionText}</p>
+                  <CurrentWeatherIcon className="h-16 w-16 text-primary" />
+                  <span className="font-medium">{typeof currentWeather.location === 'string' ? currentWeather.location : currentWeather.location}</span>
+                    <p className="text-4xl font-bold">{currentWeather.temperature}°C</p>
+                    <p className="text-muted-foreground">{currentWeather.condition}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-sm md:text-base">{currentWeather.location}</span>
+                  <span className="font-medium">{currentWeather.location}</span>
                 </div>
 
                 {/* Enhanced timezone and time display */}
@@ -329,26 +304,26 @@ export default function Weather() {
               </div>
 
               {/* Weather Details Grid */}
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-accent/30 rounded-lg">
-                  <Thermometer className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-primary" />
+                  <Thermometer className="h-5 w-5 mx-auto mb-1 text-primary" />
                   <p className="text-xs text-muted-foreground">Feels like</p>
-                  <p className="font-semibold text-sm md:text-base">{currentWeather.feelsLike}°C</p>
+                  <p className="font-semibold">{currentWeather.feelsLike}°C</p>
                 </div>
                 <div className="text-center p-3 bg-accent/30 rounded-lg">
-                  <Droplets className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-blue-500" />
+                  <Droplets className="h-5 w-5 mx-auto mb-1 text-blue-500" />
                   <p className="text-xs text-muted-foreground">Humidity</p>
-                  <p className="font-semibold text-sm md:text-base">{currentWeather.humidity}%</p>
+                  <p className="font-semibold">{currentWeather.humidity}%</p>
                 </div>
                 <div className="text-center p-3 bg-accent/30 rounded-lg">
-                  <Wind className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-primary" />
+                  <Wind className="h-5 w-5 mx-auto mb-1 text-primary" />
                   <p className="text-xs text-muted-foreground">Wind Speed</p>
-                  <p className="font-semibold text-sm md:text-base">{currentWeather.windSpeed} km/h</p>
+                  <p className="font-semibold">{currentWeather.windSpeed} km/h</p>
                 </div>
                 <div className="text-center p-3 bg-accent/30 rounded-lg">
-                  <Sun className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-yellow-500" />
+                  <Sun className="h-5 w-5 mx-auto mb-1 text-yellow-500" />
                   <p className="text-xs text-muted-foreground">UV Index</p>
-                  <p className="font-semibold text-sm md:text-base">{currentWeather.uvIndex}</p>
+                  <p className="font-semibold">{currentWeather.uvIndex}</p>
                 </div>
               </div>
             </div>
@@ -583,7 +558,7 @@ export default function Weather() {
           <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
-                <Thermometer className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Thermometer className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Soil Temp</p>
                   <p className="font-semibold text-sm md:text-base">{agriculturalData.soilTemperature}°C</p>
@@ -591,7 +566,7 @@ export default function Weather() {
               </div>
               
               <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
-                <Droplets className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Droplets className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Soil Moisture</p>
                   <p className="font-semibold text-sm md:text-base">{agriculturalData.soilMoisture}%</p>
@@ -599,7 +574,7 @@ export default function Weather() {
               </div>
               
               <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
-                <Waves className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Waves className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Evapotranspiration</p>
                   <p className="font-semibold text-sm md:text-base">{agriculturalData.evapotranspiration} mm</p>
@@ -607,7 +582,7 @@ export default function Weather() {
               </div>
               
               <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
-                <Sun className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Sun className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Solar Radiation</p>
                   <p className="font-semibold text-sm md:text-base">{agriculturalData.solarRadiation} W/m²</p>
@@ -615,7 +590,7 @@ export default function Weather() {
               </div>
               
               <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
-                <Thermometer className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Thermometer className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Dew Point</p>
                   <p className="font-semibold text-sm md:text-base">{agriculturalData.dewPoint}°C</p>
@@ -623,7 +598,7 @@ export default function Weather() {
               </div>
               
               <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
-                <Lightning className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Lightning className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">CAPE</p>
                   <p className="font-semibold text-sm md:text-base">{agriculturalData.cape} J/kg</p>
@@ -631,7 +606,7 @@ export default function Weather() {
               </div>
               
               <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
-                <Eye className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Eye className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Visibility</p>
                   <p className="font-semibold text-sm md:text-base">{agriculturalData.visibility} km</p>
@@ -639,7 +614,7 @@ export default function Weather() {
               </div>
               
               <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
-                <Gauge className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                <Gauge className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs md:text-sm text-muted-foreground">Pressure</p>
                   <p className="font-semibold text-sm md:text-base">{agriculturalData.pressure} hPa</p>
@@ -845,8 +820,8 @@ export default function Weather() {
                     </Button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
