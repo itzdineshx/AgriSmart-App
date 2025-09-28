@@ -25,7 +25,6 @@ import {
   Info,
   ExternalLink,
   Trash2,
-  MarkRead,
 } from 'lucide-react';
 import { useNotifications, type Notification, type NotificationType } from '@/contexts/NotificationContext';
 import { cn } from '@/lib/utils';
