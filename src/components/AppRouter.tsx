@@ -17,6 +17,8 @@ const Weather = lazy(() => import("@/pages/Weather"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const Auth = lazy(() => import("@/pages/Auth"));
 const RoleLogin = lazy(() => import("@/pages/RoleLogin"));
+const SignIn = lazy(() => import("@/pages/SignIn"));
+const SignUp = lazy(() => import("@/pages/SignUp"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Chatbot = lazy(() => import("@/pages/Chatbot"));
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -209,6 +211,22 @@ export function AppRouter() {
           element={
             <LazyWrapper>
               <RoleLogin />
+            </LazyWrapper>
+          } 
+        />
+        <Route 
+          path="/sign-in" 
+          element={
+            <LazyWrapper>
+              <SignIn />
+            </LazyWrapper>
+          } 
+        />
+        <Route 
+          path="/sign-up" 
+          element={
+            <LazyWrapper>
+              <SignUp />
             </LazyWrapper>
           } 
         />

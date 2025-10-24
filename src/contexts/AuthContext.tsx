@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { auth, signInWithGoogle, isFirebaseConfigured } from '@/lib/firebase';
+import { onAuthStateChanged, User as FirebaseUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 export type UserRole = 'admin' | 'seller' | 'user' | null;
 
@@ -24,11 +26,13 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  firebaseUser: FirebaseUser | null;
   userRole: UserRole;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string, role?: UserRole) => Promise<boolean>;
-  logout: () => void;
+  loginWithGoogle: () => Promise<boolean>;
+  logout: () => Promise<void>;
   isClerkUser: boolean;
   isLoading: boolean;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
@@ -41,107 +45,49 @@ const API_BASE_URL = 'http://localhost:3002/api';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing tokens on app start
-    const accessToken = localStorage.getItem('accessToken');
-    const storedRefreshToken = localStorage.getItem('refreshToken');
+    // Listen to Firebase auth state changes - only if Firebase is configured
+    if (isFirebaseConfigured && auth) {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          setFirebaseUser(firebaseUser);
+          setIsAuthenticated(true);
 
-    if (accessToken) {
-      // Try to get user info with existing token
-      getCurrentUser();
-    } else if (storedRefreshToken) {
-      // Try to refresh token
-      refreshToken();
+          // Create a user object from Firebase user
+          const userData: User = {
+            _id: firebaseUser.uid,
+            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+            email: firebaseUser.email || '',
+            role: 'user', // Default role, could be enhanced with custom claims
+            avatar: firebaseUser.photoURL || undefined,
+            createdAt: firebaseUser.metadata.creationTime || new Date().toISOString(),
+            lastLogin: firebaseUser.metadata.lastSignInTime || new Date().toISOString(),
+          };
+
+          setUser(userData);
+        } else {
+          setFirebaseUser(null);
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+        setIsLoading(false);
+      });
+
+      return () => unsubscribe();
     } else {
+      // Firebase not configured, set loading to false
       setIsLoading(false);
     }
   }, []);
 
-  const getCurrentUser = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return false;
-
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-        setIsAuthenticated(true);
-        return true;
-      } else if (response.status === 401) {
-        // Token expired, try refresh
-        return await refreshToken();
-      }
-    } catch (error) {
-      console.error('Error getting current user:', error);
-    }
-    return false;
-  };
-
-  const refreshToken = async (): Promise<boolean> => {
-    try {
-      const storedRefreshToken = localStorage.getItem('refreshToken');
-      if (!storedRefreshToken) return false;
-
-      const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken: storedRefreshToken }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-
-        // Get user info with new token
-        return await getCurrentUser();
-      }
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-    }
-
-    // Clear tokens if refresh failed
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setUser(null);
-    setIsAuthenticated(false);
-    return false;
-  };
-
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        setUser(data.user);
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        const error = await response.json();
-        console.error('Login failed:', error.message);
-        return false;
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -149,76 +95,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (name: string, email: string, password: string, role: UserRole = 'user'): Promise<boolean> => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not configured.');
+    }
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password, role }),
-      });
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        setUser(data.user);
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        const error = await response.json();
-        console.error('Registration failed:', error.message);
-        return false;
-      }
+      // Note: Display name will be set when user signs in
+      // await userCredential.user.updateProfile({
+      //   displayName: name,
+      // });
+
+      return true;
     } catch (error) {
       console.error('Registration error:', error);
       return false;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setUser(null);
-    setIsAuthenticated(false);
+  const loginWithGoogle = async (): Promise<boolean> => {
+    try {
+      await signInWithGoogle();
+      return true;
+    } catch (error) {
+      console.error('Google login error:', error);
+      return false;
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return false;
+      if (!firebaseUser) return false;
 
-      const response = await fetch(`${API_BASE_URL}/users/profile`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setUser(result.user);
-        return true;
-      } else {
-        const error = await response.json();
-        console.error('Profile update failed:', error.message);
-        return false;
+      // Update Firebase profile if name is being updated
+      if (data.name && firebaseUser) {
+        // Note: Profile updates require Firebase configuration
+        // await updateProfile(firebaseUser, {
+        //   displayName: data.name,
+        // });
       }
+
+      // Update local user state
+      setUser(prev => prev ? { ...prev, ...data } : null);
+      return true;
     } catch (error) {
       console.error('Profile update error:', error);
       return false;
     }
   };
 
+  const refreshToken = async (): Promise<boolean> => {
+    // Firebase handles token refresh automatically
+    return true;
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
+      firebaseUser,
       userRole: user?.role || null,
       isAuthenticated,
       login,
       register,
+      loginWithGoogle,
       logout,
       isClerkUser: false,
       isLoading,

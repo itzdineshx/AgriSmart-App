@@ -50,11 +50,11 @@ export function ProtectedRoute({ children, requiredRole, allowClerk = true }: Pr
               You need to authenticate to access this page.
             </p>
             <div className="space-y-2">
-              <Link to="/role-login" className="block">
-                <Button className="w-full">Role-based Login</Button>
+              <Link to="/sign-in" className="block">
+                <Button className="w-full">Sign In</Button>
               </Link>
-              <Link to="/auth" className="block">
-                <Button variant="outline" className="w-full">Clerk Authentication</Button>
+              <Link to="/sign-up" className="block">
+                <Button variant="outline" className="w-full">Create Account</Button>
               </Link>
               <Link to="/" className="block">
                 <Button variant="ghost" className="w-full">

@@ -1,21 +1,73 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 
-// Your web app's Firebase configuration
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyAevXiK95LZlZ2LuRWHpJQRx-unnXx6C3U",
-  authDomain: "duckduckgo-search-game.firebaseapp.com",
-  projectId: "duckduckgo-search-game",
-  storageBucket: "duckduckgo-search-game.firebasestorage.app",
-  messagingSenderId: "248385871471",
-  appId: "1:248385871471:web:5d0f7c81420e674613779a"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Export a flag to check if Firebase is configured
+export const isFirebaseConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== 'your_actual_firebase_api_key_here';
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
+// Initialize Firebase only if properly configured
+let app;
+let auth;
+let googleProvider;
 
+if (isFirebaseConfigured) {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+  } catch (error) {
+    console.warn('Firebase initialization failed. Please check your Firebase configuration.');
+    console.warn('Get your config from: https://console.firebase.google.com/');
+    // Set to undefined on error
+    app = undefined;
+    auth = undefined;
+    googleProvider = undefined;
+  }
+} else {
+  console.warn('Firebase is not configured. Please add your Firebase credentials to .env file.');
+  console.warn('Get your config from: https://console.firebase.google.com/');
+  // Explicitly set to undefined when not configured
+  app = undefined;
+  auth = undefined;
+  googleProvider = undefined;
+}
+
+// Authentication functions - only work if Firebase is configured
+export const signInWithGoogle = async () => {
+  if (!auth) {
+    throw new Error('Firebase authentication is not configured. Please check your Firebase credentials.');
+  }
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error: any) {
+    console.error('Error signing in with Google:', error);
+    throw error;
+  }
+};
+
+export const logout = async () => {
+  if (!auth) {
+    throw new Error('Firebase authentication is not configured.');
+  }
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error('Error signing out:', error);
+    throw error;
+  }
+};
+
+// Export auth instance (will be undefined if not configured)
+export { auth };
 export default app;
