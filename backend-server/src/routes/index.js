@@ -1,8 +1,8 @@
-import express from 'express';
-import { someControllerFunction } from '../controllers/index.js';
+const express = require('express');
+const { getAllItems } = require('../controllers/index');
 
 const router = express.Router();
 
-router.get('/some-route', someControllerFunction);
+router.get('/items', getAllItems);
 
-export default router;
+module.exports = router;
