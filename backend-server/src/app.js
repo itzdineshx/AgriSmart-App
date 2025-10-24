@@ -25,8 +25,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Database connection (optional for testing)
 if (process.env.MONGODB_URI) {
     mongoose.connect(process.env.MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
         serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
     })
     .then(() => {
