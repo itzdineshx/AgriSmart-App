@@ -2,68 +2,228 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 export type UserRole = 'admin' | 'seller' | 'user' | null;
 
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatar?: string;
+  preferences?: {
+    theme: string;
+    language: string;
+    notifications: {
+      email: boolean;
+      push: boolean;
+      weather: boolean;
+      market: boolean;
+    };
+  };
+  lastLogin?: string;
+  createdAt: string;
+}
+
 interface AuthContextType {
+  user: User | null;
   userRole: UserRole;
   isAuthenticated: boolean;
-  login: (username: string, password: string, role: UserRole) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string, role?: UserRole) => Promise<boolean>;
   logout: () => void;
   isClerkUser: boolean;
   isLoading: boolean;
+  updateProfile: (data: Partial<User>) => Promise<boolean>;
+  refreshToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Generated credentials
-const CREDENTIALS = {
-  admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
-  seller: { username: 'seller_pro', password: 'SellPro@2024' },
-  user: { username: 'farmer_user', password: 'FarmUser@2024' }
-};
+const API_BASE_URL = 'http://localhost:3002/api';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check localStorage for existing role-based auth
-    const savedRole = localStorage.getItem('userRole') as UserRole;
-    if (savedRole && CREDENTIALS[savedRole]) {
-      setUserRole(savedRole);
-      setIsAuthenticated(true);
+    // Check for existing tokens on app start
+    const accessToken = localStorage.getItem('accessToken');
+    const storedRefreshToken = localStorage.getItem('refreshToken');
+
+    if (accessToken) {
+      // Try to get user info with existing token
+      getCurrentUser();
+    } else if (storedRefreshToken) {
+      // Try to refresh token
+      refreshToken();
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const login = (username: string, password: string, role: UserRole): boolean => {
-    if (!role || !CREDENTIALS[role]) return false;
+  const getCurrentUser = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return false;
 
-    const { username: validUsername, password: validPassword } = CREDENTIALS[role];
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-    if (username === validUsername && password === validPassword) {
-      setUserRole(role);
-      setIsAuthenticated(true);
-      localStorage.setItem('userRole', role);
-      return true;
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        setIsAuthenticated(true);
+        return true;
+      } else if (response.status === 401) {
+        // Token expired, try refresh
+        return await refreshToken();
+      }
+    } catch (error) {
+      console.error('Error getting current user:', error);
     }
-
     return false;
   };
 
-  const logout = () => {
-    setUserRole(null);
+  const refreshToken = async (): Promise<boolean> => {
+    try {
+      const storedRefreshToken = localStorage.getItem('refreshToken');
+      if (!storedRefreshToken) return false;
+
+      const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken: storedRefreshToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+
+        // Get user info with new token
+        return await getCurrentUser();
+      }
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+    }
+
+    // Clear tokens if refresh failed
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('userRole');
+    return false;
+  };
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        setUser(data.user);
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        const error = await response.json();
+        console.error('Login failed:', error.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    }
+  };
+
+  const register = async (name: string, email: string, password: string, role: UserRole = 'user'): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password, role }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        setUser(data.user);
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        const error = await response.json();
+        console.error('Registration failed:', error.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      return false;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  const updateProfile = async (data: Partial<User>): Promise<boolean> => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return false;
+
+      const response = await fetch(`${API_BASE_URL}/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setUser(result.user);
+        return true;
+      } else {
+        const error = await response.json();
+        console.error('Profile update failed:', error.message);
+        return false;
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      return false;
+    }
   };
 
   return (
     <AuthContext.Provider value={{
-      userRole,
+      user,
+      userRole: user?.role || null,
       isAuthenticated,
       login,
+      register,
       logout,
-      isClerkUser: false, // No longer using Clerk
-      isLoading
+      isClerkUser: false,
+      isLoading,
+      updateProfile,
+      refreshToken
     }}>
       {children}
     </AuthContext.Provider>
