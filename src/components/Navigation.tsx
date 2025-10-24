@@ -8,17 +8,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { useAuth } from "@/contexts/AuthContext";
 // import { LanguageToggle } from "@/components/LanguageToggle";
 // import { useLanguage } from "@/contexts/LanguageContext";
-import { 
-  Home, 
-  Camera, 
-  ShoppingCart, 
-  User, 
-  Menu, 
+import {
+  Home,
+  Camera,
+  ShoppingCart,
+  User,
+  Menu,
   Leaf,
   TrendingUp,
   Users,
@@ -27,12 +27,12 @@ import {
   Sparkles,
   Bell,
   Search,
-  ChevronDown
-} from "lucide-react";
-
-export function Navigation() {
+  ChevronDown,
+  LogOut
+} from "lucide-react";export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, userRole, logout } = useAuth();
   // const { t } = useLanguage();
 
   const isActive = (path: string) => location.pathname === path;
@@ -138,23 +138,36 @@ export function Navigation() {
               </div>
 
               {/* Authentication */}
-              <SignedOut>
-                <Link to="/auth">
+              {!isAuthenticated ? (
+                <Link to="/role-login">
                   <Button variant="outline" size="sm">
                     <User className="h-4 w-4 mr-2" />
                     Sign In
                   </Button>
                 </Link>
-              </SignedOut>
-              <SignedIn>
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8"
-                    }
-                  }}
-                />
-              </SignedIn>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      {userRole}
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background border-border">
+                    <DropdownMenuItem asChild>
+                      <Link to="/user-profile" className="flex items-center space-x-2 w-full px-2 py-1.5 text-sm cursor-pointer">
+                        <User className="h-4 w-4" />
+                        <span>Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={logout} className="flex items-center space-x-2 w-full px-2 py-1.5 text-sm cursor-pointer">
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         </div>
@@ -271,28 +284,39 @@ export function Navigation() {
           
           <div className="flex items-center space-x-2">
             {/* Notifications and Theme for Mobile */}
-            <NotificationBell 
+            <NotificationBell
               variant="outline"
               size="sm"
               showBadge={true}
             />
             <ThemeToggle />
-            <SignedOut>
-              <Link to="/auth">
+            {!isAuthenticated ? (
+              <Link to="/role-login">
                 <Button variant="outline" size="icon">
                   <User className="h-4 w-4" />
                 </Button>
               </Link>
-            </SignedOut>
-            <SignedIn>
-              <UserButton 
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8"
-                  }
-                }}
-              />
-            </SignedIn>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background border-border">
+                  <DropdownMenuItem asChild>
+                    <Link to="/user-profile" className="flex items-center space-x-2 w-full px-2 py-1.5 text-sm cursor-pointer">
+                      <User className="h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout} className="flex items-center space-x-2 w-full px-2 py-1.5 text-sm cursor-pointer">
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SettingsModal } from "@/components/SettingsModal";
 
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -11,15 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/clerk-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleBasedAuth } from "@/components/RoleBasedAuth";
-import { 
-  Home, 
-  Camera, 
-  ShoppingCart, 
-  User, 
-  Menu, 
+import {
+  Home,
+  Camera,
+  ShoppingCart,
+  User,
+  Menu,
   Sparkles,
   Leaf,
   TrendingUp,
@@ -37,18 +36,12 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const location = useLocation();
-  const { logout, isAuthenticated, isClerkUser, userRole } = useAuth();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const { logout, isAuthenticated, userRole } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleLogout = async () => {
-    if (isClerkUser) {
-      await signOut();
-    } else {
-      logout();
-    }
+  const handleLogout = () => {
+    logout();
   };
 
   const navItems = [
@@ -292,15 +285,13 @@ export function Header() {
 
 
               {/* Authentication */}
-              <SignedOut>
+              {!isAuthenticated ? (
                 <Link to="/auth">
                   <Button variant="outline" size="icon">
                     <User className="h-4 w-4" />
                   </Button>
                 </Link>
-              </SignedOut>
-              
-              <SignedIn>
+              ) : (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="relative">
@@ -311,43 +302,13 @@ export function Header() {
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">
-                          {user?.firstName || user?.username || 'User'}
+                          {userRole || 'User'}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground">
-                          {user?.emailAddresses?.[0]?.emailAddress}
+                          Role-based Account
                         </p>
                       </div>
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/user-profile" className="cursor-pointer">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsSettingsOpen(true)} className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive focus:text-destructive">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SignedIn>
-
-              {/* Role-based Authentication for non-Clerk users */}
-              {isAuthenticated && !isClerkUser && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="relative">
-                      <User className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-card border border-border">
-                    <DropdownMenuLabel>Role Account ({userRole})</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/user-profile" className="cursor-pointer">

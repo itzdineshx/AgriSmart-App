@@ -3,9 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Cloud, Clock, Leaf, TrendingUp, ChevronRight } from "lucide-react";
+import { Cloud, Clock, Leaf, TrendingUp, ChevronRight, Database } from "lucide-react";
 import { useWeather } from "@/hooks/useWeather";
-import { mockData } from "@/data/mockData";
 
 export function GreetingSection() {
   const { weatherData, loading: weatherLoading } = useWeather();
@@ -18,14 +17,6 @@ export function GreetingSection() {
     else setGreeting("Good Evening");
   }, []);
 
-  const nextTask = mockData.tasks[0];
-  const bestCrop = mockData.cropHealth.reduce((prev, current) => 
-    prev.health > current.health ? prev : current
-  );
-  const topMarketItem = mockData.marketPrices.reduce((prev, current) => 
-    Math.abs(current.change) > Math.abs(prev.change) ? current : prev
-  );
-
   const summaryCards = [
     {
       title: "Weather Today",
@@ -36,24 +27,24 @@ export function GreetingSection() {
     },
     {
       title: "Next Task",
-      icon: <Clock className="h-5 w-5 text-orange-500" />,
-      content: nextTask.title,
-      subtitle: `${nextTask.time} • ${nextTask.crop}`,
+      icon: <Database className="h-5 w-5 text-orange-500" />,
+      content: "Backend Required",
+      subtitle: "Connect to server for tasks",
       color: "bg-orange-50 dark:bg-orange-950/20"
     },
     {
       title: "Crop Health",
-      icon: <Leaf className="h-5 w-5 text-green-500" />,
-      content: `${bestCrop.crop} - ${bestCrop.health}%`,
-      subtitle: `${bestCrop.status} • ${bestCrop.lastCheck}`,
+      icon: <Database className="h-5 w-5 text-green-500" />,
+      content: "Backend Required",
+      subtitle: "Connect to server for crop data",
       color: "bg-green-50 dark:bg-green-950/20"
     },
     {
       title: "Market Trend",
-      icon: <TrendingUp className="h-5 w-5 text-purple-500" />,
-      content: `${topMarketItem.crop} ₹${topMarketItem.currentPrice}`,
-      subtitle: `${topMarketItem.change > 0 ? '+' : ''}${topMarketItem.change}% today`,
-      color: topMarketItem.change > 0 ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"
+      icon: <Database className="h-5 w-5 text-purple-500" />,
+      content: "Backend Required",
+      subtitle: "Connect to server for market data",
+      color: "bg-purple-50 dark:bg-purple-950/20"
     }
   ];
 
@@ -63,14 +54,14 @@ export function GreetingSection() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            🌱 {greeting}, {mockData.farmer.name}!
+            🌱 {greeting}, Farmer!
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {mockData.farmer.location} • {mockData.farmer.farmSize}
+            Connect to backend for personalized data
           </p>
         </div>
         <Badge variant="secondary" className="px-3 py-1">
-          {mockData.progress.totalPoints} pts
+          0 pts
         </Badge>
       </div>
 

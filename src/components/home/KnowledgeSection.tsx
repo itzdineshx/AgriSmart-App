@@ -1,24 +1,37 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Play, BookOpen, Gift, Clock, ChevronRight } from "lucide-react";
-import { mockData } from "@/data/mockData";
+import { BookOpen, ChevronRight, ExternalLink, Calendar, User } from "lucide-react";
 
 export function KnowledgeSection() {
-  const { knowledge } = mockData;
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'video':
-        return <Play className="h-4 w-4 text-red-500" />;
-      case 'article':
-        return <BookOpen className="h-4 w-4 text-blue-500" />;
-      case 'scheme':
-        return <Gift className="h-4 w-4 text-green-500" />;
-      default:
-        return <BookOpen className="h-4 w-4" />;
+  const knowledgeItems = [
+    {
+      id: 1,
+      title: "Organic Farming Techniques for Wheat",
+      description: "Learn sustainable farming methods to improve crop yield and soil health.",
+      author: "Dr. Rajesh Kumar",
+      date: "2024-01-15",
+      category: "Farming Guide",
+      image: "/lovable-uploads/wheat-prices-article-BXjHk2gB.jpg"
+    },
+    {
+      id: 2,
+      title: "Weather Impact on Crop Diseases",
+      description: "Understanding how weather patterns affect pest and disease management.",
+      author: "Dr. Priya Sharma",
+      date: "2024-01-12",
+      category: "Disease Management",
+      image: "/lovable-uploads/crop-disease-detection-nTzDaxjG.jpg"
+    },
+    {
+      id: 3,
+      title: "Monsoon Preparation Guide",
+      description: "Essential steps to prepare your farm for the upcoming monsoon season.",
+      author: "Agriculture Department",
+      date: "2024-01-10",
+      category: "Seasonal Guide",
+      image: "/lovable-uploads/monsoon-forecast-article-BFwW4Fb1.jpg"
     }
-  };
+  ];
 
   return (
     <div className="px-4 py-6">
@@ -30,57 +43,42 @@ export function KnowledgeSection() {
         </Button>
       </div>
 
-      <div className="space-y-3">
-        {knowledge.map((item, index) => (
-          <Card key={index} className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+      <div className="space-y-4">
+        {knowledgeItems.map((item) => (
+          <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-4">
-              <div className="flex gap-3">
-                {item.type !== 'scheme' && (
-                  <div className="w-16 h-16 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
-                    <img 
-                      src={item.thumbnail} 
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                
+              <div className="flex gap-4">
+                <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-medium text-foreground text-sm leading-tight">
-                      {item.title}
-                    </h3>
-                    {getIcon(item.type)}
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {item.type === 'video' && (
-                      <>
-                        <Clock className="h-3 w-3" />
-                        <span>{item.duration}</span>
-                      </>
-                    )}
-                    {item.type === 'article' && (
-                      <>
-                        <Clock className="h-3 w-3" />
-                        <span>{item.readTime} read</span>
-                      </>
-                    )}
-                    {item.type === 'scheme' && (
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {item.amount}
-                        </Badge>
-                        <span>Deadline: {item.deadline}</span>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm text-foreground line-clamp-2 mb-1">
+                        {item.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                        {item.description}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {item.author}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(item.date).toLocaleDateString()}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  
-                  {item.type === 'scheme' && (
-                    <Button size="sm" className="mt-2" variant="outline">
-                      Learn More
+                    </div>
+                    <Button variant="ghost" size="sm" className="ml-2">
+                      <ExternalLink className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
               </div>
             </CardContent>

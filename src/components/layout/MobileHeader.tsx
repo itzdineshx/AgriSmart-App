@@ -6,7 +6,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
-import { SignedIn, SignedOut, UserButton, useUser, useClerk } from "@clerk/clerk-react";
 import { toast } from "sonner";
 
 import { 
@@ -38,9 +37,7 @@ export function MobileHeader() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { logout, isAuthenticated, isClerkUser, userRole } = useAuth();
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { logout, isAuthenticated, userRole } = useAuth();
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,19 +58,12 @@ export function MobileHeader() {
     
     try {
       setIsLoggingOut(true);
-      console.log('Logout initiated...', { isClerkUser, isAuthenticated });
+      console.log('Logout initiated...', { isAuthenticated });
       
       // Show loading state
       toast.loading("Signing out...");
       
-      // Handle Clerk logout if user is signed in with Clerk
-      if (isClerkUser) {
-        console.log('Signing out Clerk user...');
-        await signOut();
-        console.log('Clerk signout completed');
-      }
-      
-      // Always call our logout function for role-based auth
+      // Call our logout function for role-based auth
       console.log('Calling logout function...');
       logout();
       console.log('Logout function completed');
@@ -390,7 +380,7 @@ export function MobileHeader() {
 
                 {/* User Section */}
                 <div className="border-t border-border p-6">
-                  <SignedOut>
+                  {!isAuthenticated ? (
                     <Button 
                       className="w-full" 
                       variant="outline"
@@ -399,47 +389,7 @@ export function MobileHeader() {
                       <User className="h-4 w-4 mr-2" />
                       Sign In
                     </Button>
-                  </SignedOut>
-                  
-                  <SignedIn>
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <UserButton />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">
-                            {user?.firstName || user?.username || 'User'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {user?.emailAddresses?.[0]?.emailAddress}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={() => handleNavigation('/user-profile')}
-                        >
-                          <Settings className="h-4 w-4 mr-2" />
-                          Profile
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={handleLogout}
-                          disabled={isLoggingOut}
-                          className="flex-1"
-                        >
-                          <LogOut className="h-4 w-4 mr-2" />
-                          {isLoggingOut ? "Signing out..." : "Logout"}
-                        </Button>
-                      </div>
-                    </div>
-                  </SignedIn>
-
-                  {/* Role-based auth for non-Clerk users */}
-                  {isAuthenticated && !isClerkUser && (
+                  ) : (
                     <div className="space-y-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">

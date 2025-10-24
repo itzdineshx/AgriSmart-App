@@ -1,69 +1,41 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { Brain, Lightbulb, ChevronRight, RefreshCw } from "lucide-react";
-import { generateAISuggestions } from "@/services/geminiService";
-import { mockData } from "@/data/mockData";
-import { useWeather } from "@/hooks/useWeather";
-import type { GeminiSuggestion } from "@/services/geminiService";
+import { Badge } from "@/components/ui/badge";
+import { Brain, Droplets, Sprout, Thermometer, TrendingUp } from "lucide-react";
 
 export function AISuggestionsSection() {
-  const [suggestions, setSuggestions] = useState<GeminiSuggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { weatherData } = useWeather();
-
-  const fetchSuggestions = async () => {
-    setLoading(true);
-    try {
-      const aiSuggestions = await generateAISuggestions(
-        mockData.farmer,
-        weatherData,
-        mockData.cropHealth,
-        mockData.marketPrices
-      );
-      setSuggestions(aiSuggestions);
-    } catch (error) {
-      console.error('Error fetching AI suggestions:', error);
-    } finally {
-      setLoading(false);
+  const aiSuggestions = [
+    {
+      id: 1,
+      type: "irrigation",
+      title: "Optimal Irrigation Schedule",
+      description: "Based on current weather patterns and soil moisture levels, irrigate your wheat field tomorrow morning between 6-8 AM.",
+      confidence: 92,
+      icon: Droplets,
+      color: "text-blue-600",
+      action: "Schedule Irrigation"
+    },
+    {
+      id: 2,
+      type: "pest",
+      title: "Preventive Pest Control",
+      description: "High humidity levels detected. Apply neem oil spray to prevent fungal diseases in tomato plants.",
+      confidence: 87,
+      icon: Sprout,
+      color: "text-green-600",
+      action: "View Treatment Guide"
+    },
+    {
+      id: 3,
+      type: "market",
+      title: "Optimal Selling Time",
+      description: "Market analysis suggests selling your potato harvest this Friday when prices are expected to peak at ₹1,200/quintal.",
+      confidence: 78,
+      icon: TrendingUp,
+      color: "text-orange-600",
+      action: "Check Market Prices"
     }
-  };
-
-  useEffect(() => {
-    fetchSuggestions();
-  }, [weatherData]);
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'default';
-      case 'low':
-        return 'secondary';
-      default:
-        return 'secondary';
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'weather':
-        return '🌤️';
-      case 'pest':
-        return '🐛';
-      case 'market':
-        return '💰';
-      case 'irrigation':
-        return '💧';
-      case 'fertilizer':
-        return '🌿';
-      default:
-        return '💡';
-    }
-  };
+  ];
 
   return (
     <div className="px-4 py-6">
@@ -83,82 +55,30 @@ export function AISuggestionsSection() {
                 </p>
               </div>
             </CardTitle>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={fetchSuggestions}
-              disabled={loading}
-              className="hover:bg-primary/10 hover:scale-105 transition-all duration-200"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                <span className="text-sm text-muted-foreground">Generating personalized suggestions...</span>
-              </div>
-            </div>
-          ) : suggestions.length > 0 ? (
-            suggestions.map((suggestion, index) => (
-              <div 
-                key={index}
-                className="group p-4 rounded-xl bg-gradient-to-br from-background via-background/80 to-primary/5 border border-primary/10 hover:border-primary/20 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center text-lg group-hover:scale-110 transition-transform duration-200">
-                      {getCategoryIcon(suggestion.category)}
-                    </div>
+        <CardContent className="space-y-4">
+          {aiSuggestions.map((suggestion) => (
+            <div key={suggestion.id} className="p-4 rounded-lg bg-white/50 border border-primary/10 hover:bg-white/70 transition-colors">
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-full bg-gray-100 ${suggestion.color}`}>
+                  <suggestion.icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-sm text-foreground">{suggestion.title}</h3>
+                    <Badge variant="secondary" className="text-xs">
+                      {suggestion.confidence}% confidence
+                    </Badge>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <h3 className="font-medium text-foreground text-sm leading-tight group-hover:text-primary transition-colors">
-                        {suggestion.title}
-                      </h3>
-                      <div className="flex gap-2">
-                        <Badge 
-                          variant={getPriorityColor(suggestion.priority) as any}
-                          className="text-xs whitespace-nowrap"
-                        >
-                          {suggestion.priority}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-                      {suggestion.description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex gap-2">
-                        <Badge variant="outline" className="text-xs bg-gradient-to-r from-muted/50 to-muted/30">
-                          {suggestion.category}
-                        </Badge>
-                      </div>
-                      {suggestion.actionable && (
-                        <Button size="sm" variant="ghost" className="text-xs h-8 text-primary hover:bg-primary/10 hover:scale-105 transition-all duration-200">
-                          Take Action
-                          <div className="w-3 h-3 ml-1 transition-transform group-hover:translate-x-1">
-                            →
-                          </div>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">{suggestion.description}</p>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    {suggestion.action}
+                  </Button>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                <Lightbulb className="h-8 w-8 opacity-60" />
-              </div>
-              <p className="text-sm">No suggestions available at the moment</p>
-              <p className="text-xs mt-1">Try refreshing to get new recommendations</p>
             </div>
-          )}
+          ))}
         </CardContent>
       </Card>
     </div>

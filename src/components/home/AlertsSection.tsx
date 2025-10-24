@@ -1,50 +1,52 @@
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, Cloud, TrendingDown, ChevronRight } from "lucide-react";
-import { mockData } from "@/data/mockData";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { ChevronRight, AlertTriangle, CloudRain, TrendingUp, Bug } from "lucide-react";
 
 export function AlertsSection() {
-  const alerts = mockData.alerts;
-
-  const getAlertIcon = (type: string) => {
-    switch (type) {
-      case 'pest':
-        return <AlertTriangle className="h-4 w-4" />;
-      case 'weather':
-        return <Cloud className="h-4 w-4" />;
-      case 'market':
-        return <TrendingDown className="h-4 w-4" />;
-      default:
-        return <AlertTriangle className="h-4 w-4" />;
+  const alerts = [
+    {
+      id: 1,
+      type: "weather",
+      title: "Heavy Rain Warning",
+      message: "Heavy rainfall expected in your area within the next 2 hours. Secure outdoor equipment and prepare drainage.",
+      severity: "high",
+      time: "2 hours ago",
+      icon: CloudRain,
+      color: "text-blue-600"
+    },
+    {
+      id: 2,
+      type: "market",
+      title: "Price Alert: Wheat",
+      message: "Wheat prices increased by 12% to ₹2,450/quintal at Delhi Mandi. Consider selling your stock.",
+      severity: "medium",
+      time: "4 hours ago",
+      icon: TrendingUp,
+      color: "text-green-600"
+    },
+    {
+      id: 3,
+      type: "pest",
+      title: "Aphid Infestation Risk",
+      message: "High risk of aphid infestation detected in nearby fields. Monitor crops and consider preventive measures.",
+      severity: "medium",
+      time: "6 hours ago",
+      icon: Bug,
+      color: "text-orange-600"
     }
-  };
-
-  const getAlertColor = (severity: string) => {
-    switch (severity) {
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'default';
-      case 'low':
-        return 'secondary';
-      default:
-        return 'default';
-    }
-  };
+  ];
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high':
-        return 'text-destructive';
-      case 'medium':
-        return 'text-orange-500';
-      case 'low':
-        return 'text-blue-500';
+      case "high":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "low":
+        return "bg-blue-100 text-blue-800 border-blue-200";
       default:
-        return 'text-muted-foreground';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -59,52 +61,31 @@ export function AlertsSection() {
       </div>
 
       <div className="space-y-3">
-        {alerts.slice(0, 3).map((alert) => (
-          <Alert 
-            key={alert.id} 
-            variant={getAlertColor(alert.severity) as any}
-            className="border-l-4"
-          >
-            <div className="flex items-start gap-3">
-              <div className={cn("mt-0.5", getSeverityColor(alert.severity))}>
-                {getAlertIcon(alert.type)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <AlertTitle className="text-sm font-semibold mb-1">
-                      {alert.title}
-                    </AlertTitle>
-                    <AlertDescription className="text-sm text-muted-foreground mb-2">
-                      {alert.description}
-                    </AlertDescription>
-                    <div className="flex items-center gap-2 text-xs">
-                      <Badge variant="outline" className="text-xs">
-                        {alert.location}
-                      </Badge>
-                      <span className="text-muted-foreground">
-                        {alert.timestamp}
-                      </span>
-                    </div>
+        {alerts.map((alert) => (
+          <Card key={alert.id} className="shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-full bg-gray-100 ${alert.color}`}>
+                  <alert.icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-sm text-foreground">{alert.title}</h3>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${getSeverityColor(alert.severity)}`}
+                    >
+                      {alert.severity}
+                    </Badge>
                   </div>
-                  <Badge 
-                    variant={getAlertColor(alert.severity) as any}
-                    className="text-xs"
-                  >
-                    {alert.severity}
-                  </Badge>
+                  <p className="text-sm text-muted-foreground mb-2">{alert.message}</p>
+                  <p className="text-xs text-muted-foreground">{alert.time}</p>
                 </div>
               </div>
-            </div>
-          </Alert>
+            </CardContent>
+          </Card>
         ))}
       </div>
-
-      {alerts.length > 3 && (
-        <Button variant="outline" className="w-full mt-4" size="sm">
-          View {alerts.length - 3} more alerts
-        </Button>
-      )}
     </div>
   );
 }

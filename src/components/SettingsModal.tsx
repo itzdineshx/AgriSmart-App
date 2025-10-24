@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -17,7 +18,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useUser, useClerk } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { 
   Bell, 
@@ -67,13 +67,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { user, isLoaded } = useUser();
-  const { signOut, openUserProfile } = useClerk();
+  const { logout, userRole, isAuthenticated } = useAuth();
 
   const handleSignOut = async () => {
     try {
       setIsSubmitting(true);
-      await signOut();
+      logout();
       toast.success("Signed out successfully");
       onOpenChange(false);
     } catch (error) {
@@ -91,10 +90,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const handleDeleteAccount = async () => {
     try {
       setIsSubmitting(true);
-      if (!user) {
-        throw new Error("No user found");
-      }
-
+      
       // Add confirmation check
       const confirmDelete = window.confirm(
         "Are you absolutely sure you want to delete your account? This action cannot be undone."
@@ -104,7 +100,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         return;
       }
 
-      await user.delete();
+      // For now, just logout since we don't have a backend yet
+      logout();
       toast.success("Account deleted successfully");
       onOpenChange(false);
     } catch (error) {
@@ -134,14 +131,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         return;
       }
 
-      // Simulate API call
+      // Simulate API call - will be replaced with actual backend call
       await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Update user data
-      if (user) {
-        // Here you would typically call your update API
-        // await updateUserProfile(user.id, formData);
-      }
 
       toast.success("Profile updated successfully");
       onOpenChange(false);
@@ -170,7 +161,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     }
   ];
 
-  if (!isLoaded) {
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -208,24 +199,23 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <div className="flex items-center gap-6">
                     <div className="relative group">
                       <Avatar className="w-20 h-20 ring-2 ring-background">
-                        <AvatarImage src={user?.imageUrl} />
                         <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                          {user?.firstName?.[0]}{user?.lastName?.[0]}
+                          {userRole?.[0]?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="sm" className="text-white" onClick={() => openUserProfile()}>
+                        <Button variant="ghost" size="sm" className="text-white" disabled>
                           <Camera className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                     <div>
-                      <Button variant="outline" size="sm" onClick={() => openUserProfile()}>
+                      <Button variant="outline" size="sm" disabled>
                         <Camera className="h-4 w-4 mr-2" />
                         Change Photo
                       </Button>
                       <p className="text-sm text-muted-foreground mt-2">
-                        JPG, GIF or PNG. 1MB max.
+                        Feature coming soon with backend integration
                       </p>
                     </div>
                   </div>
@@ -238,7 +228,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       <Label htmlFor="firstName" className="font-medium">First Name</Label>
                       <Input 
                         id="firstName" 
-                        value={formData.firstName || user?.firstName || ""} 
+                        value={formData.firstName || ""} 
                         onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
                         placeholder="Enter first name"
                         className="bg-card"
@@ -249,7 +239,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       <Label htmlFor="lastName" className="font-medium">Last Name</Label>
                       <Input 
                         id="lastName" 
-                        value={formData.lastName || user?.lastName || ""} 
+                        value={formData.lastName || ""} 
                         onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
                         placeholder="Enter last name"
                         className="bg-card"
@@ -262,25 +252,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                         <Input 
                           id="email" 
                           type="email" 
-                          defaultValue={user?.primaryEmailAddress?.emailAddress || ""} 
+                          placeholder="user@example.com"
                           disabled
                           className="bg-muted"
                         />
-                        <Badge 
-                          variant={user?.primaryEmailAddress?.verification?.status === "verified" ? "default" : "secondary"}
-                          className={user?.primaryEmailAddress?.verification?.status === "verified" ? "bg-success/10 text-success-foreground" : "bg-warning/10 text-warning-foreground"}
-                        >
-                          {user?.primaryEmailAddress?.verification?.status === "verified" ? (
-                            <>
-                              <Check className="h-3 w-3 mr-1" />
-                              Verified
-                            </>
-                          ) : (
-                            <>
-                              <X className="h-3 w-3 mr-1" />
-                              Unverified
-                            </>
-                          )}
+                        <Badge variant="secondary" className="bg-warning/10 text-warning-foreground">
+                          <X className="h-3 w-3 mr-1" />
+                          Backend Required
                         </Badge>
                       </div>
                     </div>
@@ -290,26 +268,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                         <Input 
                           id="phone" 
                           type="tel" 
-                          value={formData.phoneNumber || user?.primaryPhoneNumber?.phoneNumber || ""} 
+                          value={formData.phoneNumber || ""} 
                           onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
                           placeholder="+1 234 567 8900"
                           className="bg-card"
                         />
-                        <Badge 
-                          variant={user?.primaryPhoneNumber?.verification?.status === "verified" ? "default" : "secondary"}
-                          className={user?.primaryPhoneNumber?.verification?.status === "verified" ? "bg-success/10 text-success-foreground" : "bg-warning/10 text-warning-foreground"}
-                        >
-                          {user?.primaryPhoneNumber?.verification?.status === "verified" ? (
-                            <>
-                              <Check className="h-3 w-3 mr-1" />
-                              Verified
-                            </>
-                          ) : (
-                            <>
-                              <X className="h-3 w-3 mr-1" />
-                              Unverified
-                            </>
-                          )}
+                        <Badge variant="secondary" className="bg-warning/10 text-warning-foreground">
+                          <X className="h-3 w-3 mr-1" />
+                          Backend Required
                         </Badge>
                       </div>
                     </div>
@@ -357,11 +323,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                           Change your account password
                         </p>
                       </div>
-                      <Button variant="outline" onClick={() => openUserProfile()}>
+                      <Button variant="outline" disabled>
                         <Key className="h-4 w-4 mr-2" />
                         Change Password
                       </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Password management will be available after backend integration
+                    </p>
                   </div>
 
                   <Separator />
@@ -383,11 +352,15 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                           variant="outline" 
                           size="sm"
                           onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
+                          disabled
                         >
                           {twoFactorEnabled ? "Disable" : "Enable"}
                         </Button>
                       </div>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      2FA will be available after backend integration
+                    </p>
                   </div>
 
                   <Separator />
@@ -401,10 +374,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                           Generate backup codes for account recovery
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" disabled>
                         Generate Codes
                       </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Backup codes will be available after backend integration
+                    </p>
                   </div>
 
                   <Separator />
@@ -418,8 +394,11 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                           Get notified when your account is accessed
                         </p>
                       </div>
-                      <Switch defaultChecked />
+                      <Switch defaultChecked disabled />
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Login notifications will be available after backend integration
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -599,19 +578,19 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   {/* Account Information */}
                   <div className="space-y-4">
                     <div>
-                      <Label className="text-base">Account ID</Label>
-                      <p className="text-sm text-muted-foreground mt-1">{user?.id}</p>
+                      <Label className="text-base">Account Role</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{userRole || 'Not logged in'}</p>
                     </div>
                     <div>
-                      <Label className="text-base">Member Since</Label>
+                      <Label className="text-base">Account Status</Label>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                        {isAuthenticated ? 'Active' : 'Inactive'}
                       </p>
                     </div>
                     <div>
-                      <Label className="text-base">Last Updated</Label>
+                      <Label className="text-base">Authentication Method</Label>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : 'N/A'}
+                        Role-based Authentication
                       </p>
                     </div>
                   </div>
@@ -627,10 +606,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                           Download a copy of your account data
                         </p>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" disabled>
                         Export Data
                       </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Data export will be available after backend integration
+                    </p>
                   </div>
 
                   <Separator />

@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useUser } from '@clerk/clerk-react';
 
 export type UserRole = 'admin' | 'seller' | 'user' | null;
 
@@ -25,44 +24,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { isSignedIn, user, isLoaded } = useUser();
 
   useEffect(() => {
-    // Wait for Clerk to load before checking localStorage
-    if (!isLoaded) {
-      return;
-    }
-
-    setIsLoading(false);
-
-    // If user is signed in with Clerk, clear any role-based auth
-    if (isSignedIn) {
-      localStorage.removeItem('userRole');
-      setUserRole(null);
-      setIsAuthenticated(false);
-      return;
-    }
-
-    // Check localStorage for existing role-based auth only if not signed in with Clerk
+    // Check localStorage for existing role-based auth
     const savedRole = localStorage.getItem('userRole') as UserRole;
     if (savedRole && CREDENTIALS[savedRole]) {
       setUserRole(savedRole);
       setIsAuthenticated(true);
     }
-  }, [isLoaded, isSignedIn]);
+    setIsLoading(false);
+  }, []);
 
   const login = (username: string, password: string, role: UserRole): boolean => {
     if (!role || !CREDENTIALS[role]) return false;
-    
+
     const { username: validUsername, password: validPassword } = CREDENTIALS[role];
-    
+
     if (username === validUsername && password === validPassword) {
       setUserRole(role);
       setIsAuthenticated(true);
       localStorage.setItem('userRole', role);
       return true;
     }
-    
+
     return false;
   };
 
@@ -75,11 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{
       userRole,
-      isAuthenticated: isAuthenticated || isSignedIn,
+      isAuthenticated,
       login,
       logout,
-      isClerkUser: isSignedIn,
-      isLoading: isLoading || !isLoaded
+      isClerkUser: false, // No longer using Clerk
+      isLoading
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,12 +1,5 @@
 // Environment configuration validation
 export const config = {
-  clerk: {
-    publishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_b3V0Z29pbmctY2hvdy0xOS5jbGVyay5hY2NvdW50cy5kZXYk",
-  },
-  supabase: {
-    url: import.meta.env.VITE_SUPABASE_URL || "",
-    publishableKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
-  },
   isDevelopment: import.meta.env.DEV,
   isProduction: import.meta.env.PROD,
 };
@@ -15,12 +8,6 @@ export const config = {
 export function validateConfig() {
   const errors: string[] = [];
   const warnings: string[] = [];
-
-  if (!config.clerk.publishableKey) {
-    errors.push("Missing Clerk publishable key");
-  } else if (config.clerk.publishableKey.startsWith("pk_test_") && config.isProduction) {
-    warnings.push("Using test Clerk key in production environment");
-  }
 
   // Check if we're in a secure context for Clerk
   if (typeof window !== 'undefined') {

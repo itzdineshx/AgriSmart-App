@@ -19,55 +19,15 @@ L.Icon.Default.mergeOptions({
 const PUNJAB_CENTER = { lat: 30.7333, lng: 76.7794 }; // Chandigarh, Punjab
 const DEFAULT_ZOOM = 10;
 
-// Mock data for farm monitoring
+// Mock data for farm monitoring - replaced with empty data for backend integration
 const mockData = {
   farmer: {
-    location: "Punjab, India",
-    farmSize: "2.5 acres"
+    location: "Connect to backend",
+    farmSize: "0 acres"
   },
-  farmPlots: [
-    {
-      id: 1,
-      name: "Field A",
-      crop: "Rice",
-      area: "1.2 acres",
-      health: 85,
-      coordinates: { lat: 30.7333, lng: 76.7794 },
-      issues: [] as string[]
-    },
-    {
-      id: 2,
-      name: "Field B", 
-      crop: "Tomato",
-      area: "1.3 acres", 
-      health: 65,
-      coordinates: { lat: 30.7400, lng: 76.7850 },
-      issues: ["Low moisture"]
-    }
-  ],
-  nearbyMarkets: [
-    {
-      id: 1,
-      name: "Punjab Mandi",
-      distance: "5 km",
-      coordinates: { lat: 30.7500, lng: 76.8000 },
-      prices: {
-        Rice: "2400/quintal",
-        Tomato: "1800/quintal"
-      }
-    }
-  ],
-  diseaseOutbreaks: [
-    {
-      id: 1,
-      name: "Leaf Blight",
-      crop: "Rice",
-      severity: "medium" as const,
-      coordinates: { lat: 30.7300, lng: 76.7700 },
-      radius: 2,
-      affectedFarms: 5
-    }
-  ]
+  farmPlots: [],
+  nearbyMarkets: [],
+  diseaseOutbreaks: []
 };
 
 // Additional Punjab locations for better map context
