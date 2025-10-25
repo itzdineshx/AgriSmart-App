@@ -232,6 +232,47 @@ const MOCK_LOCATIONS: MockLocation[] = [
   { lat: 13.0298, lng: 80.0298, type: 'farm', name: 'Saveetha Aquaculture Center', description: 'Fish farming and research facility' },
   { lat: 13.0323, lng: 80.0323, type: 'office', name: 'Thandalam Cooperative Bank', description: 'Agricultural cooperative banking services' },
   { lat: 13.0178, lng: 80.0178, type: 'farm', name: 'Thandalam Floriculture Unit', description: 'Commercial flower cultivation and export' },
+  
+  // Tambaram area
+  { lat: 12.9249, lng: 80.1000, type: 'farm', name: 'Tambaram Rice Research Farm', description: 'Rice cultivation research and development' },
+  { lat: 12.9167, lng: 80.1278, type: 'farm', name: 'Tambaram Vegetable Collective', description: 'Community vegetable farming cooperative' },
+  { lat: 12.9311, lng: 80.1156, type: 'marketplace', name: 'Tambaram Farmers Market', description: 'Daily fresh produce and agricultural products' },
+  { lat: 12.9189, lng: 80.1211, type: 'farm', name: 'Tambaram Dairy Farm', description: 'Modern dairy farming with milk processing' },
+  { lat: 12.9356, lng: 80.1089, type: 'office', name: 'Tambaram Agri Extension Center', description: 'Government agricultural advisory services' },
+  { lat: 12.9123, lng: 80.1345, type: 'farm', name: 'Tambaram Fruit Orchard', description: 'Mixed fruit cultivation and export facility' },
+  { lat: 12.9289, lng: 80.1023, type: 'marketplace', name: 'Tambaram Wholesale Market', description: 'Bulk agricultural commodities trading' },
+  { lat: 12.9211, lng: 80.1189, type: 'farm', name: 'Tambaram Organic Farm', description: 'Certified organic farming practices' },
+  
+  // Guduvancherry area
+  { lat: 12.8467, lng: 80.0606, type: 'farm', name: 'Guduvancherry Paddy Fields', description: 'Traditional paddy cultivation in fertile lands' },
+  { lat: 12.8411, lng: 80.0533, type: 'farm', name: 'Guduvancherry Vegetable Farm', description: 'Seasonal vegetable farming cooperative' },
+  { lat: 12.8523, lng: 80.0678, type: 'marketplace', name: 'Guduvancherry Village Market', description: 'Local produce and agricultural goods market' },
+  { lat: 12.8389, lng: 80.0494, type: 'office', name: 'Guduvancherry Agri Office', description: 'District agricultural administration center' },
+  { lat: 12.8556, lng: 80.0711, type: 'farm', name: 'Guduvancherry Floriculture', description: 'Commercial flower and ornamental plant cultivation' },
+  { lat: 12.8433, lng: 80.0567, type: 'farm', name: 'Guduvancherry Aquaculture', description: 'Fish farming and aquaculture research' },
+  { lat: 12.8494, lng: 80.0639, type: 'marketplace', name: 'Guduvancherry Grain Market', description: 'Regional grain and cereal trading center' },
+  
+  // Chengalpattu area
+  { lat: 12.6911, lng: 79.9756, type: 'farm', name: 'Chengalpattu Rice Research Center', description: 'Advanced rice cultivation research facility' },
+  { lat: 12.6856, lng: 79.9823, type: 'farm', name: 'Chengalpattu Coconut Plantation', description: 'Large scale coconut cultivation and processing' },
+  { lat: 12.6989, lng: 79.9689, type: 'marketplace', name: 'Chengalpattu Agricultural Market', description: 'Major agricultural commodities market' },
+  { lat: 12.6811, lng: 79.9894, type: 'office', name: 'Chengalpattu District Agri Office', description: 'District-level agricultural administration' },
+  { lat: 12.7023, lng: 79.9611, type: 'farm', name: 'Chengalpattu Mango Orchard', description: 'Premium mango cultivation and export' },
+  { lat: 12.6778, lng: 79.9967, type: 'farm', name: 'Chengalpattu Vegetable Hub', description: 'Integrated vegetable farming complex' },
+  { lat: 12.7056, lng: 79.9544, type: 'marketplace', name: 'Chengalpattu Fruit Market', description: 'Specialized fruit and produce trading' },
+  { lat: 12.6733, lng: 80.0033, type: 'farm', name: 'Chengalpattu Dairy Cooperative', description: 'Community dairy farming and processing' },
+  
+  // Kattangalathur SRM area
+  { lat: 12.8233, lng: 80.0367, type: 'farm', name: 'SRM University Agri Research Farm', description: 'University agricultural research and education' },
+  { lat: 12.8189, lng: 80.0294, type: 'farm', name: 'Kattangalathur Vegetable Research', description: 'Advanced vegetable cultivation research' },
+  { lat: 12.8278, lng: 80.0433, type: 'marketplace', name: 'Kattangalathur Campus Market', description: 'Student and local community market' },
+  { lat: 12.8156, lng: 80.0223, type: 'office', name: 'SRM Agri Tech Innovation Hub', description: 'Agricultural technology research center' },
+  { lat: 12.8311, lng: 80.0494, type: 'farm', name: 'Kattangalathur Fruit Research', description: 'Fruit cultivation research and development' },
+  { lat: 12.8123, lng: 80.0156, type: 'farm', name: 'SRM Aquaculture Research', description: 'Fish farming research and training facility' },
+  { lat: 12.8344, lng: 80.0556, type: 'marketplace', name: 'Kattangalathur Organic Market', description: 'Premium organic produce marketplace' },
+  { lat: 12.8094, lng: 80.0089, type: 'office', name: 'Kattangalathur Agri Extension', description: 'Agricultural extension and advisory services' },
+  { lat: 12.8378, lng: 80.0617, type: 'farm', name: 'SRM Floriculture Center', description: 'Flower and ornamental plant research' },
+  { lat: 12.8067, lng: 80.0023, type: 'farm', name: 'Kattangalathur Dairy Research', description: 'Dairy farming research and development' },
 ];
 
 // Type definitions
@@ -447,27 +488,9 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
 
         console.log(`🗺️ Creating map with style: ${styleUrl}`);
 
-        // Try a basic working style
-        const testStyleUrl = 'mapbox://styles/mapbox/streets-v12';
-        console.log(`🗺️ Using test style: ${testStyleUrl}`);
-
-        // Test Mapbox API key before creating map
-        try {
-          const testResponse = await fetch(`https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=${MAPBOX_API_KEY}`);
-          if (!testResponse.ok) {
-            throw new Error(`Mapbox API test failed: ${testResponse.status} ${testResponse.statusText}`);
-          }
-          console.log('🗺️ Mapbox API key validated successfully');
-        } catch (error) {
-          console.error('🗺️ Mapbox API key validation failed:', error);
-          setLoadingError('Failed to validate Mapbox API key. Please check your internet connection.');
-          setIsLoading(false);
-          return;
-        }
-
         const mapboxMap = new mapboxgl.Map({
           container: mapRef.current,
-          style: testStyleUrl,
+          style: styleUrl,
           center: [CHENNAI_CENTER.lng, CHENNAI_CENTER.lat],
           zoom: 8,
         });

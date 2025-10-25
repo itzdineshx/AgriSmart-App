@@ -11,7 +11,7 @@ export function KnowledgeSection() {
       author: "Dr. Rajesh Kumar",
       date: "2024-01-15",
       category: "Farming Guide",
-      image: "/lovable-uploads/wheat-prices-article-BXjHk2gB.jpg"
+      image: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=400&h=300&fit=crop&crop=center"
     },
     {
       id: 2,
@@ -20,7 +20,7 @@ export function KnowledgeSection() {
       author: "Dr. Priya Sharma",
       date: "2024-01-12",
       category: "Disease Management",
-      image: "/lovable-uploads/crop-disease-detection-nTzDaxjG.jpg"
+      image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400&h=300&fit=crop&crop=center"
     },
     {
       id: 3,
@@ -29,7 +29,7 @@ export function KnowledgeSection() {
       author: "Agriculture Department",
       date: "2024-01-10",
       category: "Seasonal Guide",
-      image: "/lovable-uploads/monsoon-forecast-article-BFwW4Fb1.jpg"
+      image: "https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=400&h=300&fit=crop&crop=center"
     }
   ];
 

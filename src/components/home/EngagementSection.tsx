@@ -47,7 +47,7 @@ export function EngagementSection() {
       location: "Punjab",
       score: 9850,
       badge: "🥇",
-      avatar: "/lovable-uploads/farmer-avatar-1.jpg"
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
     },
     {
       id: 2,
@@ -55,7 +55,7 @@ export function EngagementSection() {
       location: "Haryana",
       score: 9420,
       badge: "🥈",
-      avatar: "/lovable-uploads/farmer-avatar-2.jpg"
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
     },
     {
       id: 3,
@@ -63,7 +63,7 @@ export function EngagementSection() {
       location: "UP",
       score: 9180,
       badge: "🥉",
-      avatar: "/lovable-uploads/farmer-avatar-3.jpg"
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
     }
   ];
 

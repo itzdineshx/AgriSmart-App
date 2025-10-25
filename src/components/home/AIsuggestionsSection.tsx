@@ -39,29 +39,25 @@ export function AISuggestionsSection() {
 
   return (
     <div className="px-4 py-6">
-      <Card className="shadow-elegant bg-gradient-to-br from-primary/5 via-card to-accent/5 border-primary/20 animate-fade-in">
+      <Card className="shadow-sm border border-border bg-card dark:bg-card">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
-                <Brain className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  AI Suggestions
-                </span>
-                <p className="text-xs text-muted-foreground font-normal mt-1">
-                  Personalized farming recommendations powered by Gemini AI
-                </p>
-              </div>
-            </CardTitle>
-          </div>
+          <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
+              <Brain className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <span className="font-semibold">AI Suggestions</span>
+              <p className="text-xs text-muted-foreground font-normal mt-1">
+                Personalized farming recommendations powered by AI
+              </p>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {aiSuggestions.map((suggestion) => (
-            <div key={suggestion.id} className="p-4 rounded-lg bg-white/50 border border-primary/10 hover:bg-white/70 transition-colors">
+            <div key={suggestion.id} className="p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors">
               <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-full bg-gray-100 ${suggestion.color}`}>
+                <div className={`p-2 rounded-full bg-accent ${suggestion.color}`}>
                   <suggestion.icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1">

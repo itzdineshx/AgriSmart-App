@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Cloud, Clock, Leaf, TrendingUp, ChevronRight, Database } from "lucide-react";
+import { Cloud, Clock, Leaf, TrendingUp, ChevronRight } from "lucide-react";
 import { useWeather } from "@/hooks/useWeather";
 
 export function GreetingSection() {
@@ -27,23 +27,23 @@ export function GreetingSection() {
     },
     {
       title: "Next Task",
-      icon: <Database className="h-5 w-5 text-orange-500" />,
-      content: "Backend Required",
-      subtitle: "Connect to server for tasks",
+      icon: <Clock className="h-5 w-5 text-orange-500" />,
+      content: "Irrigate Wheat Field",
+      subtitle: "Due in 2 hours - 2.5 acres",
       color: "bg-orange-50 dark:bg-orange-950/20"
     },
     {
       title: "Crop Health",
-      icon: <Database className="h-5 w-5 text-green-500" />,
-      content: "Backend Required",
-      subtitle: "Connect to server for crop data",
+      icon: <Leaf className="h-5 w-5 text-green-500" />,
+      content: "85% Healthy",
+      subtitle: "Wheat: Good | Tomato: Excellent",
       color: "bg-green-50 dark:bg-green-950/20"
     },
     {
       title: "Market Trend",
-      icon: <Database className="h-5 w-5 text-purple-500" />,
-      content: "Backend Required",
-      subtitle: "Connect to server for market data",
+      icon: <TrendingUp className="h-5 w-5 text-purple-500" />,
+      content: "Wheat: +₹120",
+      subtitle: "Up 5.2% this week",
       color: "bg-purple-50 dark:bg-purple-950/20"
     }
   ];
@@ -57,7 +57,7 @@ export function GreetingSection() {
             🌱 {greeting}, Farmer!
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Connect to backend for personalized data
+            Here's your farm overview for today
           </p>
         </div>
         <Badge variant="secondary" className="px-3 py-1">
