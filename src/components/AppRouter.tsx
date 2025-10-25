@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const Index = lazy(() => import("@/pages/Index"));
 const Diagnose = lazy(() => import("@/pages/Diagnose"));
 const Buy = lazy(() => import("@/pages/Buy"));
+const Sell = lazy(() => import("@/pages/Sell"));
 const MarketAnalysis = lazy(() => import("@/pages/MarketAnalysis"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
 const SellerPanel = lazy(() => import("@/pages/SellerPanel"));
@@ -97,6 +98,14 @@ export function AppRouter() {
           element={
             <LazyWrapper>
               <Layout><Buy /></Layout>
+            </LazyWrapper>
+          } 
+        />
+        <Route 
+          path="/sell" 
+          element={
+            <LazyWrapper>
+              <Layout><Sell /></Layout>
             </LazyWrapper>
           } 
         />

@@ -11,7 +11,8 @@ interface BreadcrumbItem {
 const pathMapping: Record<string, BreadcrumbItem> = {
   "/": { label: "Home", path: "/", icon: Home },
   "/diagnose": { label: "Crop Diagnosis", path: "/diagnose" },
-  "/buy": { label: "Marketplace", path: "/buy" },
+  "/buy": { label: "Buy Products", path: "/buy" },
+  "/sell": { label: "Sell Products", path: "/sell" },
   "/marketplace": { label: "Marketplace", path: "/marketplace" },
   "/market-analysis": { label: "Market Analysis", path: "/market-analysis" },
   "/recommendations": { label: "Recommendations", path: "/recommendations" },
@@ -35,6 +36,7 @@ const categoryMapping: Record<string, BreadcrumbItem> = {
   "/diagnose": { label: "AI Tools", path: "#" },
   "/recommendations": { label: "AI Tools", path: "#" },
   "/buy": { label: "Marketplace", path: "#" },
+  "/sell": { label: "Marketplace", path: "#" },
   "/marketplace": { label: "Marketplace", path: "#" },
   "/market-analysis": { label: "Analytics", path: "#" },
   "/government-schemes": { label: "Resources", path: "#" },

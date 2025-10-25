@@ -240,7 +240,8 @@ export function MobileHeader() {
   const navItems = [
     { name: "Home", path: "/", icon: Home },
     { name: "Diagnose", path: "/diagnose", icon: Camera },
-    { name: "Marketplace", path: "/buy", icon: ShoppingCart },
+    { name: "Buy", path: "/buy", icon: ShoppingCart },
+    { name: "Sell", path: "/sell", icon: TrendingUp },
     { name: "Community", path: "/community", icon: Users },
     { name: "Market Analysis", path: "/market-analysis", icon: TrendingUp },
     { name: "Recommendations", path: "/recommendations", icon: Sparkles },

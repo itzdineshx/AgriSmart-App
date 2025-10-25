@@ -40,12 +40,21 @@ const quickActions: QuickAction[] = [
   },
   {
     id: "marketplace",
-    title: "Marketplace",
+    title: "Buy Products",
     path: "/buy",
     icon: ShoppingCart,
     color: "bg-green-500 hover:bg-green-600",
-    badge: "Buy/Sell",
-    description: "Buy & sell crops"
+    badge: "Buy",
+    description: "Buy crops & equipment"
+  },
+  {
+    id: "sell",
+    title: "Sell Products",
+    path: "/sell",
+    icon: Zap,
+    color: "bg-orange-500 hover:bg-orange-600",
+    badge: "Sell",
+    description: "Sell your produce"
   },
   {
     id: "weather",

@@ -39,7 +39,8 @@ import {
 
   const navItems = [
     { name: "Home", path: "/", icon: Home },
-    { name: "Marketplace", path: "/buy", icon: ShoppingCart },
+    { name: "Buy", path: "/buy", icon: ShoppingCart },
+    { name: "Sell", path: "/sell", icon: TrendingUp },
     { name: "Community", path: "/community", icon: Users },
     { name: "Weather", path: "/weather", icon: Cloud }, 
     { name: "", path: "/user-profile", icon: User }, 

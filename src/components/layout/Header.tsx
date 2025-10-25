@@ -47,7 +47,8 @@ export function Header() {
   const navItems = [
     { name: "Home", path: "/", icon: Home },
     { name: "Diagnose", path: "/diagnose", icon: Camera },
-    { name: "Marketplace", path: "/buy", icon: ShoppingCart },
+    { name: "Buy", path: "/buy", icon: ShoppingCart },
+    { name: "Sell", path: "/sell", icon: TrendingUp },
   ];
 
   const analyticsItems = [

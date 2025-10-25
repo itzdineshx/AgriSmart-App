@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Search, 
   Filter, 
-  ShoppingCart, 
+  Plus,
   Star, 
   MapPin, 
   Truck,
@@ -15,7 +15,6 @@ import {
   Wheat,
   Zap,
   Minus,
-  Plus,
   Heart,
   SortAsc,
   Package,
@@ -23,7 +22,11 @@ import {
   Leaf,
   TreePine,
   X,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  DollarSign
 } from "lucide-react";
 import marketplaceImage from "@/assets/marketplace.jpg";
 
@@ -40,7 +43,7 @@ const categories = [
   { name: "Other Biomass", icon: Leaf, count: 2, category: "recycle" },
 ];
 
-const products = [
+const myListings = [
   // Fruits
   {
     id: 1,
@@ -49,13 +52,15 @@ const products = [
     price: 120,
     unit: "kg",
     rating: 4.8,
-    seller: "Kashmir Orchards",
+    seller: "My Farm",
     location: "Kashmir",
     image: marketplaceImage,
     inStock: true,
     organic: true,
     description: "Fresh red apples from Kashmir valleys",
     discount: 10,
+    views: 234,
+    orders: 45,
   },
   {
     id: 2,
@@ -64,13 +69,15 @@ const products = [
     price: 280,
     unit: "kg",
     rating: 4.9,
-    seller: "Ratnagiri Farms",
+    seller: "My Farm",
     location: "Maharashtra",
     image: marketplaceImage,
     inStock: true,
     organic: true,
     description: "King of mangoes - Premium Alphonso variety",
     discount: 0,
+    views: 567,
+    orders: 89,
   },
   
   // Vegetables
@@ -81,13 +88,15 @@ const products = [
     price: 45,
     unit: "kg",
     rating: 4.7,
-    seller: "Green Valley Farm",
+    seller: "My Farm",
     location: "Punjab",
     image: marketplaceImage,
     inStock: true,
     organic: true,
     description: "Vine-ripened organic tomatoes",
     discount: 0,
+    views: 345,
+    orders: 67,
   },
   {
     id: 4,
@@ -96,13 +105,15 @@ const products = [
     price: 55,
     unit: "kg",
     rating: 4.6,
-    seller: "Organic Harvest",
+    seller: "My Farm",
     location: "Haryana",
     image: marketplaceImage,
     inStock: true,
     organic: true,
     description: "Sweet and crunchy organic carrots",
     discount: 0,
+    views: 198,
+    orders: 34,
   },
   
   // Fertilizers
@@ -113,13 +124,15 @@ const products = [
     price: 850,
     unit: "50kg bag",
     rating: 4.6,
-    seller: "AgriCorp Ltd",
+    seller: "My Farm",
     location: "Haryana",
     image: marketplaceImage,
     inStock: true,
     organic: false,
     description: "Balanced NPK fertilizer for all crops",
     discount: 8,
+    views: 456,
+    orders: 78,
   },
   {
     id: 6,
@@ -128,13 +141,15 @@ const products = [
     price: 450,
     unit: "50kg bag",
     rating: 4.8,
-    seller: "EcoFarm Solutions",
+    seller: "My Farm",
     location: "Karnataka",
     image: marketplaceImage,
     inStock: true,
     organic: true,
     description: "Rich organic compost made from cow dung",
     discount: 12,
+    views: 389,
+    orders: 56,
   },
   
   // Seeds
@@ -145,13 +160,15 @@ const products = [
     price: 1200,
     unit: "quintal",
     rating: 4.9,
-    seller: "SeedTech Ltd",
+    seller: "My Farm",
     location: "Rajasthan",
     image: marketplaceImage,
     inStock: true,
     organic: false,
     description: "High yielding drought resistant wheat variety",
     discount: 5,
+    views: 678,
+    orders: 123,
   },
   {
     id: 8,
@@ -160,13 +177,15 @@ const products = [
     price: 450,
     unit: "100g packet",
     rating: 4.5,
-    seller: "VegSeed Co",
+    seller: "My Farm",
     location: "Karnataka",
     image: marketplaceImage,
     inStock: true,
     organic: false,
     description: "Disease resistant hybrid tomato seeds",
     discount: 10,
+    views: 234,
+    orders: 45,
   },
   
   // Equipment
@@ -177,13 +196,15 @@ const products = [
     price: 1250,
     unit: "piece",
     rating: 4.4,
-    seller: "AgriTools",
+    seller: "My Farm",
     location: "Delhi",
     image: marketplaceImage,
     inStock: true,
     organic: false,
     description: "Heavy duty garden hose with spray nozzle",
     discount: 20,
+    views: 156,
+    orders: 23,
   },
   {
     id: 10,
@@ -192,13 +213,15 @@ const products = [
     price: 350,
     unit: "piece",
     rating: 4.6,
-    seller: "FarmTools Ltd",
+    seller: "My Farm",
     location: "Punjab",
     image: marketplaceImage,
     inStock: true,
     organic: false,
     description: "Sharp steel pruning shears for garden use",
     discount: 0,
+    views: 267,
+    orders: 41,
   },
   
   // Recycle & Reuse - Crop Residue
@@ -209,7 +232,7 @@ const products = [
     price: 25,
     unit: "quintal",
     rating: 4.6,
-    seller: "Punjab Rice Mills",
+    seller: "My Farm",
     location: "Punjab",
     image: marketplaceImage,
     inStock: true,
@@ -217,6 +240,8 @@ const products = [
     description: "Clean rice straw bales perfect for biogas production",
     discount: 0,
     recyclable: true,
+    views: 145,
+    orders: 28,
   },
   {
     id: 12,
@@ -225,7 +250,7 @@ const products = [
     price: 20,
     unit: "quintal",
     rating: 4.4,
-    seller: "Haryana Agri Co-op",
+    seller: "My Farm",
     location: "Haryana",
     image: marketplaceImage,
     inStock: true,
@@ -233,6 +258,8 @@ const products = [
     description: "Fresh wheat stubble available for biogas companies",
     discount: 5,
     recyclable: true,
+    views: 198,
+    orders: 34,
   },
   
   // Animal Waste
@@ -243,7 +270,7 @@ const products = [
     price: 15,
     unit: "quintal",
     rating: 4.8,
-    seller: "Amul Dairy Farm",
+    seller: "My Farm",
     location: "Gujarat",
     image: marketplaceImage,
     inStock: true,
@@ -251,6 +278,8 @@ const products = [
     description: "Fresh cow dung from 500+ dairy cows, high methane potential",
     discount: 0,
     recyclable: true,
+    views: 289,
+    orders: 52,
   },
   {
     id: 14,
@@ -259,7 +288,7 @@ const products = [
     price: 35,
     unit: "quintal",
     rating: 4.5,
-    seller: "Venky's Poultry",
+    seller: "My Farm",
     location: "Andhra Pradesh",
     image: marketplaceImage,
     inStock: true,
@@ -267,6 +296,8 @@ const products = [
     description: "Nitrogen-rich poultry waste for biogas and fertilizer",
     discount: 10,
     recyclable: true,
+    views: 345,
+    orders: 67,
   },
   
   // Food Waste
@@ -277,7 +308,7 @@ const products = [
     price: 10,
     unit: "quintal",
     rating: 4.3,
-    seller: "Mumbai Veg Market",
+    seller: "My Farm",
     location: "Maharashtra",
     image: marketplaceImage,
     inStock: true,
@@ -285,6 +316,8 @@ const products = [
     description: "Daily fresh vegetable waste from wholesale market",
     discount: 0,
     recyclable: true,
+    views: 123,
+    orders: 19,
   },
   {
     id: 16,
@@ -293,7 +326,7 @@ const products = [
     price: 12,
     unit: "quintal",
     rating: 4.6,
-    seller: "Real Fruit Juice Co",
+    seller: "My Farm",
     location: "Punjab",
     image: marketplaceImage,
     inStock: true,
@@ -301,6 +334,8 @@ const products = [
     description: "Fruit peels and pulp waste from juice processing",
     discount: 15,
     recyclable: true,
+    views: 234,
+    orders: 45,
   },
   
   // Other Biomass
@@ -311,7 +346,7 @@ const products = [
     price: 8,
     unit: "quintal",
     rating: 4.4,
-    seller: "Kerala Backwaters Clean",
+    seller: "My Farm",
     location: "Kerala",
     image: marketplaceImage,
     inStock: true,
@@ -319,6 +354,8 @@ const products = [
     description: "Harvested water hyacinth for biogas production",
     discount: 0,
     recyclable: true,
+    views: 167,
+    orders: 31,
   },
   {
     id: 18,
@@ -327,7 +364,7 @@ const products = [
     price: 18,
     unit: "quintal",
     rating: 4.7,
-    seller: "Sugar Mill Cooperative",
+    seller: "My Farm",
     location: "Uttar Pradesh",
     image: marketplaceImage,
     inStock: true,
@@ -335,18 +372,18 @@ const products = [
     description: "High energy bagasse waste from sugar processing",
     discount: 0,
     recyclable: true,
+    views: 456,
+    orders: 78,
   },
 ];
 
-export default function Buy() {
+export default function Sell() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
-  const [cart, setCart] = useState<{[key: number]: number}>({});
-  const [wishlist, setWishlist] = useState<number[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  const filteredProducts = products
+  const filteredProducts = myListings
     .filter((product) => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            product.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -361,46 +398,44 @@ export default function Buy() {
           return b.price - a.price;
         case "rating":
           return b.rating - a.rating;
+        case "views":
+          return b.views - a.views;
+        case "orders":
+          return b.orders - a.orders;
         case "name":
         default:
           return a.name.localeCompare(b.name);
       }
     });
 
-  const addToCart = (productId: number) => {
-    setCart(prev => ({ ...prev, [productId]: (prev[productId] || 0) + 1 }));
-  };
-
-  const removeFromCart = (productId: number) => {
-    setCart(prev => {
-      const newCart = { ...prev };
-      if (newCart[productId] > 1) {
-        newCart[productId] -= 1;
-      } else {
-        delete newCart[productId];
-      }
-      return newCart;
-    });
-  };
-
-  const toggleWishlist = (productId: number) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
-
-  const getTotalCartItems = () => {
-    return Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
-  };
-
-  const getCartTotal = () => {
-    return Object.entries(cart).reduce((total, [productId, quantity]) => {
-      const product = products.find(p => p.id === parseInt(productId));
-      const price = product ? product.price * (1 - product.discount / 100) : 0;
-      return total + (price * quantity);
+  const getTotalRevenue = () => {
+    return myListings.reduce((total, product) => {
+      const price = product.price * (1 - product.discount / 100);
+      return total + (price * product.orders);
     }, 0);
+  };
+
+  const getTotalOrders = () => {
+    return myListings.reduce((sum, product) => sum + product.orders, 0);
+  };
+
+  const getTotalViews = () => {
+    return myListings.reduce((sum, product) => sum + product.views, 0);
+  };
+
+  const handleEditListing = (productId: number) => {
+    console.log("Edit listing:", productId);
+    // TODO: Implement edit functionality
+  };
+
+  const handleDeleteListing = (productId: number) => {
+    console.log("Delete listing:", productId);
+    // TODO: Implement delete functionality
+  };
+
+  const handleToggleStock = (productId: number) => {
+    console.log("Toggle stock:", productId);
+    // TODO: Implement stock toggle functionality
   };
 
   return (
@@ -408,12 +443,63 @@ export default function Buy() {
       {/* Header */}
       <div className="bg-gradient-secondary text-secondary-foreground p-6 md:p-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Marketplace</h1>
-          <p className="text-secondary-foreground/90">Buy fresh produce, fertilizers, seeds & farming equipment</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Sell to Marketplace</h1>
+          <p className="text-secondary-foreground/90">List your produce, fertilizers, seeds & farming equipment for sale</p>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Listings</p>
+                  <p className="text-2xl font-bold">{myListings.length}</p>
+                </div>
+                <Package className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Revenue</p>
+                  <p className="text-2xl font-bold">₹{getTotalRevenue().toFixed(0)}</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-success" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Orders</p>
+                  <p className="text-2xl font-bold">{getTotalOrders()}</p>
+                </div>
+                <Truck className="h-8 w-8 text-warning" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Views</p>
+                  <p className="text-2xl font-bold">{getTotalViews()}</p>
+                </div>
+                <Eye className="h-8 w-8 text-info" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Search & Filters */}
         <Card className="shadow-elegant">
           <CardContent className="p-6">
@@ -422,7 +508,7 @@ export default function Buy() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search for crops, fertilizers, seeds, equipment..."
+                  placeholder="Search your listings..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -441,6 +527,8 @@ export default function Buy() {
                     <SelectItem value="price-low">Price: Low to High</SelectItem>
                     <SelectItem value="price-high">Price: High to Low</SelectItem>
                     <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="views">Most Viewed</SelectItem>
+                    <SelectItem value="orders">Most Orders</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -462,11 +550,11 @@ export default function Buy() {
                 </Button>
               </div>
 
-              {/* Cart Summary */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ShoppingCart className="h-4 w-4" />
-                <span>{getTotalCartItems()} items • ₹{getCartTotal().toFixed(2)}</span>
-              </div>
+              {/* Add New Listing Button */}
+              <Button className="w-full md:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Listing
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -505,7 +593,9 @@ export default function Buy() {
                         { value: "name", label: "Name (A-Z)" },
                         { value: "price-low", label: "Price: Low to High" },
                         { value: "price-high", label: "Price: High to Low" },
-                        { value: "rating", label: "Highest Rated" }
+                        { value: "rating", label: "Highest Rated" },
+                        { value: "views", label: "Most Viewed" },
+                        { value: "orders", label: "Most Orders" }
                       ].map((option) => (
                         <button
                           key={option.value}
@@ -623,7 +713,7 @@ export default function Buy() {
         <div className="hidden md:block space-y-6">
           {/* Regular Marketplace */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Marketplace</h3>
+            <h3 className="text-lg font-semibold mb-4">Marketplace Categories</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {categories.slice(0, 6).map((category) => (
                 <Card
@@ -657,8 +747,8 @@ export default function Buy() {
             </div>
             <div className="bg-success/5 border border-success/20 rounded-lg p-4 mb-4">
               <p className="text-sm text-muted-foreground">
-                Transform agricultural waste into biogas! Farmers can list their biodegradable waste, 
-                and biogas companies can source materials for sustainable energy production.
+                Sell your agricultural waste for biogas production! List your biodegradable waste, 
+                and biogas companies can purchase materials for sustainable energy production.
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -719,9 +809,9 @@ export default function Buy() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">
-              {selectedCategory ? `${selectedCategory}` : "All Products"}
+              {selectedCategory ? `My ${selectedCategory} Listings` : "My Listings"}
             </h2>
-            <p className="text-muted-foreground">{filteredProducts.length} products found</p>
+            <p className="text-muted-foreground">{filteredProducts.length} listings found</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -760,25 +850,15 @@ export default function Buy() {
                         <h3 className="font-semibold text-lg">{product.name}</h3>
                         <p className="text-muted-foreground text-sm">{product.category}</p>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleWishlist(product.id)}
-                        className="p-1"
-                      >
-                        <Heart 
-                          className={`h-5 w-5 ${
-                            wishlist.includes(product.id) 
-                              ? 'fill-red-500 text-red-500' 
-                              : 'text-muted-foreground'
-                          }`} 
-                        />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-warning text-warning" />
+                        <span className="text-sm font-medium">{product.rating}</span>
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
                   </div>
 
-                  {/* Price & Rating */}
+                  {/* Price & Stats */}
                   <div className="flex justify-between items-center">
                     <div>
                       {product.discount > 0 && (
@@ -792,63 +872,53 @@ export default function Buy() {
                       </span>
                       <span className="text-muted-foreground">/{product.unit}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="text-sm font-medium">{product.rating}</span>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Eye className="h-3 w-3" />
+                      <span>{product.views} views</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Truck className="h-3 w-3" />
+                      <span>{product.orders} orders</span>
                     </div>
                   </div>
 
-                  {/* Seller Info */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{product.seller}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="h-3 w-3" />
-                      <span>{product.location}</span>
-                      <Truck className="h-3 w-3 ml-2" />
-                      <span>Free delivery</span>
-                    </div>
+                  {/* Location */}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    <span>{product.location}</span>
                   </div>
 
                   {/* Actions */}
-                  <div className="space-y-2 pt-2">
-                    {cart[product.id] ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeFromCart(product.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="font-medium w-8 text-center">{cart[product.id]}</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addToCart(product.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <span className="text-sm font-medium">
-                          ₹{((product.price * (1 - product.discount / 100)) * cart[product.id]).toFixed(2)}
-                        </span>
-                      </div>
-                    ) : (
-                      <Button
-                        variant={product.inStock ? "default" : "outline"}
-                        disabled={!product.inStock}
-                        onClick={() => product.inStock && addToCart(product.id)}
-                        className="w-full"
-                      >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        {product.inStock ? "Add to Cart" : "Notify Me"}
-                      </Button>
-                    )}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditListing(product.id)}
+                      className="flex-1"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant={product.inStock ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleToggleStock(product.id)}
+                      className="flex-1"
+                    >
+                      {product.inStock ? "In Stock" : "Out of Stock"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteListing(product.id)}
+                      className="p-2"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
                   </div>
                 </CardContent>
