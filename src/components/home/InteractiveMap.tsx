@@ -8,8 +8,66 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { MapPin, Navigation, Search, Target, Eye, EyeOff, Maximize2, X } from 'lucide-react';
 
+// Types for map data
+interface SearchResult {
+  name: string;
+  lat: number;
+  lng: number;
+  type: string;
+  description?: string;
+  phone?: string;
+}
+
+interface BaseMarkerData {
+  description?: string;
+  phone?: string;
+}
+
+interface CropMarkerData extends BaseMarkerData {
+  crop: string;
+  area: string;
+  health: number;
+  issues?: string[];
+}
+
+interface MarketMarkerData extends BaseMarkerData {
+  prices: Record<string, number>;
+  volume: string;
+  lastUpdate: string;
+}
+
+interface DiseaseMarkerData extends BaseMarkerData {
+  crop: string;
+  severity: 'high' | 'medium' | 'low';
+  affectedFarms: number;
+  radius: number;
+}
+
+interface HospitalMarkerData extends BaseMarkerData {
+  services: string[];
+}
+
+interface SearchMarkerData extends BaseMarkerData {
+  type: string;
+}
+
+interface CurrentLocationData extends BaseMarkerData {
+  isCurrentLocation: true;
+}
+
+type MarkerData = CropMarkerData | MarketMarkerData | DiseaseMarkerData | HospitalMarkerData | SearchMarkerData | CurrentLocationData;
+
+interface MapMarker {
+  type: 'crop' | 'market' | 'disease' | 'hospital' | 'search' | 'current';
+  data: MarkerData;
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 // Fix for default markers in React Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+const iconDefault = L.Icon.Default.prototype as L.Icon.Default & { _getIconUrl?: () => string };
+delete iconDefault._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -119,7 +177,7 @@ export function InteractiveMap() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<string>('Punjab, India');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 
   // Add CSS to ensure map fills container
   useEffect(() => {
@@ -244,7 +302,7 @@ export function InteractiveMap() {
   }, []);
 
   const getAllMarkers = () => {
-    const markers: any[] = [];
+    const markers: MapMarker[] = [];
 
     // Add farm plots if crops layer is visible
     if (visibleLayers.crops) {
@@ -271,13 +329,31 @@ export function InteractiveMap() {
       
       // Add Punjab locations
       punjabLocations.forEach((location) => {
-        if (location.type === 'hospital' || location.type === 'shelter') {
+        if (location.type === 'market') {
           markers.push({
             lat: location.lat,
             lng: location.lng,
             name: location.name,
             type: 'market',
-            data: location
+            data: {
+              prices: {},
+              volume: 'N/A',
+              lastUpdate: 'N/A',
+              description: location.description,
+              phone: location.phone
+            } as MarketMarkerData
+          });
+        } else if (location.type === 'hospital') {
+          markers.push({
+            lat: location.lat,
+            lng: location.lng,
+            name: location.name,
+            type: 'hospital',
+            data: {
+              services: ['General Services'],
+              description: location.description,
+              phone: location.phone
+            } as HospitalMarkerData
           });
         }
       });
@@ -302,7 +378,11 @@ export function InteractiveMap() {
         lng: result.lng,
         name: result.name,
         type: 'search',
-        data: result
+        data: {
+          type: result.type,
+          description: result.description,
+          phone: result.phone
+        } as SearchMarkerData
       });
     });
 
@@ -312,7 +392,9 @@ export function InteractiveMap() {
         ...userLocation,
         name: "Your Location",
         type: 'current',
-        data: { description: "Your current location" }
+        data: {
+          description: "Your current location"
+        } as CurrentLocationData
       });
     }
 
@@ -332,70 +414,129 @@ export function InteractiveMap() {
     return icons[type as keyof typeof icons] || '📍';
   };
 
-  const renderMarkerPopup = (marker: any) => {
+  const renderMarkerPopup = (marker: MapMarker) => {
     const { type, data, name } = marker;
     
     switch (type) {
-      case 'crop':
-        const healthColor = data.health > 80 ? '#22c55e' : data.health > 60 ? '#f59e0b' : '#ef4444';
+      case 'crop': {
+        const cropData = data as CropMarkerData;
+        const healthClasses = cropData.health > 80 
+          ? 'text-green-600 font-bold' 
+          : cropData.health > 60 
+            ? 'text-amber-600 font-bold' 
+            : 'text-red-600 font-bold';
         return (
           <div className="p-3 min-w-[200px]">
             <h3 className="font-semibold text-sm mb-2">{name}</h3>
             <div className="space-y-1 text-xs">
-              <div><strong>Crop:</strong> {data.crop}</div>
-              <div><strong>Area:</strong> {data.area}</div>
+              <div><strong>Crop:</strong> {cropData.crop}</div>
+              <div><strong>Area:</strong> {cropData.area}</div>
               <div><strong>Health:</strong> 
-                <span style={{ color: healthColor, fontWeight: 'bold' }}> {data.health}%</span>
+                <span className={healthClasses}> {cropData.health}%</span>
               </div>
-              {data.issues?.length > 0 && (
+              {cropData.issues?.length > 0 && (
                 <div className="mt-2 p-2 bg-yellow-50 rounded">
                   <strong className="text-yellow-800">Issues:</strong><br/>
-                  <span className="text-yellow-700">{data.issues.join(', ')}</span>
+                  <span className="text-yellow-700">{cropData.issues.join(', ')}</span>
                 </div>
               )}
             </div>
           </div>
         );
+      }
         
-      case 'market':
+      case 'market': {
+        const marketData = data as MarketMarkerData;
         return (
           <div className="p-3 min-w-[200px]">
             <h3 className="font-semibold text-sm mb-2">{name}</h3>
             <div className="space-y-1 text-xs">
-              {data.distance && <div><strong>Distance:</strong> {data.distance}</div>}
-              {data.prices && (
+              <div><strong>Volume:</strong> {marketData.volume}</div>
+              <div><strong>Last Update:</strong> {marketData.lastUpdate}</div>
+              {marketData.prices && (
                 <>
                   <div><strong>Current Prices:</strong></div>
-                  {Object.entries(data.prices).map(([crop, price]: [string, any]) => 
+                  {Object.entries(marketData.prices).map(([crop, price]: [string, number]) => 
                     <div key={crop} className="ml-2">• {crop}: ₹{price}</div>
                   )}
                 </>
               )}
-              {data.description && <div><strong>Info:</strong> {data.description}</div>}
-              {data.phone && (
+              {marketData.phone && (
                 <div><strong>Phone:</strong> 
-                  <a href={`tel:${data.phone}`} className="text-blue-600 ml-1">{data.phone}</a>
+                  <a href={`tel:${marketData.phone}`} className="text-blue-600 ml-1">{marketData.phone}</a>
                 </div>
               )}
             </div>
           </div>
         );
+      }
         
-      case 'disease':
-        const severityColor = data.severity === 'high' ? '#ef4444' : '#f59e0b';
+      case 'disease': {
+        const diseaseData = data as DiseaseMarkerData;
+        const severityClasses = diseaseData.severity === 'high' 
+          ? 'text-red-600 font-bold capitalize' 
+          : 'text-amber-600 font-bold capitalize';
         return (
           <div className="p-3 min-w-[200px]">
             <h3 className="font-semibold text-sm mb-2 text-red-600">⚠️ {name}</h3>
             <div className="space-y-1 text-xs">
-              <div><strong>Crop:</strong> {data.crop}</div>
+              <div><strong>Crop:</strong> {diseaseData.crop}</div>
               <div><strong>Severity:</strong> 
-                <span style={{ color: severityColor, fontWeight: 'bold', textTransform: 'capitalize' }}> {data.severity}</span>
+                <span className={severityClasses}> {diseaseData.severity}</span>
               </div>
-              <div><strong>Affected Farms:</strong> {data.affectedFarms}</div>
-              <div><strong>Radius:</strong> {data.radius}km</div>
+              <div><strong>Affected Farms:</strong> {diseaseData.affectedFarms}</div>
+              <div><strong>Radius:</strong> {diseaseData.radius}km</div>
             </div>
           </div>
         );
+      }
+        
+      case 'hospital': {
+        const hospitalData = data as HospitalMarkerData;
+        return (
+          <div className="p-3 min-w-[200px]">
+            <h3 className="font-semibold text-sm mb-2">{name}</h3>
+            <div className="space-y-1 text-xs">
+              <div><strong>Services:</strong> {hospitalData.services.join(', ')}</div>
+              {hospitalData.phone && (
+                <div><strong>Phone:</strong> 
+                  <a href={`tel:${hospitalData.phone}`} className="text-blue-600 ml-1">{hospitalData.phone}</a>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+        
+      case 'search': {
+        const searchData = data as SearchMarkerData;
+        return (
+          <div className="p-3 min-w-[200px]">
+            <h3 className="font-semibold text-sm mb-2">{name}</h3>
+            <div className="space-y-1 text-xs">
+              <div><strong>Type:</strong> {searchData.type}</div>
+              {searchData.description && <div><strong>Info:</strong> {searchData.description}</div>}
+              {searchData.phone && (
+                <div><strong>Phone:</strong> 
+                  <a href={`tel:${searchData.phone}`} className="text-blue-600 ml-1">{searchData.phone}</a>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      case 'current': {
+        const currentData = data as CurrentLocationData;
+        return (
+          <div className="p-3 min-w-[200px]">
+            <h3 className="font-semibold text-sm mb-2 text-blue-600">📍 {name}</h3>
+            <div className="space-y-1 text-xs">
+              {currentData.description && <div>{currentData.description}</div>}
+            </div>
+          </div>
+        );
+      }
         
       default:
         return (

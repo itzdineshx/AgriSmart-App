@@ -14,7 +14,7 @@ export interface Notification {
   actionUrl?: string;
   actionText?: string;
   icon?: string;
-  data?: any;
+  data?: unknown;
   autoHide?: boolean;
   hideAfter?: number; // milliseconds
 }
@@ -134,10 +134,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     try {
       const saved = localStorage.getItem('agrismart_notifications');
       if (saved) {
-        const savedNotifications = JSON.parse(saved).map((n: any) => ({
-          ...n,
-          timestamp: new Date(n.timestamp),
-        }));
+        const savedNotifications = JSON.parse(saved).map((n: unknown) => {
+          const notification = n as Record<string, unknown>;
+          return {
+            ...notification,
+            timestamp: new Date(notification.timestamp as string),
+          } as Notification;
+        });
         // Only keep notifications from last 7 days
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);

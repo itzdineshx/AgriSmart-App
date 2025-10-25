@@ -107,6 +107,67 @@ export interface WeatherAlert {
   updatedAt: string;
 }
 
+export interface WeatherHistory {
+  location: {
+    city: string;
+    state: string;
+    country: string;
+    coordinates: {
+      lat: number;
+      lng: number;
+    };
+  };
+  history: Array<{
+    date: string;
+    temperature: {
+      min: number;
+      max: number;
+      unit: string;
+    };
+    humidity: number;
+    wind: {
+      speed: number;
+      direction: number;
+      unit: string;
+    };
+    conditions: {
+      main: string;
+      description: string;
+      icon: string;
+    };
+    precipitation: {
+      probability: number;
+      amount: number;
+      type: string;
+    };
+    uvIndex: number;
+  }>;
+  lastUpdated: string;
+  source: string;
+}
+
+export interface WeatherAlertSubscription {
+  location: {
+    lat?: number;
+    lng?: number;
+    city?: string;
+  };
+  alertTypes: string[];
+  notificationMethods: {
+    email?: boolean;
+    sms?: boolean;
+    push?: boolean;
+  };
+}
+
+export interface WeatherAlertUnsubscription {
+  location: {
+    lat?: number;
+    lng?: number;
+    city?: string;
+  };
+}
+
 class WeatherService {
   private async request(endpoint: string, options?: RequestInit) {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -161,7 +222,7 @@ class WeatherService {
     city?: string;
     startDate: string;
     endDate: string;
-  }): Promise<any> {
+  }): Promise<WeatherHistory> {
     const queryParams = new URLSearchParams();
     if (params?.lat) queryParams.append('lat', params.lat.toString());
     if (params?.lng) queryParams.append('lng', params.lng.toString());
@@ -188,13 +249,9 @@ class WeatherService {
   }
 
   async subscribeWeatherAlerts(
-    subscription: {
-      location: any;
-      alertTypes: string[];
-      notificationMethods: any;
-    },
+    subscription: WeatherAlertSubscription,
     token: string
-  ): Promise<any> {
+  ): Promise<{ success: boolean; message: string }> {
     return this.request('/weather/subscribe-alerts', {
       method: 'POST',
       headers: {
@@ -205,11 +262,9 @@ class WeatherService {
   }
 
   async unsubscribeWeatherAlerts(
-    data: {
-      location: any;
-    },
+    data: WeatherAlertUnsubscription,
     token: string
-  ): Promise<any> {
+  ): Promise<{ success: boolean; message: string }> {
     return this.request('/weather/unsubscribe-alerts', {
       method: 'DELETE',
       headers: {

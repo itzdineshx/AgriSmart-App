@@ -12,13 +12,47 @@ import {
 import { generateDiagnosisReport } from "@/utils/generatePDF";
 import diseaseImage from "@/assets/crop-disease-detection.jpg";
 
+// Types
+interface PlantAnalysisResult {
+  status: 'healthy' | 'diseased';
+  plantType: string;
+  confidence: number;
+  disease?: string | null;
+  severity?: string | null;
+  symptoms: string[];
+  immediateActions: string[];
+  detailedTreatment: {
+    organicSolutions: string[];
+    chemicalSolutions: string[];
+    stepByStepCure: string[];
+  };
+  fertilizers: Array<{
+    name: string;
+    type: 'organic' | 'chemical';
+    application: string;
+    timing: string;
+  }>;
+  nutritionSuggestions: Array<{
+    nutrient: string;
+    deficiencySign: string;
+    sources: string[];
+  }>;
+  preventionTips: string[];
+  growthTips: string[];
+  seasonalCare: string[];
+  companionPlants: string[];
+  warningsSigns: string[];
+  appreciation: string;
+  additionalAdvice: string;
+}
+
 export default function Diagnose() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<PlantAnalysisResult | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [badges, setBadges] = useState<string[]>([]);
-  const [savedDiagnoses, setSavedDiagnoses] = useState<any[]>([]);
+  const [savedDiagnoses, setSavedDiagnoses] = useState<PlantAnalysisResult[]>([]);
 
   const GEMINI_API_KEY = "AIzaSyDGEgEm0g2i94bulu5Mf32yRNEhRLE3RNU";
 
@@ -755,7 +789,7 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                           Recommended Fertilizers
                         </h5>
                         <div className="grid sm:grid-cols-1 gap-3">
-                          {analysisResult.fertilizers.map((fertilizer: any, index: number) => (
+                          {analysisResult.fertilizers.map((fertilizer, index: number) => (
                             <div key={index} className="bg-card border rounded-lg p-3">
                               <div className="flex items-center justify-between mb-2">
                                 <h6 className="font-medium">{fertilizer.name}</h6>
@@ -783,7 +817,7 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                           Nutrition Guide
                         </h5>
                         <div className="space-y-3">
-                          {analysisResult.nutritionSuggestions.map((nutrition: any, index: number) => (
+                          {analysisResult.nutritionSuggestions.map((nutrition, index: number) => (
                             <div key={index} className="bg-card border rounded-lg p-3">
                               <h6 className="font-medium text-success mb-2">{nutrition.nutrient}</h6>
                               <p className="text-sm text-muted-foreground mb-2">

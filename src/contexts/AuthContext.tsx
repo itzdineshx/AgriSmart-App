@@ -30,6 +30,7 @@ interface AuthContextType {
   userRole: UserRole;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  demoLogin: (username: string, password: string, role: UserRole) => boolean;
   register: (name: string, email: string, password: string, role?: UserRole) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
   logout: () => Promise<void>;
@@ -79,7 +80,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return () => unsubscribe();
     } else {
-      // Firebase not configured, set loading to false
+      // Firebase not configured, check for demo authentication
+      const demoAuth = localStorage.getItem('demoAuth');
+      if (demoAuth) {
+        try {
+          const { user: demoUser, authenticated } = JSON.parse(demoAuth);
+          if (authenticated && demoUser) {
+            setUser(demoUser);
+            setIsAuthenticated(true);
+          }
+        } catch (error) {
+          console.error('Error parsing demo auth:', error);
+          localStorage.removeItem('demoAuth');
+        }
+      }
       setIsLoading(false);
     }
   }, []);
@@ -92,6 +106,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Login error:', error);
       return false;
     }
+  };
+
+  const demoLogin = (username: string, password: string, role: UserRole): boolean => {
+    // Demo credentials for role-based authentication
+    const demoCredentials = {
+      admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
+      seller: { username: 'seller_pro', password: 'SellPro@2024' },
+      user: { username: 'farmer_user', password: 'FarmUser@2024' }
+    };
+
+    const roleCredentials = demoCredentials[role as keyof typeof demoCredentials];
+    if (roleCredentials && username === roleCredentials.username && password === roleCredentials.password) {
+      // Create a demo user object
+      const demoUser: User = {
+        _id: `demo_${role}_${Date.now()}`,
+        name: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
+        email: `${role}@demo.agri`,
+        role: role,
+        avatar: undefined,
+        preferences: {
+          theme: 'light',
+          language: 'en',
+          notifications: {
+            email: true,
+            push: true,
+            weather: true,
+            market: true
+          }
+        },
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+
+      setUser(demoUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('demoAuth', JSON.stringify({ user: demoUser, authenticated: true }));
+      return true;
+    }
+    return false;
   };
 
   const register = async (name: string, email: string, password: string, role: UserRole = 'user'): Promise<boolean> => {
@@ -129,6 +182,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Logout error:', error);
     }
+    // Clear demo authentication
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('demoAuth');
   };
 
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
@@ -164,6 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       userRole: user?.role || null,
       isAuthenticated,
       login,
+      demoLogin,
       register,
       loginWithGoogle,
       logout,

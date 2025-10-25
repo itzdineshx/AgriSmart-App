@@ -259,9 +259,7 @@ export default function Weather() {
           </Dialog>
         </div>
       </div>
-          </div>
-        </div>
-      </div>
+    </div>
 
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
         {/* Current Weather */}
@@ -336,13 +334,13 @@ export default function Weather() {
                   <div>
                     <p className="text-sm text-muted-foreground">UV Index</p>
                     <p className="font-semibold">{currentWeather.uvIndex}</p>
-          </CardContent>
-        </Card>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        {/* Weather Visual Charts */}
-        <WeatherCharts weatherData={weatherData} />
-
-        {/* 7-Day Enhanced Forecast */}
+            {/* Weather Visual Charts */}
+            <WeatherCharts weatherData={weatherData} />
           </CardContent>
         </Card>
 

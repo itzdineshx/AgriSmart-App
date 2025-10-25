@@ -11,7 +11,9 @@ import {
   GamificationNotification,
   UserAction,
   QuestProgress,
-  AchievementProgress
+  AchievementProgress,
+  NotificationType,
+  AchievementRequirement
 } from '@/types/gamification';
 import { gamificationData, pointActivities, levelThresholds } from '@/data/gamificationData';
 
@@ -151,7 +153,7 @@ export function GamificationProvider({ children }: GamificationProviderProps) {
       // Add level up notification
       addNotification({
         id: `level_up_${Date.now()}`,
-        type: 'level_up' as any,
+        type: NotificationType.LEVEL_UP,
         title: 'Level Up!',
         message: `Congratulations! You've reached Level ${levelInfo.level} - ${levelInfo.title}!`,
         icon: '⬆️',
@@ -188,7 +190,7 @@ export function GamificationProvider({ children }: GamificationProviderProps) {
       // Add notification
       addNotification({
         id: `quest_complete_${Date.now()}`,
-        type: 'quest_completed' as any,
+        type: NotificationType.QUEST_COMPLETED,
         title: 'Quest Completed!',
         message: `You've completed "${quest.name}" and earned rewards!`,
         icon: '✅',
@@ -228,7 +230,7 @@ export function GamificationProvider({ children }: GamificationProviderProps) {
       // Add notification
       addNotification({
         id: `achievement_${Date.now()}`,
-        type: 'achievement_unlocked' as any,
+        type: NotificationType.ACHIEVEMENT_UNLOCKED,
         title: 'Achievement Unlocked!',
         message: `You've earned the "${achievement.name}" achievement!`,
         icon: '🏆',
@@ -260,7 +262,7 @@ export function GamificationProvider({ children }: GamificationProviderProps) {
 
     addNotification({
       id: `reward_redeemed_${Date.now()}`,
-      type: 'reward_received' as any,
+      type: NotificationType.REWARD_RECEIVED,
       title: 'Reward Redeemed!',
       message: 'You have successfully redeemed your reward.',
       icon: '🎁',
@@ -364,7 +366,7 @@ export function GamificationProvider({ children }: GamificationProviderProps) {
   };
 
   // Helper function to map requirements to action types  
-  const getActionTypeFromRequirement = (req: any): string => {
+  const getActionTypeFromRequirement = (req: AchievementRequirement): string => {
     // This would map requirement descriptions to action types
     // For now, returning a simple mapping
     if (req.description.includes('monitor')) return 'crop_monitoring';

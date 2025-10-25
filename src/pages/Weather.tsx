@@ -40,7 +40,6 @@ import {
   Sprout
 } from "lucide-react";
 import { useWeather } from "@/hooks/useWeather";
-import { useRealtimeWeather } from '@/hooks/useRealtimeWeather';
 import { 
   getWeatherCondition, 
   generateAgricultureRecommendations, 
@@ -101,7 +100,7 @@ export default function Weather() {
   // Get cache data
   const cacheData = useMemo(() => {
     return getCacheStats();
-  }, [weatherData, getCacheStats]);
+  }, [getCacheStats]);
 
   if (loading) {
     return <EnhancedLoading />;
@@ -115,7 +114,7 @@ export default function Weather() {
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Weather Data Unavailable</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => refetch()}>
+            <Button onClick={() => refreshWeatherData()}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
             </Button>
@@ -828,7 +827,7 @@ export default function Weather() {
                       size="sm" 
                       onClick={() => {
                         clearWeatherCache();
-                        refetch();
+                        refreshWeatherData();
                       }}
                       className="text-xs"
                     >
@@ -837,7 +836,7 @@ export default function Weather() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => refetch()}
+                      onClick={() => refreshWeatherData()}
                       className="text-xs"
                     >
                       <RefreshCw className="h-3 w-3 mr-1" />

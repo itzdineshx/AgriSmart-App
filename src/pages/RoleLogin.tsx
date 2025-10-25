@@ -17,7 +17,7 @@ export default function RoleLogin() {
   const [error, setError] = useState('');
   const [showCredentials, setShowCredentials] = useState(false);
   
-  const { login } = useAuth();
+  const { demoLogin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -30,7 +30,7 @@ export default function RoleLogin() {
       return;
     }
 
-    if (login(username, password, role)) {
+    if (demoLogin(username, password, role)) {
       toast({
         title: "Login Successful",
         description: `Welcome, ${role}!`,

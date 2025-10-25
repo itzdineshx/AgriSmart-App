@@ -38,6 +38,16 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Types
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'user' | 'seller';
+  status: 'active' | 'inactive' | 'pending';
+  joinDate: string;
+}
+
 // Mock data for demonstration
 const initialUsers = [
   { id: 1, name: 'John Farmer', email: 'john@farm.com', role: 'user', status: 'active', joinDate: '2024-01-15' },
@@ -135,26 +145,7 @@ export default function Admin() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('dashboard');
 
-  const StatsCard = ({ title, value, icon: Icon, trend }: any) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {trend && (
-          <p className="text-xs text-muted-foreground">
-            <span className="text-green-600">{trend}</span> from last month
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
-
-  const UserRow = ({ user }: any) => (
+  const UserRow = ({ user }: { user: User }) => (
     <div className="grid grid-cols-6 gap-4 p-4 items-center border-t hover:bg-muted/30 transition-colors">
       <div className="col-span-2">
         <div className="flex items-center gap-3">

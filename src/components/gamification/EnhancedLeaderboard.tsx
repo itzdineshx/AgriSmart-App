@@ -287,6 +287,7 @@ export function EnhancedLeaderboard() {
                 value={category}
                 onChange={(e) => setCategory(e.target.value as 'points' | 'achievements' | 'community' | 'sustainability' | 'innovation')}
                 className="px-3 py-2 border rounded-md bg-background"
+                aria-label="Select leaderboard category"
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat} className="capitalize">
@@ -299,6 +300,7 @@ export function EnhancedLeaderboard() {
                 value={selectedRegion}
                 onChange={(e) => setSelectedRegion(e.target.value)}
                 className="px-3 py-2 border rounded-md bg-background"
+                aria-label="Select region filter"
               >
                 {regions.map(region => (
                   <option key={region} value={region} className="capitalize">

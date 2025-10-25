@@ -2,6 +2,13 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 export type Language = 'en' | 'ta';
 
+interface TranslationValue {
+  en: string;
+  ta: string;
+}
+
+type Translations = Record<string, unknown>;
+
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -17,7 +24,7 @@ interface LanguageProviderProps {
 export function LanguageProvider({ children }: LanguageProviderProps) {
   console.log("LanguageProvider: Starting initialization");
   const [language, setLanguageState] = useState<Language>('en');
-  const [translations, setTranslations] = useState<any>({});
+  const [translations, setTranslations] = useState<Translations>({});
 
   // Load translations
   useEffect(() => {
@@ -54,7 +61,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const t = (key: string): string => {
     console.log("LanguageProvider: Translating key", key, "with language", language);
     const keys = key.split('.');
-    let value: any = translations;
+    let value: Translations[string] = translations;
     
     for (const k of keys) {
       value = value?.[k];

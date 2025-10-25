@@ -294,6 +294,7 @@ export default function MandiTable({
                 setCurrentPage(1);
               }}
               className="px-2 py-1 border rounded text-xs md:text-sm"
+              aria-label="Number of entries to show per page"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -404,6 +405,7 @@ export default function MandiTable({
                           handleRowSelect(index);
                         }}
                         className="rounded w-4 h-4"
+                        aria-label={`Select row ${index + 1}`}
                       />
                       <Button
                         variant="ghost"
@@ -442,6 +444,7 @@ export default function MandiTable({
                             handleRowSelect(index);
                           }}
                           className="rounded w-4 h-4"
+                          aria-label={`Select ${item.commodity} row`}
                         />
                         <h4 className="font-semibold text-sm truncate">
                           {item.commodity}
@@ -493,6 +496,7 @@ export default function MandiTable({
                     checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
                     onChange={handleSelectAll}
                     className="rounded"
+                    aria-label="Select all rows"
                   />
                 </TableHead>
                 <TableHead className="min-w-[120px]">
@@ -580,6 +584,7 @@ export default function MandiTable({
                           handleRowSelect(index);
                         }}
                         className="rounded"
+                        aria-label={`Select ${item.commodity} row`}
                       />
                     </TableCell>
                     <TableCell className="font-medium">

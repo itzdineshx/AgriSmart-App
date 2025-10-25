@@ -172,7 +172,7 @@ export default function SellerPanel() {
     }
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): "default" | "secondary" | "destructive" | "success" | "warning" => {
     switch (status) {
       case "active": return "success";
       case "low-stock": return "warning";
@@ -215,7 +215,7 @@ export default function SellerPanel() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold">₹{order.amount}</p>
-                      <Badge variant={getStatusColor(order.status) as any}>
+                      <Badge variant={getStatusColor(order.status)}>
                         {order.status}
                       </Badge>
                     </div>
@@ -262,7 +262,7 @@ export default function SellerPanel() {
               </div>
               <Badge 
                 className="absolute top-2 right-2" 
-                variant={getStatusColor(product.status) as any}
+                variant={getStatusColor(product.status)}
               >
                 {product.status.replace('-', ' ')}
               </Badge>

@@ -6,9 +6,60 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import Spline from '@splinetool/react-spline';
 
-type WebkitSpeechRecognition = typeof window extends { webkitSpeechRecognition: any }
-  ? InstanceType<(typeof window)["webkitSpeechRecognition"]>
-  : any;
+// Types
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onstart: () => void;
+  onend: () => void;
+  onerror: () => void;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+interface GeminiMessagePart {
+  text?: string;
+  inline_data?: {
+    mime_type: string;
+    data: string;
+  };
+}
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition: new () => SpeechRecognition;
+    testGeminiAPI?: () => Promise<void>;
+    testVoices?: () => void;
+    testVoice?: (text?: string, voiceIndex?: number) => void;
+    testFileUpload?: () => Promise<void>;
+  }
+}
 
 type Language = "hi" | "en" | "ta" | "ml" | "mr" | "te";
 
@@ -39,7 +90,7 @@ const LANGUAGES: LanguageConfig[] = [
 ];
 
 // Test function to debug API calls
-(window as any).testGeminiAPI = async () => {
+window.testGeminiAPI = async () => {
   const apiKey = "AIzaSyB7_4jF675ctOel_Ndyf0KAL3Ay8wFpJkM";
   const testRequest = {
     contents: [
@@ -75,7 +126,7 @@ const LANGUAGES: LanguageConfig[] = [
 };
 
 // Test function for voices
-(window as any).testVoices = () => {
+window.testVoices = () => {
   const voices = window.speechSynthesis.getVoices();
   console.log('🎤 Available voices:');
   voices.forEach((voice, index) => {
@@ -85,7 +136,7 @@ const LANGUAGES: LanguageConfig[] = [
 };
 
 // Test specific voice
-(window as any).testVoice = (text = "Hello, I am Flora, your plant assistant", voiceIndex = 0) => {
+window.testVoice = (text = "Hello, I am Flora, your plant assistant", voiceIndex = 0) => {
   const voices = window.speechSynthesis.getVoices();
   if (voices[voiceIndex]) {
     window.speechSynthesis.cancel();
@@ -100,7 +151,7 @@ const LANGUAGES: LanguageConfig[] = [
 };
 
 // Test file upload functionality
-(window as any).testFileUpload = async () => {
+window.testFileUpload = async () => {
   const testText = "This is a test agricultural document about tomato farming.\n\nKey points:\n- Plant tomatoes in well-drained soil\n- Water regularly but avoid overwatering\n- Watch for common diseases like blight\n- Harvest when fruits are red and firm\n\nPlease analyze this document and provide farming advice.";
   
   console.log('🧪 Testing file upload with text content...');
@@ -162,12 +213,12 @@ export default function Chatbot() {
 
     // Initialize speech recognition
     if ('webkitSpeechRecognition' in window) {
-      const recognition = new (window as any).webkitSpeechRecognition();
+      const recognition = new window.webkitSpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = LANGUAGES.find(l => l.code === selectedLanguage)?.speechLang || 'en-IN';
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[event.results.length - 1][0].transcript;
         setInput(transcript);
       };
@@ -361,12 +412,12 @@ export default function Chatbot() {
   const cleanResponse = (text: string) => {
     return text
       .split(/\r?\n/)
-      .map(line => line.replace(/^\s*[\*\-\•]\s*/, ""))
+      .map(line => line.replace(/^\s*[*•]\s*/, ""))
       .join("\n")
       // Remove emojis and emoticons
       .replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '')
       // Remove common emoticons like :), :D, :(, etc.
-      .replace(/[:;=]-?[)D(PpoO\/\\|]|[)D(PpoO\/\\|]-?[:;=]/g, '')
+      .replace(/[:;=]-?[)D(PpoO/|]|[)D(PpoO/|]-?[:;=]/g, '')
       // Remove other Unicode symbols that might be emojis
       .replace(/[\u{1F900}-\u{1F9FF}]|[\u{1FA70}-\u{1FAFF}]/gu, '')
       .trim();
@@ -523,7 +574,7 @@ export default function Chatbot() {
       }));
       
       // Build current message with file content
-      const messageParts: any[] = [{ text: userMsg }];
+      const messageParts: GeminiMessagePart[] = [{ text: userMsg }];
       
       // Add file content to the message
       if (currentFiles.length > 0) {

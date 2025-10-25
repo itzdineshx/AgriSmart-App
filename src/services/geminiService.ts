@@ -1,5 +1,8 @@
+import { WeatherData } from './weatherService';
+import { MandiPrice } from './mandiService';
+
 const GEMINI_API_KEY = 'AIzaSyB7_4jF675ctOel_Ndyf0KAL3Ay8wFpJkM';
-  const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent';
 
 export interface GeminiSuggestion {
   title: string;
@@ -9,6 +12,30 @@ export interface GeminiSuggestion {
   category: 'weather' | 'pest' | 'market' | 'irrigation' | 'fertilizer' | 'general';
 }
 
+interface CropHealthData {
+  status: string;
+  plantType: string;
+  confidence: number;
+  disease?: string | null;
+  severity?: string | null;
+  symptoms: string[];
+  immediateActions: string[];
+  detailedTreatment: {
+    organicSolutions: unknown[];
+    chemicalSolutions: unknown[];
+    stepByStepCure: unknown[];
+  };
+  fertilizers: unknown[];
+  nutritionSuggestions: unknown[];
+  preventionTips: unknown[];
+  growthTips: unknown[];
+  seasonalCare: unknown[];
+  companionPlants: unknown[];
+  warningsSigns: unknown[];
+  appreciation: string;
+  additionalAdvice: string;
+}
+
 export const generateAISuggestions = async (
   farmerProfile: {
     name: string;
@@ -16,9 +43,9 @@ export const generateAISuggestions = async (
     location: string;
     farmSize: string;
   },
-  currentWeather: any,
-  cropHealth: any[],
-  marketPrices: any[]
+  currentWeather: WeatherData,
+  cropHealth: CropHealthData[],
+  marketPrices: MandiPrice[]
 ): Promise<GeminiSuggestion[]> => {
   try {
     const prompt = `
@@ -30,9 +57,9 @@ Crops: ${farmerProfile.crops.join(', ')}
 Farm Size: ${farmerProfile.farmSize}
 
 Current Context:
-- Weather: ${currentWeather?.temperature}°C, ${currentWeather?.condition}
-- Crop Health: ${cropHealth.map(c => `${c.crop}: ${c.health}% (${c.status})`).join(', ')}
-- Market Prices: ${marketPrices.map(p => `${p.crop}: ₹${p.currentPrice} (${p.change > 0 ? '+' : ''}${p.change}%)`).join(', ')}
+- Weather: ${currentWeather?.current?.temperature_2m}°C, ${currentWeather?.current?.weather_code}
+- Crop Health: ${cropHealth.map(c => `${c.plantType}: ${c.confidence}% (${c.status})`).join(', ')}
+- Market Prices: ${marketPrices.map(p => `${p.commodity}: ₹${p.modal_price}`).join(', ')}
 
 Provide practical, actionable suggestions in JSON format:
 [
@@ -105,12 +132,12 @@ Focus on immediate actions the farmer can take today or this week. Be specific a
   }
 };
 
-export const generateSmartReminders = async (tasks: any[], weather: any, crops: string[]) => {
+export const generateSmartReminders = async (tasks: unknown[], weather: WeatherData, crops: string[]) => {
   try {
     const prompt = `
 Generate 2-3 smart farming reminders based on:
-Tasks: ${tasks.map(t => `${t.title} at ${t.time}`).join(', ')}
-Weather: ${weather?.temperature}°C, ${weather?.condition}
+Tasks: ${tasks.map((t: unknown) => `${(t as {title: string; time: string}).title} at ${(t as {title: string; time: string}).time}`).join(', ')}
+Weather: ${weather?.current?.temperature_2m}°C, ${weather?.current?.weather_code}
 Crops: ${crops.join(', ')}
 
 Return JSON array of reminders:

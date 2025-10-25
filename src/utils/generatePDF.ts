@@ -1,7 +1,40 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-export const generateDiagnosisReport = async (analysisResult: any, plantImage: string) => {
+interface PlantAnalysisResult {
+  status: 'healthy' | 'diseased';
+  plantType: string;
+  confidence: number;
+  disease?: string | null;
+  severity?: string | null;
+  symptoms: string[];
+  immediateActions: string[];
+  detailedTreatment: {
+    organicSolutions: string[];
+    chemicalSolutions: string[];
+    stepByStepCure: string[];
+  };
+  fertilizers: Array<{
+    name: string;
+    type: 'organic' | 'chemical';
+    application: string;
+    timing: string;
+  }>;
+  nutritionSuggestions: Array<{
+    nutrient: string;
+    deficiencySign: string;
+    sources: string[];
+  }>;
+  preventionTips: string[];
+  growthTips: string[];
+  seasonalCare: string[];
+  companionPlants: string[];
+  warningsSigns: string[];
+  appreciation: string;
+  additionalAdvice: string;
+}
+
+export const generateDiagnosisReport = async (analysisResult: PlantAnalysisResult, plantImage: string) => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -39,7 +72,7 @@ export const generateDiagnosisReport = async (analysisResult: any, plantImage: s
   yOffset += 10;
 
   pdf.setFontSize(12);
-  const addSection = (title: string, content: any) => {
+  const addSection = (title: string, content: string | string[] | unknown) => {
     if (!content || (Array.isArray(content) && content.length === 0)) return yOffset;
 
     // Check if we need a new page
@@ -112,13 +145,13 @@ export const generateDiagnosisReport = async (analysisResult: any, plantImage: s
   }
 
   addSection('Fertilizer Recommendations', 
-    analysisResult.fertilizers?.map((f: any) => 
+    analysisResult.fertilizers?.map((f) => 
       `${f.name} (${f.type}): ${f.application}, ${f.timing}`
     )
   );
 
   addSection('Nutrition Suggestions',
-    analysisResult.nutritionSuggestions?.map((n: any) =>
+    analysisResult.nutritionSuggestions?.map((n) =>
       `${n.nutrient}: ${n.deficiencySign}`
     )
   );

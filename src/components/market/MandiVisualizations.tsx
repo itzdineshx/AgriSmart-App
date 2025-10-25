@@ -42,6 +42,65 @@ interface MandiVisualizationsProps {
   className?: string;
 }
 
+// Data interfaces for processed market data
+interface MarketData {
+  market: string;
+  avgPrice: number;
+  count: number;
+}
+
+interface CommodityData {
+  commodity: string;
+  min_price: number;
+  max_price: number;
+  modal_price: number;
+  range?: number;
+}
+
+interface StateData {
+  state: string;
+  avgPrice: number;
+  count: number;
+}
+
+interface MarketActivityData {
+  market: string;
+  activityScore: number;
+  totalVolume: number;
+  commodityCount: number;
+}
+
+interface VolatilityData {
+  commodity: string;
+  volatility: number;
+  range: number;
+}
+
+interface CommodityPricesData {
+  commodity: string;
+  prices: number[];
+  avgPrice?: number;
+}
+
+interface StatePricesData {
+  state: string;
+  prices: number[];
+}
+
+interface MarketActivityRawData {
+  market: string;
+  commodities: Set<string>;
+  totalValue: number;
+}
+
+interface PriceComparisonData {
+  commodity: string;
+  min_price: number;
+  max_price: number;
+  modal_price: number;
+  count: number;
+}
+
 // AgriSmart Theme Colors for charts
 const AGRI_COLORS = [
   'hsl(120, 60%, 25%)', // Primary green
@@ -73,7 +132,7 @@ export default function MandiVisualizations({
   };
 
   const formatCurrency = (value: number) => `₹${value.toFixed(2)}`;
-  const formatTooltip = (value: any, name: string) => [formatCurrency(value), name];
+  const formatTooltip = (value: number, name: string) => [formatCurrency(value), name];
 
   if (isLoading) {
     return (
@@ -741,7 +800,7 @@ function getPriceComparisonData(data: MandiPrice[], selectedCommodity?: string) 
       acc[item.commodity].count++;
     }
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, PriceComparisonData>);
 
   return Object.values(grouped).slice(0, 10); // Top 10
 }
@@ -763,10 +822,10 @@ function getMarketComparisonData(data: MandiPrice[], selectedCommodity?: string)
       acc[item.market].count++;
     }
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, MarketData>);
 
   return Object.values(grouped)
-    .sort((a: any, b: any) => b.avgPrice - a.avgPrice)
+    .sort((a: MarketData, b: MarketData) => b.avgPrice - a.avgPrice)
     .slice(0, 15); // Top 15 markets
 }
 
@@ -800,9 +859,9 @@ function getPriceRangeData(data: MandiPrice[], selectedCommodity?: string) {
       acc[item.commodity].max_price = Math.max(acc[item.commodity].max_price, item.max_price_per_kg);
     }
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, CommodityData>);
 
-  return Object.values(grouped).map((item: any) => ({
+  return Object.values(grouped).map((item: CommodityData) => ({
     ...item,
     range: Number(item.max_price) - Number(item.min_price),
   }));
@@ -823,10 +882,10 @@ function getStateWiseAverageData(data: MandiPrice[]) {
       acc[item.state].count++;
     }
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, StateData>);
 
   return Object.values(grouped)
-    .sort((a: any, b: any) => b.avgPrice - a.avgPrice)
+    .sort((a: StateData, b: StateData) => b.avgPrice - a.avgPrice)
     .slice(0, 10);
 }
 
@@ -853,9 +912,9 @@ function getVolatilityData(data: MandiPrice[]) {
     }
     acc[item.commodity].prices.push(item.modal_price_per_kg);
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, CommodityPricesData>);
 
-  return Object.values(commodityData).map((item: any) => {
+  return Object.values(commodityData).map((item: CommodityPricesData) => {
     const avg = item.prices.reduce((sum: number, price: number) => sum + price, 0) / item.prices.length;
     const variance = item.prices.reduce((sum: number, price: number) => sum + Math.pow(price - avg, 2), 0) / item.prices.length;
     const stdDev = Math.sqrt(variance);
@@ -879,9 +938,9 @@ function getTrendData(data: MandiPrice[]) {
     }
     acc[item.commodity].prices.push(item.modal_price_per_kg);
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, CommodityPricesData>);
 
-  return Object.values(commodityData).map((item: any) => {
+  return Object.values(commodityData).map((item: CommodityPricesData) => {
     const prices = item.prices;
     return {
       commodity: item.commodity,
@@ -904,9 +963,9 @@ function getRegionalSpreadData(data: MandiPrice[]) {
     }
     acc[item.state].prices.push(item.modal_price_per_kg);
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, StatePricesData>);
 
-  return Object.values(stateData).map((item: any) => {
+  return Object.values(stateData).map((item: StatePricesData) => {
     const prices = item.prices;
     const min = Math.min(...prices);
     const max = Math.max(...prices);
@@ -929,15 +988,15 @@ function getMarketActivityData(data: MandiPrice[]) {
     acc[item.market].commodities.add(item.commodity);
     acc[item.market].totalValue += item.modal_price_per_kg;
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, MarketActivityRawData>);
 
-  return Object.values(marketData).map((item: any) => {
+  return Object.values(marketData).map((item: MarketActivityRawData) => {
     const activityScore = item.commodities.size * (item.totalValue / item.commodities.size);
     return {
       market: item.market.slice(0, 15) + (item.market.length > 15 ? '...' : ''),
       activityScore: Math.round(activityScore),
     };
-  }).sort((a: any, b: any) => b.activityScore - a.activityScore).slice(0, 8);
+  }).sort((a: MarketActivityData, b: MarketActivityData) => b.activityScore - a.activityScore).slice(0, 8);
 }
 
 function getMarketInsights(data: MandiPrice[]) {
@@ -987,10 +1046,10 @@ function getMarketInsights(data: MandiPrice[]) {
       };
     }
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, VolatilityData>);
 
   const mostVolatile = Object.values(volatility)
-    .sort((a: any, b: any) => b.volatility - a.volatility)[0] as any;
+    .sort((a: VolatilityData, b: VolatilityData) => b.volatility - a.volatility)[0] as VolatilityData;
 
   insights.push({
     title: 'Most Volatile',
