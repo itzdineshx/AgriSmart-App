@@ -259,10 +259,6 @@ export default function Weather() {
           </Dialog>
         </div>
       </div>
-      </div>
-
-                    </DialogContent>
-            </Dialog>
           </div>
         </div>
       </div>

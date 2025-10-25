@@ -54,12 +54,13 @@ export default function SignUp() {
       // });
 
       navigate("/");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Sign up error:", error);
-      if (error.message?.includes('not configured')) {
+      const firebaseError = error as { message?: string; code?: string };
+      if (firebaseError.message?.includes('not configured')) {
         setError("Firebase authentication is not configured. Please contact the administrator.");
       } else {
-        setError(getErrorMessage(error.code));
+        setError(getErrorMessage(firebaseError.code));
       }
     } finally {
       setIsLoading(false);
@@ -73,12 +74,13 @@ export default function SignUp() {
     try {
       await signInWithGoogle();
       navigate("/");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Google sign in error:", error);
-      if (error.message?.includes('not configured')) {
+      const firebaseError = error as { message?: string; code?: string };
+      if (firebaseError.message?.includes('not configured')) {
         setError("Firebase authentication is not configured. Please contact the administrator.");
       } else {
-        setError(getErrorMessage(error.code));
+        setError(getErrorMessage(firebaseError.code));
       }
     } finally {
       setIsLoading(false);

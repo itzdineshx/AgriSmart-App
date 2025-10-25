@@ -80,7 +80,7 @@ export default function MandiFilters({
                          filters.district ? [...new Set(data.filter(item => item.district === filters.district).map(item => item.market).filter(Boolean))].sort() :
                          [...new Set(data.map(item => item.market).filter(Boolean))].sort();
 
-  const updateFilter = (key: keyof FilterOptions, value: any) => {
+  const updateFilter = (key: keyof FilterOptions, value: string | Date | number | boolean | undefined) => {
     const newFilters = { ...filters, [key]: value };
     
     // Reset dependent filters

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/contexts/NotificationContext';
+import type { Notification } from '@/contexts/NotificationContext';
 import { Settings } from 'lucide-react';
 
 interface NotificationTestModalProps {
@@ -59,7 +60,7 @@ export const NotificationTestModal: React.FC<NotificationTestModalProps> = ({ ch
     },
   ];
 
-  const handleTestNotification = (notification: any) => {
+  const handleTestNotification = (notification: Notification) => {
     addNotification(notification);
   };
 

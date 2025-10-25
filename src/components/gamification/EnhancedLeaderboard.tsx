@@ -273,7 +273,7 @@ export function EnhancedLeaderboard() {
             <div className="flex gap-2 flex-wrap">
               <select
                 value={timeframe}
-                onChange={(e) => setTimeframe(e.target.value as any)}
+                onChange={(e) => setTimeframe(e.target.value as 'daily' | 'weekly' | 'monthly' | 'all-time')}
                 className="px-3 py-2 border rounded-md bg-background"
               >
                 {timeframes.map(tf => (
@@ -285,7 +285,7 @@ export function EnhancedLeaderboard() {
               
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value as any)}
+                onChange={(e) => setCategory(e.target.value as 'points' | 'achievements' | 'community' | 'sustainability' | 'innovation')}
                 className="px-3 py-2 border rounded-md bg-background"
               >
                 {categories.map(cat => (

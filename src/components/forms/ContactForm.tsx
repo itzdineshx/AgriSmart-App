@@ -8,8 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Send, MessageCircle } from "lucide-react";
 
+interface ContactFormData {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  category: string;
+  message: string;
+}
+
 interface ContactFormProps {
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: ContactFormData) => void;
   className?: string;
 }
 

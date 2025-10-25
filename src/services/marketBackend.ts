@@ -20,6 +20,17 @@ export interface MarketPrice {
   source: string;
 }
 
+export interface MarketPriceHistoryItem {
+  date: string;
+  price: number;
+  volume?: number;
+}
+
+export interface MarketPriceHistory {
+  commodity: string;
+  history: MarketPriceHistoryItem[];
+}
+
 export interface MarketTrend {
   commodity: string;
   period: string;
@@ -115,7 +126,7 @@ class MarketService {
   async getMarketPriceHistory(
     commodity: string,
     days: number = 30
-  ): Promise<{ commodity: string; history: any[] }> {
+  ): Promise<MarketPriceHistory> {
     return this.request(`/market/prices/${commodity}/history?days=${days}`);
   }
 

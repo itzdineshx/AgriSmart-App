@@ -67,7 +67,7 @@ export default function MandiTable({
 
   // Sort data
   const sortedData = [...data].sort((a, b) => {
-    let aValue: any, bValue: any;
+    let aValue: string | number | Date, bValue: string | number | Date;
 
     switch (sortField) {
       case 'commodity':

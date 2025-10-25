@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, MapPin, Sparkles, Leaf, Apple, Carrot, Thermometer, Droplets, Map } from 'lucide-react';
 import { useWeather } from '@/hooks/useWeather';
 import { toast } from '@/hooks/use-toast';
+import type { WeatherData } from '@/services/weatherService';
 import { LocationMapSelector } from '@/components/LocationMapSelector';
 
 interface CropRecommendation {
@@ -169,7 +170,7 @@ export default function Recommendations() {
     }
   };
 
-  const generateGeminiPrompt = (loc: string, weather: any, soil: string) => {
+  const generateGeminiPrompt = (loc: string, weather: WeatherData | null, soil: string) => {
     const currentMonth = new Date().toLocaleString('default', { month: 'long' });
     const season = getCurrentSeason();
     
@@ -301,7 +302,7 @@ Make sure to follow this exact structure and format for proper parsing.`;
       const parseListItems = (text: string) => {
         return text.split('\n')
           .filter(line => line.trim() && (line.includes('-') || /^\d+\./.test(line.trim())))
-          .map(line => line.replace(/^[-\d+\.]\s*/, '').trim())
+          .map(line => line.replace(/^[-.\d+]\s*/, '').trim())
           .filter(item => item.length > 0)
           .slice(0, 6);
       };

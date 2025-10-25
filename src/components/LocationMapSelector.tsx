@@ -40,7 +40,7 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
         mapboxgl.accessToken = MAPBOX_API_KEY;
         
         // Disable telemetry at map level
-        if (!(window as any).__mapboxTelemetryBlocked) {
+        if (!(window as { __mapboxTelemetryBlocked?: boolean }).__mapboxTelemetryBlocked) {
           console.log('🔒 Blocking Mapbox telemetry for LocationMapSelector');
         }
 

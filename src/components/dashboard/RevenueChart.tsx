@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart3, TrendingUp, Calendar } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import type { TooltipProps } from "recharts";
 import { useState } from "react";
 
 interface RevenueChartProps {
@@ -84,7 +85,7 @@ export function RevenueChart({ userType = "farmer" }: RevenueChartProps) {
   const previousTotal = displayData.reduce((sum, item) => sum + item.previous, 0);
   const growth = ((totalRevenue - previousTotal) / previousTotal * 100).toFixed(1);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card border border-border rounded-lg p-3 shadow-lg">

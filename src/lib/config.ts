@@ -42,7 +42,7 @@ if (typeof window !== 'undefined') {
   };
 
 // Set global flag to prevent reinitializing
-(window as any).__mapboxTelemetryBlocked = true;
+(window as { __mapboxTelemetryBlocked?: boolean }).__mapboxTelemetryBlocked = true;
 }
 
 // Geolocation utility functions

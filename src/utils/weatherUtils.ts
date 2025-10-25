@@ -13,7 +13,7 @@ import {
 export interface AgricultureCondition {
   key: string;
   label: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string; size?: string | number }>;
   color: string;
   bgColor: string;
   borderColor: string;

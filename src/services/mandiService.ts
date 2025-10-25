@@ -29,6 +29,21 @@ export interface MandiPrice {
   min_price_per_kg: number;
   max_price_per_kg: number;
   modal_price_per_kg: number;
+  // Data source indicator
+  isLiveData?: boolean;
+}
+
+interface ApiMandiDataItem {
+  Commodity?: string;
+  Variety?: string;
+  Min_Price?: string | number;
+  Max_Price?: string | number;
+  Modal_Price?: string | number;
+  Arrival_Date?: string;
+  Market?: string;
+  District?: string;
+  State?: string;
+  Grade?: string;
 }
 
 export interface MandiLocation {
@@ -307,7 +322,7 @@ const formatApiDate = (apiDate: string): string => {
 };
 
 // Transform API data to our MandiPrice format
-export const transformMandiData = (apiData: any[]): MandiPrice[] => {
+export const transformMandiData = (apiData: ApiMandiDataItem[]): MandiPrice[] => {
   if (!Array.isArray(apiData)) {
     console.warn('transformMandiData: Input is not an array', apiData);
     return [];
@@ -907,7 +922,7 @@ export const debugApiData = (data: MandiPrice[]) => {
 };
 
 // Fallback data when API is completely down
-const getFallbackMandiData = (filters: any) => {
+const getFallbackMandiData = (filters: FilterOptions) => {
   console.log('🔄 Generating expanded fallback data for filters:', filters);
   
   // Get today's date and previous days

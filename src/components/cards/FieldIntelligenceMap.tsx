@@ -252,7 +252,7 @@ interface NearbyCount {
 interface WeatherOverlay {
   id: string;
   name: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   enabled: boolean;
   opacity: number;
 }
@@ -501,7 +501,7 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
 
         // Add marker for user location
         const mapboxMarker = new mapboxgl.Marker({ color: '#10b981', draggable: false })
-          .setLngLat([PUNJAB_CENTER.lng, PUNJAB_CENTER.lat])
+          .setLngLat([CHENNAI_CENTER.lng, CHENNAI_CENTER.lat])
           .addTo(mapboxMap);
 
         // Get user location with enhanced error handling and permissions
