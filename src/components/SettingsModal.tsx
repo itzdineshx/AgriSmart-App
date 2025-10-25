@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -173,6 +174,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             <Settings className="h-5 w-5" />
             Account Settings
           </DialogTitle>
+          <DialogDescription>
+            Manage your account preferences, notifications, and security settings.
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="profile" className="w-full">

@@ -70,6 +70,11 @@ export const WeatherMapModal: React.FC<WeatherMapModalProps> = ({
 
         // Mapbox access token
         mapboxgl.accessToken = MAPBOX_API_KEY;
+        
+        // Disable telemetry at map level
+        if (!(window as any).__mapboxTelemetryBlocked) {
+          console.log('🔒 Blocking Mapbox telemetry for WeatherMapModal');
+        }
 
         const styleUrl = mapType === 'satellite'
           ? 'mapbox://styles/mapbox/satellite-v9'
@@ -240,25 +245,41 @@ export const WeatherMapModal: React.FC<WeatherMapModalProps> = ({
     }
   };
 
-  // Get current location
+  // Get current location with enhanced accuracy
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
+      console.log('📍 Requesting user location for weather data...');
       navigator.geolocation.getCurrentPosition(
         async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+          const { latitude: lat, longitude: lng, accuracy } = position.coords;
+          console.log(`📍 Weather location obtained: ${lat}, ${lng} (accuracy: ${accuracy}m)`);
 
           if (map && marker) {
-            map.setCenter([lng, lat]);
-            map.setZoom(10);
+            // Smooth transition to user's location
+            map.flyTo({
+              center: [lng, lat],
+              zoom: 12,
+              essential: true,
+              duration: 1500
+            });
+
             marker.setLngLat([lng, lat]);
             await updateLocationWeather(lat, lng, marker);
+            console.log('📍 Weather data updated for user location');
           }
         },
         (error) => {
-          console.error('Geolocation error:', error);
+          console.warn('⚠️ Weather geolocation failed:', error.message);
+          console.log('💡 Allow location access for accurate weather forecasts');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 300000
         }
       );
+    } else {
+      console.warn('⚠️ Geolocation not supported for weather location');
     }
   };
 

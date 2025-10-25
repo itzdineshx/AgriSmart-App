@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -191,6 +191,9 @@ export function FarmFieldMapping({ userType = "farmer" }: FarmFieldMappingProps)
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Add New Field</DialogTitle>
+                <DialogDescription>
+                  Add a new field to your farm with location, area, and crop details.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -358,6 +361,9 @@ export function FarmFieldMapping({ userType = "farmer" }: FarmFieldMappingProps)
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Edit Field</DialogTitle>
+              <DialogDescription>
+                Update field information including name, area, soil type, and crop details.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>

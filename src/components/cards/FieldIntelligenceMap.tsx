@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+
+// Extend window type for telemetry blocking
+declare global {
+  interface Window {
+    disabledMapboxTelemetry?: boolean;
+  }
+}
 import { 
   MapPin, 
   Loader2, 
@@ -157,7 +164,7 @@ if (typeof document !== 'undefined') {
 
 // Constants
 const MAPBOX_API_KEY = 'pk.eyJ1IjoiaGFyaXNod2FyYW4iLCJhIjoiY21hZHhwZGs2MDF4YzJxczh2aDd0cWg1MyJ9.qcu0lpqVlZlC2WFxhwb1Pg';
-const PUNJAB_CENTER = { lat: 31.1471, lng: 75.3412 };
+const CHENNAI_CENTER = { lat: 13.0827, lng: 80.2707 };
 
 // Custom mock locations - Chennai, Thiruvallur, Kanchipuram area
 const MOCK_LOCATIONS: MockLocation[] = [
@@ -269,10 +276,12 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
   const [marker, setMarker] = useState<mapboxgl.Marker | null>(null);
   const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'hybrid'>('satellite');
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [nearbyCount, setNearbyCount] = useState<NearbyCount>({ farms: 0, markets: 0 });
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'loading' | 'success' | 'fallback' | 'error'>('loading');
   const [weatherLayers, setWeatherLayers] = useState<WeatherOverlay[]>([
     { id: 'clouds', name: 'Cloud Cover', icon: Cloud, enabled: true, opacity: 0.6 },
     { id: 'precipitation', name: 'Precipitation', icon: CloudRain, enabled: true, opacity: 0.7 },
@@ -400,10 +409,35 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
   useEffect(() => {
     const initMap = async () => {
       try {
-        if (!mapRef.current) return;
+        console.log('🗺️ Initializing Field Intelligence Map...');
+        if (!mapRef.current) {
+          console.warn('⚠️ Map container not found');
+          return;
+        }
+
+        console.log('🗺️ Map container found:', mapRef.current);
+        console.log('🗺️ Container dimensions:', {
+          width: mapRef.current.offsetWidth,
+          height: mapRef.current.offsetHeight,
+          clientWidth: mapRef.current.clientWidth,
+          clientHeight: mapRef.current.clientHeight
+        });
+
+        // Ensure container has dimensions before creating map
+        if (mapRef.current.offsetWidth === 0 || mapRef.current.offsetHeight === 0) {
+          console.warn('⚠️ Map container has no dimensions, waiting...');
+          setTimeout(() => initMap(), 100);
+          return;
+        }
 
         // Mapbox access token
         mapboxgl.accessToken = MAPBOX_API_KEY;
+        console.log('🗺️ Mapbox access token set');
+
+        // Completely disable Mapbox telemetry at the source
+        if (typeof window !== 'undefined' && !window.disabledMapboxTelemetry) {
+          window.disabledMapboxTelemetry = true;
+        }
 
         const styleUrl = mapType === 'satellite'
           ? 'mapbox://styles/mapbox/satellite-v9'
@@ -411,11 +445,55 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
           ? 'mapbox://styles/mapbox/satellite-streets-v12'
           : 'mapbox://styles/mapbox/streets-v12';
 
+        console.log(`🗺️ Creating map with style: ${styleUrl}`);
+
+        // Try a basic working style
+        const testStyleUrl = 'mapbox://styles/mapbox/streets-v12';
+        console.log(`🗺️ Using test style: ${testStyleUrl}`);
+
+        // Test Mapbox API key before creating map
+        try {
+          const testResponse = await fetch(`https://api.mapbox.com/styles/v1/mapbox/streets-v12?access_token=${MAPBOX_API_KEY}`);
+          if (!testResponse.ok) {
+            throw new Error(`Mapbox API test failed: ${testResponse.status} ${testResponse.statusText}`);
+          }
+          console.log('🗺️ Mapbox API key validated successfully');
+        } catch (error) {
+          console.error('🗺️ Mapbox API key validation failed:', error);
+          setLoadingError('Failed to validate Mapbox API key. Please check your internet connection.');
+          setIsLoading(false);
+          return;
+        }
+
         const mapboxMap = new mapboxgl.Map({
           container: mapRef.current,
-          style: styleUrl,
-          center: [PUNJAB_CENTER.lng, PUNJAB_CENTER.lat],
+          style: testStyleUrl,
+          center: [CHENNAI_CENTER.lng, CHENNAI_CENTER.lat],
           zoom: 8,
+        });
+
+        console.log('🗺️ Map instance created:', mapboxMap);
+        console.log('🗺️ Map container after creation:', mapRef.current);
+
+        // Handle map creation errors immediately
+        try {
+          // Test if map is valid
+          if (!mapboxMap) {
+            throw new Error('Map instance is null');
+          }
+        } catch (error) {
+          console.error('🗺️ Map creation failed:', error);
+          setLoadingError('Failed to create map instance.');
+          setIsLoading(false);
+          return;
+        }
+
+        // Handle map creation errors
+        mapboxMap.on('error', (e) => {
+          console.error('🗺️ Map creation error:', e);
+          console.error('🗺️ Error details:', e.error);
+          setLoadingError('Failed to create map. Please check your connection.');
+          setIsLoading(false);
         });
 
         mapboxMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -426,24 +504,34 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
           .setLngLat([PUNJAB_CENTER.lng, PUNJAB_CENTER.lat])
           .addTo(mapboxMap);
 
-        // Get user location
+        // Get user location with enhanced error handling and permissions
         if (navigator.geolocation) {
+          console.log('📍 Requesting user location...');
+          setLocationStatus('loading');
           navigator.geolocation.getCurrentPosition(
             async (position) => {
-              const { latitude: lat, longitude: lng } = position.coords;
-              
+              const { latitude: lat, longitude: lng, accuracy } = position.coords;
+              console.log(`📍 User location obtained: ${lat}, ${lng} (accuracy: ${accuracy}m)`);
+
               // Store user location for distance calculations
               setUserLocation({ lat, lng });
-              
+              setLocationStatus('success');
+
+              // Fly to user's actual location with smooth animation
               mapboxMap.flyTo({
                 center: [lng, lat],
                 zoom: 15,
-                essential: true
+                essential: true,
+                duration: 2000 // 2 second smooth animation
               });
+
+              // Update marker to user's exact location
               mapboxMarker.setLngLat([lng, lat]);
+
+              // Get weather data for user's location
               await updateLocationWeather(lat, lng, mapboxMarker);
 
-              // Update nearby counts
+              // Update nearby counts based on user's real location
               const userPos = { lat, lng };
               const nearby = MOCK_LOCATIONS.reduce(
                 (acc, loc) => {
@@ -457,19 +545,71 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
                 { farms: 0, markets: 0 }
               );
               setNearbyCount(nearby);
+
+              console.log(`📍 Found ${nearby.farms} farms and ${nearby.markets} markets within 3km`);
             },
-            () => {
-              console.log('Using default location');
-              // Set default location for Chennai area
-              const defaultLocation = { lat: 13.0827, lng: 80.2707 };
+            (error) => {
+              console.warn('⚠️ Geolocation failed:', error.message);
+              console.log('📍 Falling back to default location (Chennai area)');
+
+              // Enhanced fallback with better user feedback
+              const defaultLocation = { lat: 13.0827, lng: 80.2707 }; // Chennai center
               setUserLocation(defaultLocation);
+              setLocationStatus('fallback');
+
+              // Show user-friendly message about location access
+              console.log('💡 Tip: Allow location access for personalized farm intelligence');
+
+              // Still center on default location but with lower zoom
+              mapboxMap.flyTo({
+                center: [defaultLocation.lng, defaultLocation.lat],
+                zoom: 10,
+                essential: true
+              });
+
+              mapboxMarker.setLngLat([defaultLocation.lng, defaultLocation.lat]);
               updateLocationWeather(defaultLocation.lat, defaultLocation.lng, mapboxMarker);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000, // 10 second timeout
+              maximumAge: 300000 // Accept cached location up to 5 minutes old
             }
           );
+        } else {
+          console.warn('⚠️ Geolocation not supported by this browser');
+          setLocationStatus('error');
+          // Fallback for browsers without geolocation
+          const defaultLocation = { lat: 13.0827, lng: 80.2707 };
+          setUserLocation(defaultLocation);
+          mapboxMarker.setLngLat([defaultLocation.lng, defaultLocation.lat]);
+          updateLocationWeather(defaultLocation.lat, defaultLocation.lng, mapboxMarker);
         }
 
         mapboxMap.on('load', () => {
+          console.log('🗺️ Map loaded successfully');
+          console.log('🗺️ Map canvas elements:', mapRef.current?.querySelectorAll('canvas'));
+          console.log('🗺️ Map container children:', mapRef.current?.children);
           setIsLoading(false);
+        });
+
+        // Add timeout fallback in case map load event doesn't fire
+        const loadTimeout = setTimeout(() => {
+          console.warn('⚠️ Map load timeout - forcing loading state to false');
+          setIsLoading(false);
+        }, 10000); // 10 second timeout
+
+        // Clear timeout when map loads
+        mapboxMap.on('load', () => {
+          clearTimeout(loadTimeout);
+        });
+
+        // Add error handling for map loading failures
+        mapboxMap.on('error', (e) => {
+          console.error('🗺️ Map loading error:', e);
+          setLoadingError('Failed to load map. Please check your internet connection and try again.');
+          setIsLoading(false);
+          clearTimeout(loadTimeout);
         });
 
         setMap(mapboxMap);
@@ -549,6 +689,7 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
         };
       } catch (error) {
         console.error('Error initializing map:', error);
+        setLoadingError('Failed to initialize map. Please refresh the page and try again.');
         setIsLoading(false);
       }
     };
@@ -725,9 +866,23 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
                 <div className="text-center space-y-2">
                   <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
                   <div>
-                    <p className="text-lg font-medium">Loading Field Intelligence Map</p>
-                    <p className="text-sm text-muted-foreground">Initializing satellite view and weather data...</p>
+                    <p className="text-lg font-medium">
+                      {loadingError ? 'Map Loading Error' : 'Loading Field Intelligence Map'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {loadingError || 'Initializing satellite view and weather data...'}
+                    </p>
                   </div>
+                  {loadingError && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => window.location.reload()}
+                      className="mt-2"
+                    >
+                      Retry
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -777,7 +932,7 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
               </div>
             )}
 
-            <div ref={mapRef} className="w-full h-full" />
+            <div ref={mapRef} className="w-full h-full relative z-0" />
           </div>
 
           {/* Weather Controls Sidebar */}
@@ -857,7 +1012,11 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
                         </div>
                         {layer.enabled && (
                           <div className="pl-13">
+                            <label htmlFor={`opacity-${layer.id}`} className="text-xs text-muted-foreground block mb-1">
+                              Opacity: {Math.round(layer.opacity * 100)}%
+                            </label>
                             <input
+                              id={`opacity-${layer.id}`}
                               type="range"
                               min="0.1"
                               max="1"
@@ -888,6 +1047,44 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Location Status Indicator */}
+        <div className="flex items-center justify-center mb-4">
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
+            locationStatus === 'success' 
+              ? 'bg-green-100 text-green-800 border border-green-200' 
+              : locationStatus === 'fallback'
+              ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+              : locationStatus === 'loading'
+              ? 'bg-blue-100 text-blue-800 border border-blue-200'
+              : 'bg-red-100 text-red-800 border border-red-200'
+          }`}>
+            {locationStatus === 'success' && (
+              <>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                📍 Using Your Real Location
+              </>
+            )}
+            {locationStatus === 'fallback' && (
+              <>
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                📍 Using Default Location (Chennai)
+              </>
+            )}
+            {locationStatus === 'loading' && (
+              <>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                📍 Detecting Your Location...
+              </>
+            )}
+            {locationStatus === 'error' && (
+              <>
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                📍 Location Access Denied
+              </>
+            )}
           </div>
         </div>
         

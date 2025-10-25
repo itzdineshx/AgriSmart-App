@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { toast } from "sonner";
@@ -277,6 +277,9 @@ export function MobileHeader() {
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Search AgriSmart</DialogTitle>
+                <DialogDescription>
+                  Search for discussions, farming tips, and agricultural topics.
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSearch} className="space-y-4">
                 <div className="relative">
