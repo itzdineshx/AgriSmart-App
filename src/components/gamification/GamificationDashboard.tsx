@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { motion } from 'framer-motion';
 import { 
   Trophy, 
   Star, 
@@ -40,12 +39,12 @@ const DashboardStat: React.FC<DashboardStatsProps> = ({
   trend, 
   color = "text-primary" 
 }) => (
-  <Card className="shadow-elegant hover:shadow-glow transition-all duration-300 bg-gradient-card border-border/50">
+  <Card className="shadow-sm border border-border bg-card">
     <CardContent className="p-4 sm:p-6">
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-muted-foreground mb-1">{label}</p>
-          <p className="text-xl sm:text-2xl font-bold text-card-foreground truncate">{value}</p>
+          <p className="text-xl sm:text-2xl font-bold text-foreground truncate">{value}</p>
           {trend && (
             <p className={`text-xs mt-1 ${color}`}>
               {trend}
@@ -62,10 +61,10 @@ const DashboardStat: React.FC<DashboardStatsProps> = ({
 
 const getRarityColor = (rarity: AchievementRarity | BadgeRarity) => {
   switch (rarity) {
-    case 'legendary': return 'text-orange-500 dark:text-orange-400 border-orange-200 dark:border-orange-800';
-    case 'epic': return 'text-purple-500 dark:text-purple-400 border-purple-200 dark:border-purple-800';
-    case 'rare': return 'text-blue-500 dark:text-blue-400 border-blue-200 dark:border-blue-800';
-    case 'uncommon': return 'text-green-500 dark:text-green-400 border-green-200 dark:border-green-800';
+    case 'legendary': return 'text-warning border-warning/20 dark:border-warning/30';
+    case 'epic': return 'text-info border-info/20 dark:border-info/30';
+    case 'rare': return 'text-primary border-primary/20 dark:border-primary/30';
+    case 'uncommon': return 'text-success border-success/20 dark:border-success/30';
     default: return 'text-muted-foreground border-border';
   }
 };
@@ -134,17 +133,17 @@ const GamificationDashboard: React.FC = () => {
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
-    case 'high': return 'border-l-destructive bg-gradient-to-r from-destructive/5 to-destructive/10 dark:from-destructive/10 dark:to-destructive/20';
-    case 'medium': return 'border-l-warning bg-gradient-to-r from-warning/5 to-warning/10 dark:from-warning/10 dark:to-warning/20';
-    default: return 'border-l-info bg-gradient-to-r from-info/5 to-info/10 dark:from-info/10 dark:to-info/20';
+    case 'high': return 'border-l-destructive';
+    case 'medium': return 'border-l-warning';
+    default: return 'border-l-info';
   }
 };
 
 const getPriorityBadgeColor = (priority: string) => {
   switch (priority) {
-    case 'high': return 'bg-destructive/10 dark:bg-destructive/20 text-destructive border border-destructive/20 dark:border-destructive/30';
-    case 'medium': return 'bg-warning/10 dark:bg-warning/20 text-warning border border-warning/20 dark:border-warning/30';
-    default: return 'bg-info/10 dark:bg-info/20 text-info border border-info/20 dark:border-info/30';
+    case 'high': return 'bg-destructive/10 text-destructive border-destructive/20';
+    case 'medium': return 'bg-warning/10 text-warning border-warning/20';
+    default: return 'bg-info/10 text-info border-info/20';
   }
 };
 
@@ -311,10 +310,8 @@ const getPriorityBadgeColor = (priority: string) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {recentAchievements.slice(0, 3).map((achievement) => (
-                  <motion.div 
+                  <div 
                     key={achievement.id} 
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
                     className="flex items-center gap-3 p-3 bg-gradient-to-r from-success/5 to-success/10 dark:from-success/10 dark:to-success/20 rounded-xl border border-success/20 dark:border-success/30"
                   >
                     <div className="p-2 bg-success/20 dark:bg-success/30 rounded-lg">
@@ -328,13 +325,11 @@ const getPriorityBadgeColor = (priority: string) => {
                         Achievement unlocked!
                       </p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
                 {completedQuests.slice(0, 2).map((quest) => (
-                  <motion.div 
+                  <div 
                     key={quest.id} 
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
                     className="flex items-center gap-3 p-3 bg-gradient-to-r from-info/5 to-info/10 dark:from-info/10 dark:to-info/20 rounded-xl border border-info/20 dark:border-info/30"
                   >
                     <div className="p-2 bg-info/20 dark:bg-info/30 rounded-lg">
@@ -348,7 +343,7 @@ const getPriorityBadgeColor = (priority: string) => {
                         Quest completed!
                       </p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </CardContent>
             </Card>
@@ -370,10 +365,8 @@ const getPriorityBadgeColor = (priority: string) => {
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {personalizedRecommendations.map((rec) => (
-                  <motion.div
+                  <div
                     key={rec.id}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
                     className={`border-l-4 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-elegant transition-all duration-200 ${getPriorityColor(rec.priority)}`}
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -428,7 +421,7 @@ const getPriorityBadgeColor = (priority: string) => {
                         <ChevronRight size={12} className="ml-1" />
                       </Button>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </CardContent>
@@ -573,14 +566,14 @@ const getPriorityBadgeColor = (priority: string) => {
                 />
                 
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  <div className="text-center p-3 bg-warning/5 dark:bg-warning/10 rounded-lg border border-warning/20 dark:border-warning/30">
+                    <p className="text-2xl font-bold text-warning">
                       {achievements.filter(a => a.rarity === 'legendary' && a.unlocked).length}
                     </p>
                     <p className="text-xs text-muted-foreground">Legendary</p>
                   </div>
-                  <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  <div className="text-center p-3 bg-info/5 dark:bg-info/10 rounded-lg border border-info/20 dark:border-info/30">
+                    <p className="text-2xl font-bold text-info">
                       {achievements.filter(a => a.rarity === 'epic' && a.unlocked).length}
                     </p>
                     <p className="text-xs text-muted-foreground">Epic</p>
