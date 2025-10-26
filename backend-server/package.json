@@ -5,7 +5,9 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "swagger": "node swagger-server.js",
+    "swagger:dev": "nodemon swagger-server.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -14,11 +16,14 @@
     "express": "^4.17.1",
     "express-validator": "^7.3.0",
     "firebase-admin": "^13.5.0",
+    "http-proxy-middleware": "^2.0.6",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "node-fetch": "^2.7.0",
     "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-google-oauth20": "^2.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
