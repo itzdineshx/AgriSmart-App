@@ -1,7 +1,17 @@
-const { User, Product, Order, Delivery, Cart, Wishlist, Review, Category, Notification } = require('../models/index');
+const { User, Product, Order, Delivery, Cart, Wishlist, Review, Category, Notification, Payment, BlockchainTransaction, Refund, PaymentMethod, Escrow } = require('../models/index');
 const { hashPassword, comparePassword, generateAccessToken, generateRefreshToken, generateResetToken } = require('../utils/auth');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
+const Razorpay = require('razorpay');
+const crypto = require('crypto-js');
+const paymentWorkflow = require('../utils/paymentWorkflow');
+const blockchainService = require('../utils/blockchain');
+
+// Initialize Razorpay
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_RXvtqZ9mxuwewf',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || 'fh78cPul1NeNEslW0LX0owG8'
+});
 
 // Weather Controllers
 const getCurrentWeather = async (req, res) => {
@@ -2293,9 +2303,352 @@ const getProductAnalytics = async (req, res) => {
                 }
             }
         });
+    res.json({
+        success: true,
+        data: {
+            productId,
+            productName: product.name,
+            period,
+            sales: {
+                totalSold,
+                totalRevenue,
+                uniqueBuyers,
+                ordersCount: orders.length
+            },
+            reviews: {
+                totalReviews: reviews.length,
+                averageRating: Math.round(averageRating * 10) / 10
+            }
+        }
+    });
     } catch (error) {
         console.error('Get product analytics error:', error);
         res.status(500).json({ success: false, message: 'Failed to fetch product analytics' });
+    }
+};
+
+// Payment Controllers - Enhanced with Workflow Management
+const createPaymentIntent = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { orderId, amount, currency = 'INR', paymentMethodId } = req.body;
+
+        const result = await paymentWorkflow.createPaymentIntent(orderId, userId, {
+            amount,
+            currency,
+            paymentMethodId
+        });
+
+        res.json(result);
+    } catch (error) {
+        console.error('Create payment intent error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const confirmPayment = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { paymentId } = req.params;
+        const { razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
+
+        const result = await paymentWorkflow.confirmPayment(paymentId, {
+            razorpayPaymentId,
+            razorpayOrderId,
+            razorpaySignature
+        }, userId);
+
+        res.json(result);
+    } catch (error) {
+        console.error('Confirm payment error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const releaseEscrow = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { paymentId } = req.params;
+        const { deliveryConfirmed, notes } = req.body;
+
+        const result = await paymentWorkflow.releaseEscrow(paymentId, userId, {
+            deliveryConfirmed,
+            notes
+        });
+
+        res.json(result);
+    } catch (error) {
+        console.error('Release escrow error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const getPaymentStatus = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { paymentId } = req.params;
+
+        const result = await paymentWorkflow.getPaymentStatus(paymentId, userId);
+
+        res.json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        console.error('Get payment status error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const getPaymentHistory = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { page = 1, limit = 10, status } = req.query;
+
+        let query = { user: userId };
+        if (status) {
+            query.status = status;
+        }
+
+        const payments = await Payment.find(query)
+            .populate('order', 'status totalAmount createdAt')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Payment.countDocuments(query);
+
+        res.json({
+            success: true,
+            data: payments,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Get payment history error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch payment history' });
+    }
+};
+
+const processRefund = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { paymentId } = req.params;
+        const { amount, reason = 'requested_by_customer', notes } = req.body;
+
+        // Find payment
+        const payment = await Payment.findOne({ _id: paymentId, user: userId });
+        if (!payment) {
+            return res.status(404).json({ success: false, message: 'Payment not found' });
+        }
+
+        if (payment.status !== 'paid') {
+            return res.status(400).json({ success: false, message: 'Payment is not eligible for refund' });
+        }
+
+        // Check if refund already exists
+        const existingRefund = await Refund.findOne({ payment: paymentId });
+        if (existingRefund) {
+            return res.status(400).json({ success: false, message: 'Refund already processed for this payment' });
+        }
+
+        const refundAmount = amount || payment.amount;
+
+        // Process Razorpay refund
+        const razorpayRefund = await razorpay.payments.refund(payment.razorpayPaymentId, {
+            amount: Math.round(refundAmount * 100), // Convert to paisa
+            notes: {
+                reason,
+                notes: notes || ''
+            }
+        });
+
+        // Create refund record
+        const refund = new Refund({
+            payment: paymentId,
+            order: payment.order,
+            user: userId,
+            razorpayRefundId: razorpayRefund.id,
+            amount: refundAmount,
+            currency: payment.currency,
+            reason,
+            status: 'processed',
+            notes,
+            processedAt: new Date(),
+            metadata: { razorpayRefund }
+        });
+
+        await refund.save();
+
+        // Update payment status
+        payment.status = 'refunded';
+        await payment.save();
+
+        // Update order status
+        await Order.findByIdAndUpdate(payment.order, { status: 'refunded' });
+
+        // Record blockchain transaction for refund
+        const blockchainTx = await recordBlockchainTransaction({
+            payment: payment._id,
+            amount: refundAmount,
+            currency: payment.currency,
+            transactionType: 'refund',
+            fromAddress: payment.order.seller.toString(), // Seller
+            toAddress: userId.toString(), // Buyer
+            metadata: {
+                refundId: refund._id,
+                razorpayRefundId: razorpayRefund.id
+            }
+        });
+
+        refund.blockchainTxHash = blockchainTx.transactionHash;
+        await refund.save();
+
+        res.json({
+            success: true,
+            message: 'Refund processed successfully',
+            data: {
+                refundId: refund._id,
+                amount: refundAmount,
+                razorpayRefundId: razorpayRefund.id,
+                blockchainTxHash: blockchainTx.transactionHash
+            }
+        });
+    } catch (error) {
+        console.error('Process refund error:', error);
+        res.status(500).json({ success: false, message: 'Failed to process refund' });
+    }
+};
+
+const getPaymentMethods = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const paymentMethods = await PaymentMethod.find({
+            user: userId,
+            isActive: true
+        }).sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            data: paymentMethods
+        });
+    } catch (error) {
+        console.error('Get payment methods error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch payment methods' });
+    }
+};
+
+const addPaymentMethod = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { type, provider, razorpayMethodId, last4, expiryMonth, expiryYear, name } = req.body;
+
+        // If setting as default, unset other defaults
+        if (req.body.isDefault) {
+            await PaymentMethod.updateMany(
+                { user: userId },
+                { isDefault: false }
+            );
+        }
+
+        const paymentMethod = new PaymentMethod({
+            user: userId,
+            type,
+            provider,
+            razorpayMethodId,
+            last4,
+            expiryMonth,
+            expiryYear,
+            name,
+            isDefault: req.body.isDefault || false
+        });
+
+        await paymentMethod.save();
+
+        res.status(201).json({
+            success: true,
+            data: paymentMethod
+        });
+    } catch (error) {
+        console.error('Add payment method error:', error);
+        res.status(500).json({ success: false, message: 'Failed to add payment method' });
+    }
+};
+
+const deletePaymentMethod = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { methodId } = req.params;
+
+        const paymentMethod = await PaymentMethod.findOneAndDelete({
+            _id: methodId,
+            user: userId
+        });
+
+        if (!paymentMethod) {
+            return res.status(404).json({ success: false, message: 'Payment method not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Payment method deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete payment method error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete payment method' });
+    }
+};
+
+// Blockchain Helper Functions
+const recordBlockchainTransaction = async (transactionData) => {
+    try {
+        // Simulate blockchain transaction recording
+        // In a real implementation, this would interact with a blockchain network
+
+        const transactionHash = crypto.SHA256(
+            JSON.stringify({
+                ...transactionData,
+                timestamp: Date.now(),
+                nonce: Math.random()
+            })
+        ).toString();
+
+        const blockNumber = Math.floor(Date.now() / 10000); // Simulate block number
+
+        const blockchainTx = new BlockchainTransaction({
+            ...transactionData,
+            transactionHash,
+            blockNumber,
+            status: 'confirmed' // Simulate immediate confirmation
+        });
+
+        await blockchainTx.save();
+
+        return {
+            transactionHash,
+            blockNumber,
+            status: 'confirmed'
+        };
+    } catch (error) {
+        console.error('Blockchain transaction recording error:', error);
+        throw error;
+    }
+};
+
+// Helper function to create notifications
+const createNotification = async (notificationData) => {
+    try {
+        const notification = new Notification(notificationData);
+        await notification.save();
+        return notification;
+    } catch (error) {
+        console.error('Create notification error:', error);
+        // Don't throw error for notifications
     }
 };
 
@@ -2391,5 +2744,16 @@ module.exports = {
     // Analytics controllers
     getSellerAnalytics,
     getBuyerAnalytics,
-    getProductAnalytics
+    getProductAnalytics,
+
+    // Payment controllers
+    createPaymentIntent,
+    confirmPayment,
+    getPaymentHistory,
+    processRefund,
+    getPaymentMethods,
+    addPaymentMethod,
+    deletePaymentMethod,
+    releaseEscrow,
+    getPaymentStatus
 };

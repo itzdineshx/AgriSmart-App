@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Search, 
-  Filter, 
-  ShoppingCart, 
-  Star, 
-  MapPin, 
+import {
+  Search,
+  Filter,
+  ShoppingCart,
+  Star,
+  MapPin,
   Truck,
   Apple,
   Wheat,
@@ -26,6 +26,7 @@ import {
   SlidersHorizontal
 } from "lucide-react";
 import marketplaceImage from "@/assets/marketplace.jpg";
+import { ProductCard } from "@/components/marketplace/ProductCard";
 
 const categories = [
   { name: "All", icon: Package, count: 18 },
@@ -43,7 +44,7 @@ const categories = [
 const products = [
   // Fruits
   {
-    id: 1,
+    id: "1",
     name: "Premium Apples",
     category: "Fruits",
     price: 120,
@@ -56,9 +57,10 @@ const products = [
     organic: true,
     description: "Fresh red apples from Kashmir valleys",
     discount: 10,
+    stock: 100,
   },
   {
-    id: 2,
+    id: "2",
     name: "Alphonso Mangoes",
     category: "Fruits",
     price: 280,
@@ -71,11 +73,12 @@ const products = [
     organic: true,
     description: "King of mangoes - Premium Alphonso variety",
     discount: 0,
+    stock: 50,
   },
   
   // Vegetables
   {
-    id: 3,
+    id: "3",
     name: "Premium Tomatoes",
     category: "Vegetables",
     price: 45,
@@ -88,9 +91,10 @@ const products = [
     organic: true,
     description: "Vine-ripened organic tomatoes",
     discount: 0,
+    stock: 200,
   },
   {
-    id: 4,
+    id: "4",
     name: "Organic Carrots",
     category: "Vegetables",
     price: 55,
@@ -103,11 +107,12 @@ const products = [
     organic: true,
     description: "Sweet and crunchy organic carrots",
     discount: 0,
+    stock: 150,
   },
   
   // Fertilizers
   {
-    id: 5,
+    id: "5",
     name: "NPK Fertilizer 19:19:19",
     category: "Fertilizers",
     price: 850,
@@ -120,9 +125,10 @@ const products = [
     organic: false,
     description: "Balanced NPK fertilizer for all crops",
     discount: 8,
+    stock: 75,
   },
   {
-    id: 6,
+    id: "6",
     name: "Organic Compost",
     category: "Fertilizers",
     price: 450,
@@ -135,11 +141,12 @@ const products = [
     organic: true,
     description: "Rich organic compost made from cow dung",
     discount: 12,
+    stock: 60,
   },
   
   // Seeds
   {
-    id: 7,
+    id: "7",
     name: "Wheat Seeds (HD-3086)",
     category: "Seeds",
     price: 1200,
@@ -152,9 +159,10 @@ const products = [
     organic: false,
     description: "High yielding drought resistant wheat variety",
     discount: 5,
+    stock: 25,
   },
   {
-    id: 8,
+    id: "8",
     name: "Tomato Seeds (Hybrid)",
     category: "Seeds",
     price: 450,
@@ -167,11 +175,12 @@ const products = [
     organic: false,
     description: "Disease resistant hybrid tomato seeds",
     discount: 10,
+    stock: 200,
   },
   
   // Equipment
   {
-    id: 9,
+    id: "9",
     name: "Garden Hose 50ft",
     category: "Equipment",
     price: 1250,
@@ -184,9 +193,10 @@ const products = [
     organic: false,
     description: "Heavy duty garden hose with spray nozzle",
     discount: 20,
+    stock: 30,
   },
   {
-    id: 10,
+    id: "10",
     name: "Hand Pruning Shears",
     category: "Equipment",
     price: 350,
@@ -199,11 +209,12 @@ const products = [
     organic: false,
     description: "Sharp steel pruning shears for garden use",
     discount: 0,
+    stock: 45,
   },
   
   // Recycle & Reuse - Crop Residue
   {
-    id: 11,
+    id: "11",
     name: "Rice Straw Bales",
     category: "Crop Residue",
     price: 25,
@@ -217,9 +228,10 @@ const products = [
     description: "Clean rice straw bales perfect for biogas production",
     discount: 0,
     recyclable: true,
+    stock: 500,
   },
   {
-    id: 12,
+    id: "12",
     name: "Wheat Stubble",
     category: "Crop Residue",
     price: 20,
@@ -233,11 +245,12 @@ const products = [
     description: "Fresh wheat stubble available for biogas companies",
     discount: 5,
     recyclable: true,
+    stock: 300,
   },
   
   // Animal Waste
   {
-    id: 13,
+    id: "13",
     name: "Dairy Cow Manure",
     category: "Animal Waste",
     price: 15,
@@ -251,9 +264,10 @@ const products = [
     description: "Fresh cow dung from 500+ dairy cows, high methane potential",
     discount: 0,
     recyclable: true,
+    stock: 800,
   },
   {
-    id: 14,
+    id: "14",
     name: "Poultry Litter",
     category: "Animal Waste",
     price: 35,
@@ -267,11 +281,12 @@ const products = [
     description: "Nitrogen-rich poultry waste for biogas and fertilizer",
     discount: 10,
     recyclable: true,
+    stock: 400,
   },
   
   // Food Waste
   {
-    id: 15,
+    id: "15",
     name: "Vegetable Market Waste",
     category: "Food Waste",
     price: 10,
@@ -285,9 +300,10 @@ const products = [
     description: "Daily fresh vegetable waste from wholesale market",
     discount: 0,
     recyclable: true,
+    stock: 1000,
   },
   {
-    id: 16,
+    id: "16",
     name: "Fruit Processing Waste",
     category: "Food Waste",
     price: 12,
@@ -301,11 +317,12 @@ const products = [
     description: "Fruit peels and pulp waste from juice processing",
     discount: 15,
     recyclable: true,
+    stock: 600,
   },
   
   // Other Biomass
   {
-    id: 17,
+    id: "17",
     name: "Water Hyacinth",
     category: "Other Biomass",
     price: 8,
@@ -319,9 +336,10 @@ const products = [
     description: "Harvested water hyacinth for biogas production",
     discount: 0,
     recyclable: true,
+    stock: 200,
   },
   {
-    id: 18,
+    id: "18",
     name: "Sugarcane Bagasse",
     category: "Other Biomass",
     price: 18,
@@ -335,6 +353,52 @@ const products = [
     description: "High energy bagasse waste from sugar processing",
     discount: 0,
     recyclable: true,
+    stock: 350,
+  },
+
+  // ⭐ FEATURED PRODUCT: Complete Payment & Blockchain Integration Demo
+  {
+    id: "19",
+    name: "Premium Organic Tomatoes - Blockchain Verified",
+    category: "Vegetables",
+    price: 500,
+    unit: "kg",
+    rating: 4.9,
+    seller: "Green Valley Farm (Verified)",
+    location: "Maharashtra",
+    image: marketplaceImage,
+    inStock: true,
+    organic: true,
+    description: "Fresh organic tomatoes with complete payment protection, escrow security, and blockchain transparency. Experience the future of agricultural trading.",
+    discount: 10,
+    stock: 100,
+    // Enhanced payment and blockchain features
+    paymentFeatures: {
+      razorpayEnabled: true,
+      escrowProtection: true,
+      blockchainRecording: true,
+      fraudDetection: true,
+      autoRelease: true,
+      disputeResolution: true
+    },
+    blockchainInfo: {
+      transactionCount: 1247,
+      lastTransactionHash: "0x1a2b3c4d5e6f7890abcdef1234567890abcdef12",
+      network: "Ethereum Mainnet",
+      verificationStatus: "verified"
+    },
+    securityFeatures: {
+      buyerProtection: true,
+      sellerVerification: true,
+      paymentGuarantee: true,
+      transparentPricing: true
+    },
+    analytics: {
+      totalSales: 2847,
+      successRate: 98.5,
+      averageRating: 4.8,
+      customerSatisfaction: 96.2
+    }
   },
 ];
 
@@ -342,8 +406,8 @@ export default function Buy() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
-  const [cart, setCart] = useState<{[key: number]: number}>({});
-  const [wishlist, setWishlist] = useState<number[]>([]);
+  const [cart, setCart] = useState<{[key: string]: number}>({});
+  const [wishlist, setWishlist] = useState<string[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const filteredProducts = products
@@ -383,7 +447,7 @@ export default function Buy() {
     });
   };
 
-  const toggleWishlist = (productId: number) => {
+  const toggleWishlist = (productId: string) => {
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
@@ -397,7 +461,7 @@ export default function Buy() {
 
   const getCartTotal = () => {
     return Object.entries(cart).reduce((total, [productId, quantity]) => {
-      const product = products.find(p => p.id === parseInt(productId));
+      const product = products.find(p => p.id === productId);
       const price = product ? product.price * (1 - product.discount / 100) : 0;
       return total + (price * quantity);
     }, 0);
@@ -726,133 +790,7 @@ export default function Buy() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="shadow-elegant hover:shadow-glow transition-all duration-300">
-                <div className="relative">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                  {product.organic && (
-                    <Badge className="absolute top-2 left-2 bg-success text-success-foreground">
-                      Organic
-                    </Badge>
-                  )}
-                  {product.recyclable && (
-                    <Badge className="absolute top-2 right-2 bg-success/10 text-success border border-success/30">
-                      <Recycle className="h-3 w-3 mr-1" />
-                      Recyclable
-                    </Badge>
-                  )}
-                  {!product.inStock && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-t-lg">
-                      <Badge variant="destructive">Out of Stock</Badge>
-                    </div>
-                  )}
-                </div>
-
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                  {/* Product Info */}
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">{product.name}</h3>
-                        <p className="text-muted-foreground text-sm">{product.category}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleWishlist(product.id)}
-                        className="p-1"
-                      >
-                        <Heart 
-                          className={`h-5 w-5 ${
-                            wishlist.includes(product.id) 
-                              ? 'fill-red-500 text-red-500' 
-                              : 'text-muted-foreground'
-                          }`} 
-                        />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
-                  </div>
-
-                  {/* Price & Rating */}
-                  <div className="flex justify-between items-center">
-                    <div>
-                      {product.discount > 0 && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg line-through text-muted-foreground">₹{product.price}</span>
-                          <Badge variant="destructive" className="text-xs">-{product.discount}%</Badge>
-                        </div>
-                      )}
-                      <span className="text-2xl font-bold text-primary">
-                        ₹{(product.price * (1 - product.discount / 100)).toFixed(2)}
-                      </span>
-                      <span className="text-muted-foreground">/{product.unit}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="text-sm font-medium">{product.rating}</span>
-                    </div>
-                  </div>
-
-                  {/* Seller Info */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{product.seller}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="h-3 w-3" />
-                      <span>{product.location}</span>
-                      <Truck className="h-3 w-3 ml-2" />
-                      <span>Free delivery</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="space-y-2 pt-2">
-                    {cart[product.id] ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeFromCart(product.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="font-medium w-8 text-center">{cart[product.id]}</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addToCart(product.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <span className="text-sm font-medium">
-                          ₹{((product.price * (1 - product.discount / 100)) * cart[product.id]).toFixed(2)}
-                        </span>
-                      </div>
-                    ) : (
-                      <Button
-                        variant={product.inStock ? "default" : "outline"}
-                        disabled={!product.inStock}
-                        onClick={() => product.inStock && addToCart(product.id)}
-                        className="w-full"
-                      >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        {product.inStock ? "Add to Cart" : "Notify Me"}
-                      </Button>
-                    )}
-                  </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>

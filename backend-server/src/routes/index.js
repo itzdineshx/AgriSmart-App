@@ -12,6 +12,8 @@ const reviewRoutes = require('./reviews');
 const categoryRoutes = require('./categories');
 const notificationRoutes = require('./notifications');
 const analyticsRoutes = require('./analytics');
+const paymentRoutes = require('./payments');
+const webhookRoutes = require('./webhooks');
 
 const router = express.Router();
 
@@ -37,5 +39,7 @@ router.use('/reviews', reviewRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/webhooks', webhookRoutes);
 
 module.exports = router;

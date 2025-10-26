@@ -760,6 +760,347 @@ const Review = mongoose.model('Review', reviewSchema);
 const Category = mongoose.model('Category', categorySchema);
 const Notification = mongoose.model('Notification', notificationSchema);
 
+// Payment Models
+const paymentSchema = new mongoose.Schema({
+    order: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        required: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    razorpayOrderId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    razorpayPaymentId: {
+        type: String,
+        sparse: true
+    },
+    amount: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    currency: {
+        type: String,
+        default: 'INR',
+        enum: ['INR', 'USD', 'EUR']
+    },
+    status: {
+        type: String,
+        enum: ['created', 'attempted', 'paid', 'failed', 'cancelled', 'refunded'],
+        default: 'created'
+    },
+    paymentMethod: {
+        type: String,
+        enum: ['card', 'netbanking', 'wallet', 'upi', 'emi'],
+        sparse: true
+    },
+    razorpaySignature: {
+        type: String,
+        sparse: true
+    },
+    blockchainTxHash: {
+        type: String,
+        sparse: true
+    },
+    blockchainBlockNumber: {
+        type: Number,
+        sparse: true
+    },
+    metadata: {
+        type: mongoose.Schema.Types.Mixed
+    }
+}, {
+    timestamps: true
+});
+
+// Index for efficient queries
+paymentSchema.index({ user: 1, status: 1 });
+
+// Blockchain Transaction Model
+const blockchainTransactionSchema = new mongoose.Schema({
+    payment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Payment',
+        required: true
+    },
+    transactionHash: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    blockNumber: {
+        type: Number,
+        required: true
+    },
+    fromAddress: {
+        type: String,
+        required: true
+    },
+    toAddress: {
+        type: String,
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true
+    },
+    currency: {
+        type: String,
+        default: 'INR'
+    },
+    transactionType: {
+        type: String,
+        enum: ['payment', 'escrow', 'refund', 'commission'],
+        default: 'payment'
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'confirmed', 'failed'],
+        default: 'pending'
+    },
+    gasUsed: {
+        type: Number,
+        sparse: true
+    },
+    gasPrice: {
+        type: String,
+        sparse: true
+    },
+    network: {
+        type: String,
+        default: 'polygon',
+        enum: ['polygon', 'ethereum', 'bsc']
+    },
+    contractAddress: {
+        type: String,
+        sparse: true
+    },
+    eventLogs: [{
+        event: String,
+        args: mongoose.Schema.Types.Mixed,
+        blockNumber: Number,
+        transactionIndex: Number
+    }],
+    metadata: {
+        type: mongoose.Schema.Types.Mixed
+    }
+}, {
+    timestamps: true
+});
+
+// Indexes for blockchain transactions
+blockchainTransactionSchema.index({ payment: 1 });
+blockchainTransactionSchema.index({ blockNumber: -1 });
+blockchainTransactionSchema.index({ status: 1 });
+
+// Refund Model
+const refundSchema = new mongoose.Schema({
+    payment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Payment',
+        required: true
+    },
+    order: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        required: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    razorpayRefundId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    amount: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    currency: {
+        type: String,
+        default: 'INR'
+    },
+    reason: {
+        type: String,
+        enum: ['duplicate', 'fraudulent', 'requested_by_customer', 'order_cancelled', 'other'],
+        default: 'requested_by_customer'
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'processed', 'failed'],
+        default: 'pending'
+    },
+    blockchainTxHash: {
+        type: String,
+        sparse: true
+    },
+    notes: {
+        type: String
+    },
+    processedAt: {
+        type: Date
+    },
+    metadata: {
+        type: mongoose.Schema.Types.Mixed
+    }
+}, {
+    timestamps: true
+});
+
+// Indexes for refunds
+refundSchema.index({ payment: 1 });
+refundSchema.index({ status: 1 });
+
+// Payment Method Model (for saved cards/wallets)
+const paymentMethodSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    type: {
+        type: String,
+        enum: ['card', 'netbanking', 'wallet', 'upi'],
+        required: true
+    },
+    provider: {
+        type: String,
+        required: true // e.g., 'visa', 'mastercard', 'paytm', 'gpay'
+    },
+    razorpayMethodId: {
+        type: String,
+        sparse: true
+    },
+    last4: {
+        type: String,
+        sparse: true // Last 4 digits of card
+    },
+    expiryMonth: {
+        type: String,
+        sparse: true
+    },
+    expiryYear: {
+        type: String,
+        sparse: true
+    },
+    name: {
+        type: String,
+        sparse: true // Cardholder name
+    },
+    isDefault: {
+        type: Boolean,
+        default: false
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    metadata: {
+        type: mongoose.Schema.Types.Mixed
+    }
+}, {
+    timestamps: true
+});
+
+// Indexes for payment methods
+paymentMethodSchema.index({ user: 1, type: 1 });
+
+// Escrow Model
+const escrowSchema = new mongoose.Schema({
+    payment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Payment',
+        required: true
+    },
+    order: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        required: true
+    },
+    buyer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    seller: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    currency: {
+        type: String,
+        default: 'INR',
+        enum: ['INR', 'USD', 'EUR']
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'held', 'released', 'refunded', 'disputed'],
+        default: 'pending'
+    },
+    releaseConditions: [{
+        type: String,
+        enum: ['order_delivered', 'buyer_confirmation', 'seller_confirmation', 'auto_release']
+    }],
+    autoReleaseDays: {
+        type: Number,
+        default: 7
+    },
+    heldAt: {
+        type: Date
+    },
+    releasedAt: {
+        type: Date
+    },
+    refundedAt: {
+        type: Date
+    },
+    releasedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    releaseNotes: {
+        type: String
+    },
+    disputeReason: {
+        type: String
+    },
+    metadata: {
+        type: mongoose.Schema.Types.Mixed
+    }
+}, {
+    timestamps: true
+});
+
+// Indexes for escrow
+escrowSchema.index({ payment: 1 });
+escrowSchema.index({ buyer: 1 });
+escrowSchema.index({ seller: 1 });
+escrowSchema.index({ status: 1 });
+escrowSchema.index({ heldAt: 1 });
+
+// Create models
+const Payment = mongoose.model('Payment', paymentSchema);
+const BlockchainTransaction = mongoose.model('BlockchainTransaction', blockchainTransactionSchema);
+const Refund = mongoose.model('Refund', refundSchema);
+const PaymentMethod = mongoose.model('PaymentMethod', paymentMethodSchema);
+const Escrow = mongoose.model('Escrow', escrowSchema);
+
 module.exports = {
     User,
     Product,
@@ -770,6 +1111,11 @@ module.exports = {
     Review,
     Category,
     Notification,
+    Payment,
+    BlockchainTransaction,
+    Refund,
+    PaymentMethod,
+    Escrow,
     WeatherCurrent,
     WeatherForecast,
     WeatherAlert,

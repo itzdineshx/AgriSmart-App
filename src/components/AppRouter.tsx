@@ -253,7 +253,7 @@ export function AppRouter() {
           path="/user-profile" 
           element={
             <LazyWrapper>
-              <ProtectedRoute requiredRole="user">
+              <ProtectedRoute requiredRole="buyer">
                 <Layout><UserProfile /></Layout>
               </ProtectedRoute>
             </LazyWrapper>
@@ -263,7 +263,7 @@ export function AppRouter() {
           path="/seller-panel" 
           element={
             <LazyWrapper>
-              <ProtectedRoute requiredRole="seller">
+              <ProtectedRoute requiredRole="farmer">
                 <Layout><SellerPanel /></Layout>
               </ProtectedRoute>
             </LazyWrapper>

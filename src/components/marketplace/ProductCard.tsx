@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Product } from '@/types/marketplace';
 import { addToCart } from '@/lib/marketplace';
 import { useCart } from '@/contexts/CartContext';
-import { Star, ShoppingCart, MinusCircle, PlusCircle } from 'lucide-react';
+import { Star, ShoppingCart, MinusCircle, PlusCircle, Eye, Shield, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { ProductDetailModal } from './ProductDetailModal';
 
 interface ProductCardProps {
   product: Product;
@@ -57,9 +58,20 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="text-sm text-muted-foreground">
           Seller: {product.seller}
         </div>
+        {/* Security Features Badges */}
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            <Shield className="h-3 w-3 mr-1" />
+            Escrow Protected
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            <Lock className="h-3 w-3 mr-1" />
+            Blockchain Verified
+          </Badge>
+        </div>
       </CardContent>
-      <CardFooter className="flex items-center gap-2">
-        <div className="flex items-center gap-2 bg-accent/50 rounded-lg p-1">
+      <CardFooter className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 bg-accent/50 rounded-lg p-1 w-full">
           <Button
             variant="ghost"
             size="icon"
@@ -69,7 +81,7 @@ export function ProductCard({ product }: ProductCardProps) {
           >
             <MinusCircle className="h-4 w-4" />
           </Button>
-          <span className="w-8 text-center">{quantity}</span>
+          <span className="flex-1 text-center">{quantity}</span>
           <Button
             variant="ghost"
             size="icon"
@@ -80,14 +92,22 @@ export function ProductCard({ product }: ProductCardProps) {
             <PlusCircle className="h-4 w-4" />
           </Button>
         </div>
-        <Button
-          className="flex-1"
-          onClick={handleAddToCart}
-          disabled={product.stock <= 0}
-        >
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          Add to Cart
-        </Button>
+        <div className="flex gap-2 w-full">
+          <ProductDetailModal product={product}>
+            <Button variant="outline" className="flex-1">
+              <Eye className="h-4 w-4 mr-2" />
+              View Details
+            </Button>
+          </ProductDetailModal>
+          <Button
+            className="flex-1"
+            onClick={handleAddToCart}
+            disabled={product.stock <= 0}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Add to Cart
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

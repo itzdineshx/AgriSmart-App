@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const routes = require('./routes/index');
+const paymentMaintenance = require('./utils/paymentMaintenance');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -407,4 +408,13 @@ app.use('*', (req, res) => {
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+
+    // Initialize payment maintenance jobs
+    if (global.dbConnected) {
+        paymentMaintenance.initializeJobs();
+        paymentMaintenance.startJobs();
+        console.log('✅ Payment maintenance jobs started');
+    } else {
+        console.log('⚠️  Payment maintenance jobs not started (database not connected)');
+    }
 });
