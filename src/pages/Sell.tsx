@@ -26,354 +26,98 @@ import {
   Edit,
   Trash2,
   Eye,
-  DollarSign
+  DollarSign,
+  Factory,
+  Sprout,
+  Store,
+  TrendingUp,
+  ShoppingCart
 } from "lucide-react";
 import marketplaceImage from "@/assets/marketplace.jpg";
 
 const categories = [
-  { name: "All", icon: Package, count: 18 },
-  { name: "Fruits", icon: Apple, count: 2 },
-  { name: "Vegetables", icon: Wheat, count: 2 },
-  { name: "Fertilizers", icon: Zap, count: 2 },
-  { name: "Seeds", icon: Wheat, count: 2 },
-  { name: "Equipment", icon: Package, count: 2 },
-  { name: "Crop Residue", icon: Wheat, count: 2, category: "recycle" },
-  { name: "Animal Waste", icon: TreePine, count: 2, category: "recycle" },
-  { name: "Food Waste", icon: Apple, count: 2, category: "recycle" },
-  { name: "Other Biomass", icon: Leaf, count: 2, category: "recycle" },
+  { name: "All", icon: Package, count: 4 },
+  { name: "Vegetables", icon: Wheat, count: 1 },
+  { name: "Fruits", icon: Apple, count: 1 },
+  { name: "Seeds", icon: Sprout, count: 1 },
+  { name: "Crops", icon: TreePine, count: 1 }
 ];
 
 const myListings = [
-  // Fruits
+  // Chennai Vegetable Buyers Demand
   {
     id: 1,
-    name: "Premium Apples",
-    category: "Fruits",
-    price: 120,
+    name: "Chennai Vegetable Market Demand",
+    category: "Vegetables",
+    price: 0, // Market-driven pricing
     unit: "kg",
     rating: 4.8,
-    seller: "My Farm",
-    location: "Kashmir",
+    seller: "Chennai Wholesale Buyers",
+    location: "Koyambedu Market, Chennai",
     image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Fresh red apples from Kashmir valleys",
-    discount: 10,
-    views: 234,
-    orders: 45,
+    inStock: false, // This represents buyer demand, not supply
+    organic: false,
+    description: "High demand for: Drumstick, Yam, Snake Gourd, Bottle Gourd, Capsicum, Corns, Cucumber, Ridge Gourd, Broccoli, Red Cabbage, Onion, Potato, Bangalore Morris, Carrot, Beet Root, Knol-Khol, Chow Chow. Buyers: PANDIA TRADER (044-24798444), S.RAM MOHAN (044-24796555), K.R.ILLAYARAJA (9962997023)",
+    discount: 0,
+    views: 1250,
+    orders: 0, // This shows buyer interest/demand
   },
+
+  // Chennai Fruit Buyers Demand
   {
     id: 2,
-    name: "Alphonso Mangoes",
+    name: "Chennai Fruit Market Demand",
     category: "Fruits",
-    price: 280,
+    price: 0, // Market-driven pricing
     unit: "kg",
     rating: 4.9,
-    seller: "My Farm",
-    location: "Maharashtra",
+    seller: "Chennai Retail Chains",
+    location: "Multiple locations, Chennai",
     image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "King of mangoes - Premium Alphonso variety",
+    inStock: false, // This represents buyer demand, not supply
+    organic: false,
+    description: "Strong demand from major chains: Reliance Fresh (50+ stores), Spencer's Retail (15+ stores), D-Mart (8+ stores), Metro Wholesale. High volume purchases of fresh fruits, premium varieties. Hotels like Taj Coromandel and ITC Grand Central require premium quality produce.",
     discount: 0,
-    views: 567,
-    orders: 89,
+    views: 980,
+    orders: 0, // This shows buyer interest/demand
   },
-  
-  // Vegetables
+
+  // Chennai Seed Buyers Demand
   {
     id: 3,
-    name: "Premium Tomatoes",
-    category: "Vegetables",
-    price: 45,
+    name: "Chennai Seed Market Demand",
+    category: "seeds",
+    price: 0, // Market-driven pricing
     unit: "kg",
     rating: 4.7,
-    seller: "My Farm",
-    location: "Punjab",
+    seller: "Chennai Agricultural Buyers",
+    location: "Chennai region",
     image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Vine-ripened organic tomatoes",
+    inStock: false, // This represents buyer demand, not supply
+    organic: false,
+    description: "Growing demand for quality seeds from Chennai farmers and cooperatives. Focus on high-yielding varieties suitable for Tamil Nadu climate. Buyers include agricultural cooperatives and individual farmers looking for certified, disease-resistant seeds.",
     discount: 0,
-    views: 345,
-    orders: 67,
+    views: 650,
+    orders: 0, // This shows buyer interest/demand
   },
+
+  // Chennai Crop Buyers Demand
   {
     id: 4,
-    name: "Organic Carrots",
-    category: "Vegetables",
-    price: 55,
-    unit: "kg",
-    rating: 4.6,
-    seller: "My Farm",
-    location: "Haryana",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Sweet and crunchy organic carrots",
-    discount: 0,
-    views: 198,
-    orders: 34,
-  },
-  
-  // Fertilizers
-  {
-    id: 5,
-    name: "NPK Fertilizer 19:19:19",
-    category: "Fertilizers",
-    price: 850,
-    unit: "50kg bag",
-    rating: 4.6,
-    seller: "My Farm",
-    location: "Haryana",
-    image: marketplaceImage,
-    inStock: true,
-    organic: false,
-    description: "Balanced NPK fertilizer for all crops",
-    discount: 8,
-    views: 456,
-    orders: 78,
-  },
-  {
-    id: 6,
-    name: "Organic Compost",
-    category: "Fertilizers",
-    price: 450,
-    unit: "50kg bag",
-    rating: 4.8,
-    seller: "My Farm",
-    location: "Karnataka",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Rich organic compost made from cow dung",
-    discount: 12,
-    views: 389,
-    orders: 56,
-  },
-  
-  // Seeds
-  {
-    id: 7,
-    name: "Wheat Seeds (HD-3086)",
-    category: "Seeds",
-    price: 1200,
-    unit: "quintal",
-    rating: 4.9,
-    seller: "My Farm",
-    location: "Rajasthan",
-    image: marketplaceImage,
-    inStock: true,
-    organic: false,
-    description: "High yielding drought resistant wheat variety",
-    discount: 5,
-    views: 678,
-    orders: 123,
-  },
-  {
-    id: 8,
-    name: "Tomato Seeds (Hybrid)",
-    category: "Seeds",
-    price: 450,
-    unit: "100g packet",
-    rating: 4.5,
-    seller: "My Farm",
-    location: "Karnataka",
-    image: marketplaceImage,
-    inStock: true,
-    organic: false,
-    description: "Disease resistant hybrid tomato seeds",
-    discount: 10,
-    views: 234,
-    orders: 45,
-  },
-  
-  // Equipment
-  {
-    id: 9,
-    name: "Garden Hose 50ft",
-    category: "Equipment",
-    price: 1250,
-    unit: "piece",
-    rating: 4.4,
-    seller: "My Farm",
-    location: "Delhi",
-    image: marketplaceImage,
-    inStock: true,
-    organic: false,
-    description: "Heavy duty garden hose with spray nozzle",
-    discount: 20,
-    views: 156,
-    orders: 23,
-  },
-  {
-    id: 10,
-    name: "Hand Pruning Shears",
-    category: "Equipment",
-    price: 350,
-    unit: "piece",
-    rating: 4.6,
-    seller: "My Farm",
-    location: "Punjab",
-    image: marketplaceImage,
-    inStock: true,
-    organic: false,
-    description: "Sharp steel pruning shears for garden use",
-    discount: 0,
-    views: 267,
-    orders: 41,
-  },
-  
-  // Recycle & Reuse - Crop Residue
-  {
-    id: 11,
-    name: "Rice Straw Bales",
+    name: "Chennai Crop Market Demand",
     category: "Crop Residue",
-    price: 25,
+    price: 0, // Market-driven pricing
     unit: "quintal",
     rating: 4.6,
-    seller: "My Farm",
-    location: "Punjab",
+    seller: "Chennai Biogas Companies",
+    location: "Chennai region",
     image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Clean rice straw bales perfect for biogas production",
+    inStock: false, // This represents buyer demand, not supply
+    organic: false,
+    description: "Demand for crop residues from biogas companies and organic fertilizer producers. Rice straw, wheat stubble, and other agricultural waste needed for sustainable energy production. Buyers include biogas plants and organic compost manufacturers across Chennai.",
     discount: 0,
-    recyclable: true,
-    views: 145,
-    orders: 28,
-  },
-  {
-    id: 12,
-    name: "Wheat Stubble",
-    category: "Crop Residue",
-    price: 20,
-    unit: "quintal",
-    rating: 4.4,
-    seller: "My Farm",
-    location: "Haryana",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Fresh wheat stubble available for biogas companies",
-    discount: 5,
-    recyclable: true,
-    views: 198,
-    orders: 34,
-  },
-  
-  // Animal Waste
-  {
-    id: 13,
-    name: "Dairy Cow Manure",
-    category: "Animal Waste",
-    price: 15,
-    unit: "quintal",
-    rating: 4.8,
-    seller: "My Farm",
-    location: "Gujarat",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Fresh cow dung from 500+ dairy cows, high methane potential",
-    discount: 0,
-    recyclable: true,
-    views: 289,
-    orders: 52,
-  },
-  {
-    id: 14,
-    name: "Poultry Litter",
-    category: "Animal Waste",
-    price: 35,
-    unit: "quintal",
-    rating: 4.5,
-    seller: "My Farm",
-    location: "Andhra Pradesh",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Nitrogen-rich poultry waste for biogas and fertilizer",
-    discount: 10,
-    recyclable: true,
-    views: 345,
-    orders: 67,
-  },
-  
-  // Food Waste
-  {
-    id: 15,
-    name: "Vegetable Market Waste",
-    category: "Food Waste",
-    price: 10,
-    unit: "quintal",
-    rating: 4.3,
-    seller: "My Farm",
-    location: "Maharashtra",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Daily fresh vegetable waste from wholesale market",
-    discount: 0,
-    recyclable: true,
-    views: 123,
-    orders: 19,
-  },
-  {
-    id: 16,
-    name: "Fruit Processing Waste",
-    category: "Food Waste",
-    price: 12,
-    unit: "quintal",
-    rating: 4.6,
-    seller: "My Farm",
-    location: "Punjab",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Fruit peels and pulp waste from juice processing",
-    discount: 15,
-    recyclable: true,
-    views: 234,
-    orders: 45,
-  },
-  
-  // Other Biomass
-  {
-    id: 17,
-    name: "Water Hyacinth",
-    category: "Other Biomass",
-    price: 8,
-    unit: "quintal",
-    rating: 4.4,
-    seller: "My Farm",
-    location: "Kerala",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "Harvested water hyacinth for biogas production",
-    discount: 0,
-    recyclable: true,
-    views: 167,
-    orders: 31,
-  },
-  {
-    id: 18,
-    name: "Sugarcane Bagasse",
-    category: "Other Biomass",
-    price: 18,
-    unit: "quintal",
-    rating: 4.7,
-    seller: "My Farm",
-    location: "Uttar Pradesh",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "High energy bagasse waste from sugar processing",
-    discount: 0,
-    recyclable: true,
-    views: 456,
-    orders: 78,
+    views: 420,
+    orders: 0, // This shows buyer interest/demand
   },
 ];
 
@@ -925,6 +669,212 @@ export default function Sell() {
               </Card>
             ))}
           </div>
+        </div>
+
+        {/* Chennai Buyer Demand Section */}
+        <div className="space-y-6 mt-12">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">📊 Chennai Buyer Demand</h2>
+            <p className="text-gray-600">Discover what Chennai's wholesale buyers and retail chains are looking for in agricultural products</p>
+          </div>
+
+          {/* Buyer Demand Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Vegetables Demand */}
+            <Card className="shadow-elegant hover:shadow-glow transition-all duration-300 border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">🥕 Vegetables</CardTitle>
+                  <Badge className="bg-primary">High Demand</Badge>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>Koyambedu Traders</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-primary">Top Requested:</div>
+                  <div className="space-y-1 text-sm">
+                    <div>• Drumstick (2-3ft length)</div>
+                    <div>• Yam (fresh tubers)</div>
+                    <div>• Snake gourd (long variety)</div>
+                    <div>• Bitter gourd (medium size)</div>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t">
+                    <span>Daily Volume:</span>
+                    <span className="font-medium">50-100 tons</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Price Range:</span>
+                    <span className="font-medium">₹20-80/kg</span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Fresh vegetables needed by wholesale traders and retail chains across Chennai.
+                  </p>
+                  <Button className="w-full" size="sm">
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    List Your Produce
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Fruits Demand */}
+            <Card className="shadow-elegant hover:shadow-glow transition-all duration-300 border-success/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">🍎 Fruits</CardTitle>
+                  <Badge className="bg-success">Premium</Badge>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Store className="h-4 w-4" />
+                  <span>Retail Chains</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-success">Major Buyers:</div>
+                  <div className="space-y-1 text-sm">
+                    <div>• Reliance Fresh</div>
+                    <div>• Nilgiris Supermarket</div>
+                    <div>• Heritage Foods</div>
+                    <div>• Local Fruit Vendors</div>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t">
+                    <span>Daily Volume:</span>
+                    <span className="font-medium">30-80 tons</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Quality:</span>
+                    <span className="font-medium">Grade A</span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Fresh seasonal fruits required by major retail chains and supermarkets.
+                  </p>
+                  <Button className="w-full" size="sm" variant="outline">
+                    <Package className="h-4 w-4 mr-2" />
+                    View Requirements
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Seeds Demand */}
+            <Card className="shadow-elegant hover:shadow-glow transition-all duration-300 border-warning/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">🌱 Seeds</CardTitle>
+                  <Badge className="bg-warning">Quality Focus</Badge>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Sprout className="h-4 w-4" />
+                  <span>TN Climate Adapted</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-warning">Seed Varieties:</div>
+                  <div className="space-y-1 text-sm">
+                    <div>• Paddy seeds (CO-43, ADT-43)</div>
+                    <div>• Groundnut seeds (TMV-2)</div>
+                    <div>• Cotton seeds (MCU-5)</div>
+                    <div>• Vegetable seeds (hybrid)</div>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t">
+                    <span>Certification:</span>
+                    <span className="font-medium">Required</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Germination:</span>
+                    <span className="font-medium">95%+</span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Certified, high-germination seeds adapted for Tamil Nadu climate conditions.
+                  </p>
+                  <Button className="w-full" size="sm" variant="outline">
+                    <Sprout className="h-4 w-4 mr-2" />
+                    List Seed Stock
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Crops Demand */}
+            <Card className="shadow-elegant hover:shadow-glow transition-all duration-300 border-info/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">🌾 Crops</CardTitle>
+                  <Badge className="bg-info">Industrial</Badge>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Factory className="h-4 w-4" />
+                  <span>Processing Companies</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-info">Industrial Crops:</div>
+                  <div className="space-y-1 text-sm">
+                    <div>• Sugarcane (for jaggery)</div>
+                    <div>• Maize (animal feed)</div>
+                    <div>• Cotton (ginning)</div>
+                    <div>• Rice (milling)</div>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t">
+                    <span>Volume:</span>
+                    <span className="font-medium">Bulk orders</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Processing:</span>
+                    <span className="font-medium">Ready</span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Industrial crops needed by processing companies and biogas plants in Chennai region.
+                  </p>
+                  <Button className="w-full" size="sm" variant="outline">
+                    <Truck className="h-4 w-4 mr-2" />
+                    Connect with Buyers
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Market Insights */}
+          <Card className="shadow-elegant bg-gradient-to-r from-primary/5 to-success/5 border-primary/20">
+            <CardContent className="p-6">
+              <div className="text-center space-y-4">
+                <h3 className="text-xl font-semibold">📊 Chennai Market Insights</h3>
+                <div className="grid md:grid-cols-3 gap-6 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-primary">2,500+</div>
+                    <p className="text-sm text-muted-foreground">Daily Transactions</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-success">₹50Cr+</div>
+                    <p className="text-sm text-muted-foreground">Monthly Trade Value</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-warning">15,000+</div>
+                    <p className="text-sm text-muted-foreground">Active Buyers</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Chennai's agricultural markets are among the most active in South India, offering excellent opportunities
+                  for farmers to connect with premium buyers and achieve better price realization for their produce.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
