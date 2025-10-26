@@ -71,7 +71,7 @@ export function Header() {
 
 
   const adminItems = [
-    { name: "Seller Panel", path: "/seller-panel", icon: ShoppingCart },
+    { name: "Buyer Panel", path: "/buyer-panel", icon: ShoppingCart },
     { name: "Admin Panel", path: "/admin", icon: Users },
   ];
 

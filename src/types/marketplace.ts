@@ -47,22 +47,26 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
-export interface Order {
+export interface BuyerDemand {
   id: string;
-  items: CartItem[];
-  totalAmount: number;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
-  orderDate: string;
-  deliveryDate?: string;
-  shippingAddress: {
-    name: string;
-    address: string;
-    city: string;
-    state: string;
-    pincode: string;
-    phone: string;
+  product: string;
+  category: 'Vegetables' | 'Fruits' | 'Seeds' | 'Crops';
+  quantity: number;
+  unit: string; // kg, tons, pieces, bags, etc.
+  maxPrice: number;
+  urgency: 'low' | 'medium' | 'high';
+  status: 'active' | 'fulfilled' | 'expired';
+  description: string;
+  buyer: string;
+  location?: string;
+  suppliersFound: number;
+  postedDate: string;
+  expiryDate?: string;
+  requirements?: {
+    organic?: boolean;
+    certified?: boolean;
+    qualityGrade?: string;
+    deliveryRequired?: boolean;
+    bulkOrder?: boolean;
   };
-  paymentMethod: 'cod' | 'online' | 'upi';
-  paymentStatus: 'pending' | 'completed' | 'failed';
-  trackingId?: string;
 }

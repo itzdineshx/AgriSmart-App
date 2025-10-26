@@ -41,8 +41,8 @@ export default function RoleLogin() {
         case 'admin':
           navigate('/admin');
           break;
-        case 'seller':
-          navigate('/seller-panel');
+        case 'buyer':
+          navigate('/buyer-panel');
           break;
         case 'user':
           navigate('/user-profile');
@@ -55,13 +55,13 @@ export default function RoleLogin() {
 
   const roleIcons = {
     admin: Shield,
-    seller: Store,
+    buyer: Store,
     user: User
   };
 
   const credentials = {
     admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
-    seller: { username: 'seller_pro', password: 'SellPro@2024' },
+    buyer: { username: 'buyer_pro', password: 'BuyPro@2024' },
     user: { username: 'farmer_user', password: 'FarmUser@2024' }
   };
 
@@ -100,10 +100,10 @@ export default function RoleLogin() {
                         <span>Administrator</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="seller">
+                    <SelectItem value="buyer">
                       <div className="flex items-center space-x-2">
                         <Store className="h-4 w-4" />
-                        <span>Seller</span>
+                        <span>Buyer</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="user">

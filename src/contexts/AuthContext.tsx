@@ -185,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Demo credentials for role-based authentication
     const demoCredentials = {
       admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
-      seller: { username: 'seller_pro', password: 'SellPro@2024' },
+      buyer: { username: 'buyer_pro', password: 'BuyPro@2024' },
       user: { username: 'farmer_user', password: 'FarmUser@2024' }
     };
 

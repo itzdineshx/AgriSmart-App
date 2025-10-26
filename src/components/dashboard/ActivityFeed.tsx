@@ -25,7 +25,7 @@ interface Activity {
 }
 
 interface ActivityFeedProps {
-  userType?: "farmer" | "seller" | "admin";
+  userType?: "farmer" | "buyer" | "admin";
   limit?: number;
 }
 
@@ -130,6 +130,56 @@ export function ActivityFeed({ userType = "farmer", limit = 5 }: ActivityFeedPro
     }
   ];
 
+  const getBuyerActivities = (): Activity[] => [
+    {
+      id: "1",
+      type: "match",
+      title: "New Supplier Match",
+      description: "Rajesh Farms responded to your tomato demand",
+      timestamp: "30 minutes ago",
+      status: "info",
+      actionable: true,
+      priority: "high"
+    },
+    {
+      id: "2",
+      type: "purchase",
+      title: "Purchase Completed",
+      description: "Hybrid Rice Seeds purchased from Green Valley - ₹2,850",
+      timestamp: "2 hours ago",
+      status: "success",
+      priority: "medium"
+    },
+    {
+      id: "3",
+      type: "demand",
+      title: "Demand Expiring Soon",
+      description: "Sugarcane demand expires in 2 days - 5 suppliers interested",
+      timestamp: "5 hours ago",
+      status: "warning",
+      actionable: true,
+      priority: "medium"
+    },
+    {
+      id: "4",
+      type: "match",
+      title: "Bulk Order Confirmed",
+      description: "100 tons sugarcane order confirmed with BioEnergy Corp",
+      timestamp: "1 day ago",
+      status: "success",
+      priority: "low"
+    },
+    {
+      id: "5",
+      type: "system",
+      title: "New Suppliers Available",
+      description: "12 new verified suppliers in your area",
+      timestamp: "2 days ago",
+      status: "info",
+      priority: "low"
+    }
+  ];
+
   const getAdminActivities = (): Activity[] => [
     {
       id: "1",
@@ -180,8 +230,8 @@ export function ActivityFeed({ userType = "farmer", limit = 5 }: ActivityFeedPro
 
   const getActivities = () => {
     switch (userType) {
-      case "seller":
-        return getSellerActivities();
+      case "buyer":
+        return getBuyerActivities();
       case "admin":
         return getAdminActivities();
       default:

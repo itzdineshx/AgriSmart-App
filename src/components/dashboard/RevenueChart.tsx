@@ -6,7 +6,7 @@ import type { TooltipProps } from "recharts";
 import { useState } from "react";
 
 interface RevenueChartProps {
-  userType?: "farmer" | "seller" | "admin";
+  userType?: "farmer" | "buyer" | "admin";
 }
 
 export function RevenueChart({ userType = "farmer" }: RevenueChartProps) {
@@ -43,6 +43,21 @@ export function RevenueChart({ userType = "farmer" }: RevenueChartProps) {
     description: "Weekly marketplace sales"
   });
 
+  const getBuyerData = () => ({
+    title: "Purchase Spending",
+    data: [
+      { name: 'Mon', value: 12000, previous: 10000 },
+      { name: 'Tue', value: 15000, previous: 13000 },
+      { name: 'Wed', value: 18000, previous: 16000 },
+      { name: 'Thu', value: 14000, previous: 17000 },
+      { name: 'Fri', value: 22000, previous: 19000 },
+      { name: 'Sat', value: 25000, previous: 22000 },
+      { name: 'Sun', value: 21000, previous: 24000 }
+    ],
+    color: "#8b5cf6",
+    description: "Weekly procurement spending"
+  });
+
   const getAdminData = () => ({
     title: "Platform Revenue",
     data: [
@@ -69,8 +84,8 @@ export function RevenueChart({ userType = "farmer" }: RevenueChartProps) {
 
   const getData = () => {
     switch (userType) {
-      case "seller":
-        return getSellerData();
+      case "buyer":
+        return getBuyerData();
       case "admin":
         return getAdminData();
       default:

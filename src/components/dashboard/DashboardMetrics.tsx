@@ -8,7 +8,8 @@ import {
   Package, 
   BarChart3,
   Activity,
-  Target
+  Target,
+  Star
 } from "lucide-react";
 
 interface MetricCardProps {
@@ -84,7 +85,7 @@ export function MetricCard({
 }
 
 interface DashboardMetricsProps {
-  userType?: "farmer" | "seller" | "admin";
+  userType?: "farmer" | "buyer" | "admin";
 }
 
 export function DashboardMetrics({ userType = "farmer" }: DashboardMetricsProps) {
@@ -166,6 +167,45 @@ export function DashboardMetrics({ userType = "farmer" }: DashboardMetricsProps)
     }
   ];
 
+  const getBuyerMetrics = () => [
+    {
+      title: "Active Demands",
+      value: 12,
+      change: 15.3,
+      changeType: "increase" as const,
+      icon: Target,
+      description: "Posted requirements",
+      color: "primary" as const
+    },
+    {
+      title: "Total Spent",
+      value: "₹8.5L",
+      change: 22.1,
+      changeType: "increase" as const,
+      icon: DollarSign,
+      description: "This month",
+      color: "success" as const
+    },
+    {
+      title: "Suppliers Found",
+      value: 45,
+      change: 18.7,
+      changeType: "increase" as const,
+      icon: Users,
+      description: "Connected farmers",
+      color: "primary" as const
+    },
+    {
+      title: "Avg. Rating",
+      value: "4.7",
+      change: 0.3,
+      changeType: "increase" as const,
+      icon: Star,
+      description: "Supplier rating",
+      color: "warning" as const
+    }
+  ];
+
   const getAdminMetrics = () => [
     {
       title: "Total Users",
@@ -207,8 +247,8 @@ export function DashboardMetrics({ userType = "farmer" }: DashboardMetricsProps)
 
   const getMetrics = () => {
     switch (userType) {
-      case "seller":
-        return getSellerMetrics();
+      case "buyer":
+        return getBuyerMetrics();
       case "admin":
         return getAdminMetrics();
       default:

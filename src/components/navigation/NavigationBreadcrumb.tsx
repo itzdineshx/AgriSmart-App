@@ -24,7 +24,7 @@ const pathMapping: Record<string, BreadcrumbItem> = {
   "/gamification": { label: "Achievements", path: "/gamification" },
   "/support": { label: "Support", path: "/support" },
   "/user-profile": { label: "Profile", path: "/user-profile" },
-  "/seller-panel": { label: "Seller Panel", path: "/seller-panel" },
+  "/buyer-panel": { label: "Buyer Panel", path: "/buyer-panel" },
   "/admin": { label: "Admin Panel", path: "/admin" },
   "/auth": { label: "Authentication", path: "/auth" },
   "/chatbot": { label: "AI Assistant", path: "/chatbot" },
@@ -47,7 +47,7 @@ const categoryMapping: Record<string, BreadcrumbItem> = {
   "/gamification": { label: "Profile", path: "#" },
   "/support": { label: "Help", path: "#" },
   "/user-profile": { label: "Profile", path: "#" },
-  "/seller-panel": { label: "Business", path: "#" },
+  "/buyer-panel": { label: "Business", path: "#" },
   "/admin": { label: "Admin", path: "#" },
 };
 

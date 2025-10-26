@@ -12,7 +12,7 @@ const Buy = lazy(() => import("@/pages/Buy"));
 const Sell = lazy(() => import("@/pages/Sell"));
 const MarketAnalysis = lazy(() => import("@/pages/MarketAnalysis"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
-const SellerPanel = lazy(() => import("@/pages/SellerPanel"));
+const BuyerPanel = lazy(() => import("@/pages/BuyerPanel"));
 const GovernmentSchemes = lazy(() => import("@/pages/GovernmentSchemes"));
 const Weather = lazy(() => import("@/pages/Weather"));
 const Blog = lazy(() => import("@/pages/Blog"));
@@ -260,11 +260,11 @@ export function AppRouter() {
           } 
         />
         <Route 
-          path="/seller-panel" 
+          path="/buyer-panel" 
           element={
             <LazyWrapper>
-              <ProtectedRoute requiredRole="farmer">
-                <Layout><SellerPanel /></Layout>
+              <ProtectedRoute requiredRole="buyer">
+                <Layout><BuyerPanel /></Layout>
               </ProtectedRoute>
             </LazyWrapper>
           } 

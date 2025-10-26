@@ -34,7 +34,7 @@ interface QuickAction {
 }
 
 interface QuickActionsProps {
-  userType?: "farmer" | "seller" | "admin";
+  userType?: "farmer" | "buyer" | "admin";
 }
 
 export function QuickActions({ userType = "farmer" }: QuickActionsProps) {
@@ -78,9 +78,9 @@ export function QuickActions({ userType = "farmer" }: QuickActionsProps) {
     {
       id: "5",
       title: "Sell Your Crops",
-      description: "List on marketplace",
+      description: "Respond to buyer demands",
       icon: Upload,
-      path: "/seller-panel",
+      path: "/sell",
       variant: "secondary"
     },
     {
@@ -147,6 +147,60 @@ export function QuickActions({ userType = "farmer" }: QuickActionsProps) {
     }
   ];
 
+  const getBuyerActions = (): QuickAction[] => [
+    {
+      id: "1",
+      title: "Post New Demand",
+      description: "List products you need",
+      icon: Plus,
+      onClick: () => navigate("/buyer-panel"),
+      variant: "default",
+      featured: true
+    },
+    {
+      id: "2",
+      title: "View Supplier Matches",
+      description: "Check farmer responses",
+      icon: Users,
+      path: "/buyer-panel",
+      variant: "outline",
+      badge: "5 new"
+    },
+    {
+      id: "3",
+      title: "Purchase Analytics",
+      description: "Spending and supplier data",
+      icon: BarChart3,
+      path: "/buyer-panel",
+      variant: "outline"
+    },
+    {
+      id: "4",
+      title: "Manage Demands",
+      description: "Update requirements",
+      icon: Edit,
+      path: "/buyer-panel",
+      variant: "outline"
+    },
+    {
+      id: "5",
+      title: "Supplier Messages",
+      description: "Communicate with farmers",
+      icon: MessageCircle,
+      path: "/buyer-panel",
+      variant: "secondary",
+      badge: "3 unread"
+    },
+    {
+      id: "6",
+      title: "Download Invoices",
+      description: "Purchase history",
+      icon: Download,
+      onClick: () => console.log("Downloading invoices..."),
+      variant: "outline"
+    }
+  ];
+
   const getAdminActions = (): QuickAction[] => [
     {
       id: "1",
@@ -202,8 +256,8 @@ export function QuickActions({ userType = "farmer" }: QuickActionsProps) {
 
   const getActions = () => {
     switch (userType) {
-      case "seller":
-        return getSellerActions();
+      case "buyer":
+        return getBuyerActions();
       case "admin":
         return getAdminActions();
       default:
