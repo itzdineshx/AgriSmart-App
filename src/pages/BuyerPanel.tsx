@@ -339,7 +339,7 @@ export default function BuyerPanel() {
           </div>
           <div>
             <Label htmlFor="category">Category</Label>
-            <select id="category" value={formData.category} onChange={handleFormChange} className="w-full p-2 border rounded-md">
+            <select id="category" value={formData.category} onChange={handleFormChange} className="w-full p-2 border rounded-md" title="Select product category">
               <option value="">Select category</option>
               <option value="Vegetables">Vegetables</option>
               <option value="Fruits">Fruits</option>
@@ -356,7 +356,7 @@ export default function BuyerPanel() {
           </div>
           <div>
             <Label htmlFor="unit">Unit</Label>
-            <select id="unit" value={formData.unit} onChange={handleFormChange} className="w-full p-2 border rounded-md">
+            <select id="unit" value={formData.unit} onChange={handleFormChange} className="w-full p-2 border rounded-md" title="Select quantity unit">
               <option value="">Select unit</option>
               <option value="kg">kg</option>
               <option value="tons">tons</option>
@@ -366,7 +366,7 @@ export default function BuyerPanel() {
           </div>
           <div>
             <Label htmlFor="urgency">Urgency</Label>
-            <select id="urgency" value={formData.urgency} onChange={handleFormChange} className="w-full p-2 border rounded-md">
+            <select id="urgency" value={formData.urgency} onChange={handleFormChange} className="w-full p-2 border rounded-md" title="Select demand urgency level">
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>

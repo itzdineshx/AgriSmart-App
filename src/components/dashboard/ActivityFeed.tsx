@@ -15,7 +15,7 @@ import {
 
 interface Activity {
   id: string;
-  type: "diagnosis" | "sale" | "purchase" | "alert" | "system" | "user" | "order";
+  type: "diagnosis" | "sale" | "purchase" | "alert" | "system" | "user" | "order" | "match" | "demand";
   title: string;
   description: string;
   timestamp: string;
@@ -254,6 +254,10 @@ export function ActivityFeed({ userType = "farmer", limit = 5 }: ActivityFeedPro
         return CheckCircle;
       case "user":
         return Users;
+      case "match":
+        return Users;
+      case "demand":
+        return Package;
       default:
         return TrendingUp;
     }

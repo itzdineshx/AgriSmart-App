@@ -18,7 +18,7 @@ import {
 
 interface Notification {
   id: string;
-  type: "weather" | "market" | "system" | "order" | "alert";
+  type: "weather" | "market" | "system" | "order" | "alert" | "match" | "demand" | "purchase";
   title: string;
   message: string;
   timestamp: string;
@@ -201,6 +201,12 @@ export function NotificationCenter({ userType = "farmer" }: NotificationCenterPr
         return Info;
       case "alert":
         return AlertTriangle;
+      case "match":
+        return Users;
+      case "demand":
+        return Package;
+      case "purchase":
+        return Package;
       default:
         return Bell;
     }

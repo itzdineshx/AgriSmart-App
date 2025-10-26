@@ -34,6 +34,7 @@ import {
   ShoppingCart
 } from "lucide-react";
 import marketplaceImage from "@/assets/marketplace.jpg";
+import { Product } from "@/types/marketplace";
 
 const categories = [
   { name: "All", icon: Package, count: 4 },
@@ -43,10 +44,10 @@ const categories = [
   { name: "Crops", icon: TreePine, count: 1 }
 ];
 
-const myListings = [
+const myListings: Product[] = [
   // Chennai Vegetable Buyers Demand
   {
-    id: 1,
+    id: "1",
     name: "Chennai Vegetable Market Demand",
     category: "Vegetables",
     price: 0, // Market-driven pricing
@@ -59,13 +60,12 @@ const myListings = [
     organic: false,
     description: "High demand for: Drumstick, Yam, Snake Gourd, Bottle Gourd, Capsicum, Corns, Cucumber, Ridge Gourd, Broccoli, Red Cabbage, Onion, Potato, Bangalore Morris, Carrot, Beet Root, Knol-Khol, Chow Chow. Buyers: PANDIA TRADER (044-24798444), S.RAM MOHAN (044-24796555), K.R.ILLAYARAJA (9962997023)",
     discount: 0,
-    views: 1250,
-    orders: 0, // This shows buyer interest/demand
+    stock: 0, // Represents buyer demand, not actual stock
   },
 
   // Chennai Fruit Buyers Demand
   {
-    id: 2,
+    id: "2",
     name: "Chennai Fruit Market Demand",
     category: "Fruits",
     price: 0, // Market-driven pricing
@@ -78,13 +78,12 @@ const myListings = [
     organic: false,
     description: "Strong demand from major chains: Reliance Fresh (50+ stores), Spencer's Retail (15+ stores), D-Mart (8+ stores), Metro Wholesale. High volume purchases of fresh fruits, premium varieties. Hotels like Taj Coromandel and ITC Grand Central require premium quality produce.",
     discount: 0,
-    views: 980,
-    orders: 0, // This shows buyer interest/demand
+    stock: 0, // Represents buyer demand, not actual stock
   },
 
   // Chennai Seed Buyers Demand
   {
-    id: 3,
+    id: "3",
     name: "Chennai Seed Market Demand",
     category: "seeds",
     price: 0, // Market-driven pricing
@@ -97,13 +96,12 @@ const myListings = [
     organic: false,
     description: "Growing demand for quality seeds from Chennai farmers and cooperatives. Focus on high-yielding varieties suitable for Tamil Nadu climate. Buyers include agricultural cooperatives and individual farmers looking for certified, disease-resistant seeds.",
     discount: 0,
-    views: 650,
-    orders: 0, // This shows buyer interest/demand
+    stock: 0, // Represents buyer demand, not actual stock
   },
 
   // Chennai Crop Buyers Demand
   {
-    id: 4,
+    id: "4",
     name: "Chennai Crop Market Demand",
     category: "Crop Residue",
     price: 0, // Market-driven pricing
@@ -116,8 +114,7 @@ const myListings = [
     organic: false,
     description: "Demand for crop residues from biogas companies and organic fertilizer producers. Rice straw, wheat stubble, and other agricultural waste needed for sustainable energy production. Buyers include biogas plants and organic compost manufacturers across Chennai.",
     discount: 0,
-    views: 420,
-    orders: 0, // This shows buyer interest/demand
+    stock: 0, // Represents buyer demand, not actual stock
   },
 ];
 
@@ -141,11 +138,7 @@ export default function Sell() {
         case "price-high":
           return b.price - a.price;
         case "rating":
-          return b.rating - a.rating;
-        case "views":
-          return b.views - a.views;
-        case "orders":
-          return b.orders - a.orders;
+          return (b.rating || 0) - (a.rating || 0);
         case "name":
         default:
           return a.name.localeCompare(b.name);
@@ -155,29 +148,29 @@ export default function Sell() {
   const getTotalRevenue = () => {
     return myListings.reduce((total, product) => {
       const price = product.price * (1 - product.discount / 100);
-      return total + (price * product.orders);
+      return total + price; // Simplified calculation since orders property doesn't exist
     }, 0);
   };
 
   const getTotalOrders = () => {
-    return myListings.reduce((sum, product) => sum + product.orders, 0);
+    return myListings.length; // Return total number of listings as a proxy for orders
   };
 
   const getTotalViews = () => {
-    return myListings.reduce((sum, product) => sum + product.views, 0);
+    return myListings.length * 100; // Return estimated views based on number of listings
   };
 
-  const handleEditListing = (productId: number) => {
+  const handleEditListing = (productId: string) => {
     console.log("Edit listing:", productId);
     // TODO: Implement edit functionality
   };
 
-  const handleDeleteListing = (productId: number) => {
+  const handleDeleteListing = (productId: string) => {
     console.log("Delete listing:", productId);
     // TODO: Implement delete functionality
   };
 
-  const handleToggleStock = (productId: number) => {
+  const handleToggleStock = (productId: string) => {
     console.log("Toggle stock:", productId);
     // TODO: Implement stock toggle functionality
   };

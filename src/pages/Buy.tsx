@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Search,
   Filter,
-  ShoppingCart,
   Star,
   MapPin,
   Truck,
@@ -27,6 +26,7 @@ import {
 } from "lucide-react";
 import marketplaceImage from "@/assets/marketplace.jpg";
 import { ProductCard } from "@/components/marketplace/ProductCard";
+import { Product } from "@/types/marketplace";
 
 const categories = [
   { name: "All", icon: Package, count: 18 },
@@ -41,7 +41,7 @@ const categories = [
   { name: "Other Biomass", icon: Leaf, count: 2, category: "recycle" },
 ];
 
-const products = [
+const products: Product[] = [
   // Fruits
   {
     id: "1",
@@ -406,7 +406,6 @@ export default function Buy() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
-  const [cart, setCart] = useState<{[key: string]: number}>({});
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -431,40 +430,12 @@ export default function Buy() {
       }
     });
 
-  const addToCart = (productId: number) => {
-    setCart(prev => ({ ...prev, [productId]: (prev[productId] || 0) + 1 }));
-  };
-
-  const removeFromCart = (productId: number) => {
-    setCart(prev => {
-      const newCart = { ...prev };
-      if (newCart[productId] > 1) {
-        newCart[productId] -= 1;
-      } else {
-        delete newCart[productId];
-      }
-      return newCart;
-    });
-  };
-
   const toggleWishlist = (productId: string) => {
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
-  };
-
-  const getTotalCartItems = () => {
-    return Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
-  };
-
-  const getCartTotal = () => {
-    return Object.entries(cart).reduce((total, [productId, quantity]) => {
-      const product = products.find(p => p.id === productId);
-      const price = product ? product.price * (1 - product.discount / 100) : 0;
-      return total + (price * quantity);
-    }, 0);
   };
 
   return (
@@ -524,12 +495,6 @@ export default function Buy() {
                     </Badge>
                   )}
                 </Button>
-              </div>
-
-              {/* Cart Summary */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ShoppingCart className="h-4 w-4" />
-                <span>{getTotalCartItems()} items • ₹{getCartTotal().toFixed(2)}</span>
               </div>
             </div>
           </CardContent>
@@ -607,25 +572,28 @@ export default function Buy() {
                         </div>
                       </button>
 
-                      {categories.slice(1, 7).map((category) => (
-                        <button
-                          key={category.name}
-                          onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
-                          className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                            selectedCategory === category.name
-                              ? "border-primary bg-primary/5 text-primary"
-                              : "border-border hover:border-primary/50"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <category.icon className="h-5 w-5" />
-                            <div>
-                              <div className="font-medium">{category.name}</div>
-                              <div className="text-sm text-muted-foreground">{category.count} items</div>
+                      {categories.slice(1, 7).map((category) => {
+                        const IconComponent = category.icon;
+                        return (
+                          <button
+                            key={category.name}
+                            onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
+                            className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                              selectedCategory === category.name
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <IconComponent className="h-5 w-5" />
+                              <div>
+                                <div className="font-medium">{category.name}</div>
+                                <div className="text-sm text-muted-foreground">{category.count} items</div>
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -636,25 +604,28 @@ export default function Buy() {
                       Recycle & Reuse
                     </h3>
                     <div className="space-y-2">
-                      {categories.slice(7).map((category) => (
-                        <button
-                          key={category.name}
-                          onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
-                          className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                            selectedCategory === category.name
-                              ? "border-success bg-success/5 text-success"
-                              : "border-border hover:border-success/50"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <category.icon className="h-5 w-5" />
-                            <div>
-                              <div className="font-medium">{category.name}</div>
-                              <div className="text-sm text-muted-foreground">{category.count} items</div>
+                      {categories.slice(7).map((category) => {
+                        const IconComponent = category.icon;
+                        return (
+                          <button
+                            key={category.name}
+                            onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
+                            className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                              selectedCategory === category.name
+                                ? "border-success bg-success/5 text-success"
+                                : "border-border hover:border-success/50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <IconComponent className="h-5 w-5" />
+                              <div>
+                                <div className="font-medium">{category.name}</div>
+                                <div className="text-sm text-muted-foreground">{category.count} items</div>
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -689,27 +660,30 @@ export default function Buy() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Marketplace</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {categories.slice(0, 6).map((category) => (
-                <Card
-                  key={category.name}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-primary ${
-                    selectedCategory === category.name
-                      ? "border-primary shadow-primary"
-                      : "hover:border-primary/50"
-                  }`}
-                  onClick={() =>
-                    setSelectedCategory(
-                      selectedCategory === category.name ? null : category.name
-                    )
-                  }
-                >
-                  <CardContent className="p-4 text-center">
-                    <category.icon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                    <h3 className="font-medium">{category.name}</h3>
-                    <p className="text-sm text-muted-foreground">{category.count} items</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {categories.slice(0, 6).map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <Card
+                    key={category.name}
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-primary ${
+                      selectedCategory === category.name
+                        ? "border-primary shadow-primary"
+                        : "hover:border-primary/50"
+                    }`}
+                    onClick={() =>
+                      setSelectedCategory(
+                        selectedCategory === category.name ? null : category.name
+                      )
+                    }
+                  >
+                    <CardContent className="p-4 text-center">
+                      <IconComponent className="h-8 w-8 mx-auto mb-2 text-primary" />
+                      <h3 className="font-medium">{category.name}</h3>
+                      <p className="text-sm text-muted-foreground">{category.count} items</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
@@ -726,27 +700,30 @@ export default function Buy() {
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {categories.slice(6).map((category) => (
-                <Card
-                  key={category.name}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-success border-success/20 ${
-                    selectedCategory === category.name
-                      ? "border-success shadow-success bg-success/5"
-                      : "hover:border-success/50"
-                  }`}
-                  onClick={() =>
-                    setSelectedCategory(
-                      selectedCategory === category.name ? null : category.name
-                    )
-                  }
-                >
-                  <CardContent className="p-4 text-center">
-                    <category.icon className="h-8 w-8 mx-auto mb-2 text-success" />
-                    <h3 className="font-medium">{category.name}</h3>
-                    <p className="text-sm text-muted-foreground">{category.count} items</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {categories.slice(6).map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <Card
+                    key={category.name}
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-success border-success/20 ${
+                      selectedCategory === category.name
+                        ? "border-success shadow-success bg-success/5"
+                        : "hover:border-success/50"
+                    }`}
+                    onClick={() =>
+                      setSelectedCategory(
+                        selectedCategory === category.name ? null : category.name
+                      )
+                    }
+                  >
+                    <CardContent className="p-4 text-center">
+                      <IconComponent className="h-8 w-8 mx-auto mb-2 text-success" />
+                      <h3 className="font-medium">{category.name}</h3>
+                      <p className="text-sm text-muted-foreground">{category.count} items</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </div>
