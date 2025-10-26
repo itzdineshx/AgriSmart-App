@@ -1,4 +1,4 @@
-const { User } = require('../models/index');
+const { User, Product, Order, Delivery, Cart, Wishlist, Review, Category, Notification } = require('../models/index');
 const { hashPassword, comparePassword, generateAccessToken, generateRefreshToken, generateResetToken } = require('../utils/auth');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
@@ -318,24 +318,61 @@ const register = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { name, email, password, role = 'user' } = req.body;
+        const { name, email, password, role = 'buyer', farmerProfile, buyerProfile } = req.body;
 
-        // For now, always use mock mode for testing
-        console.log('Using mock registration mode for testing');
-        const mockUser = {
-            _id: 'mock_' + Date.now(),
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists with this email' });
+        }
+
+        // Validate role
+        if (!['admin', 'farmer', 'buyer'].includes(role)) {
+            return res.status(400).json({ message: 'Invalid role. Must be admin, farmer, or buyer' });
+        }
+
+        // Hash password
+        const hashedPassword = await hashPassword(password);
+
+        // Create user object
+        const userData = {
             name,
             email,
-            role,
-            createdAt: new Date()
+            password: hashedPassword,
+            role
         };
 
-        const accessToken = generateAccessToken(mockUser._id);
-        const refreshToken = generateRefreshToken(mockUser._id);
+        // Add role-specific profile data
+        if (role === 'farmer' && farmerProfile) {
+            userData.farmerProfile = farmerProfile;
+        } else if (role === 'buyer' && buyerProfile) {
+            userData.buyerProfile = buyerProfile;
+        }
 
-        return res.status(201).json({
-            message: 'User registered successfully (mock mode)',
-            user: mockUser,
+        // Create user in database
+        const user = new User(userData);
+        await user.save();
+
+        // Generate tokens
+        const accessToken = generateAccessToken(user._id);
+        const refreshToken = generateRefreshToken(user._id);
+
+        // Return user data (exclude password)
+        const userResponse = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            farmerProfile: user.farmerProfile,
+            buyerProfile: user.buyerProfile,
+            avatar: user.avatar,
+            preferences: user.preferences,
+            createdAt: user.createdAt
+        };
+
+        res.status(201).json({
+            message: 'User registered successfully',
+            user: userResponse,
             accessToken,
             refreshToken
         });
@@ -354,24 +391,47 @@ const login = async (req, res) => {
 
         const { email, password } = req.body;
 
-        // For now, always use mock mode for testing
-        console.log('Using mock login mode for testing');
-        const mockUser = {
-            _id: 'mock_' + Date.now(),
-            name: email.split('@')[0],
-            email,
-            role: 'user',
-            avatar: null,
-            preferences: {},
-            lastLogin: new Date()
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        // Check password
+        const isPasswordValid = await comparePassword(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        // Check if user is active
+        if (!user.isActive) {
+            return res.status(403).json({ message: 'Account is deactivated' });
+        }
+
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
+
+        // Generate tokens
+        const accessToken = generateAccessToken(user._id);
+        const refreshToken = generateRefreshToken(user._id);
+
+        // Return user data (exclude password)
+        const userResponse = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            farmerProfile: user.farmerProfile,
+            buyerProfile: user.buyerProfile,
+            avatar: user.avatar,
+            preferences: user.preferences,
+            lastLogin: user.lastLogin
         };
 
-        const accessToken = generateAccessToken(mockUser._id);
-        const refreshToken = generateRefreshToken(mockUser._id);
-
-        return res.json({
-            message: 'Login successful (mock mode)',
-            user: mockUser,
+        res.json({
+            message: 'Login successful',
+            user: userResponse,
             accessToken,
             refreshToken
         });
@@ -430,6 +490,8 @@ const getMe = async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            farmerProfile: user.farmerProfile,
+            buyerProfile: user.buyerProfile,
             avatar: user.avatar,
             preferences: user.preferences,
             lastLogin: user.lastLogin,
@@ -873,6 +935,1370 @@ const deleteMarketPriceAlert = async (req, res) => {
     }
 };
 
+// Product Controllers
+const getProducts = async (req, res) => {
+    try {
+        const { category, seller, search, page = 1, limit = 10 } = req.query;
+
+        let query = { isActive: true };
+
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+
+        if (seller) {
+            query.seller = seller;
+        }
+
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const products = await Product.find(query)
+            .populate('seller', 'name email farmerProfile.businessName buyerProfile.businessName')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Product.countDocuments(query);
+
+        res.json({
+            success: true,
+            data: products,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Get products error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch products' });
+    }
+};
+
+const getProductById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const product = await Product.findById(id)
+            .populate('seller', 'name email farmerProfile.businessName buyerProfile.businessName');
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        res.json({ success: true, data: product });
+    } catch (error) {
+        console.error('Get product error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch product' });
+    }
+};
+
+const createProduct = async (req, res) => {
+    try {
+        const { name, price, description, category, image, stock, unit, organic, location, discount } = req.body;
+
+        const product = new Product({
+            name,
+            price,
+            description,
+            category,
+            image,
+            stock,
+            unit,
+            organic,
+            location,
+            discount,
+            seller: req.user.id
+        });
+
+        await product.save();
+
+        const populatedProduct = await Product.findById(product._id)
+            .populate('seller', 'name email farmerProfile.businessName buyerProfile.businessName');
+
+        res.status(201).json({ success: true, data: populatedProduct });
+    } catch (error) {
+        console.error('Create product error:', error);
+        res.status(500).json({ success: false, message: 'Failed to create product' });
+    }
+};
+
+const updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        const product = await Product.findOne({ _id: id, seller: req.user.id });
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found or unauthorized' });
+        }
+
+        Object.assign(product, updates);
+        product.updatedAt = new Date();
+        await product.save();
+
+        const populatedProduct = await Product.findById(product._id)
+            .populate('seller', 'name email farmerProfile.businessName buyerProfile.businessName');
+
+        res.json({ success: true, data: populatedProduct });
+    } catch (error) {
+        console.error('Update product error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update product' });
+    }
+};
+
+const deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const product = await Product.findOneAndDelete({ _id: id, seller: req.user.id });
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found or unauthorized' });
+        }
+
+        res.json({ success: true, message: 'Product deleted successfully' });
+    } catch (error) {
+        console.error('Delete product error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete product' });
+    }
+};
+
+// Order Controllers
+const getOrders = async (req, res) => {
+    try {
+        const { status, page = 1, limit = 10 } = req.query;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        let query = {};
+
+        if (userRole === 'farmer') {
+            query.seller = userId;
+        } else if (userRole === 'buyer') {
+            query.buyer = userId;
+        }
+
+        if (status) {
+            query.status = status;
+        }
+
+        const orders = await Order.find(query)
+            .populate('buyer', 'name email buyerProfile.businessName')
+            .populate('seller', 'name email farmerProfile.farmName')
+            .populate('items.product', 'name image unit')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Order.countDocuments(query);
+
+        res.json({
+            success: true,
+            data: orders,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Get orders error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch orders' });
+    }
+};
+
+const getOrderById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        let query = { _id: id };
+
+        if (userRole === 'farmer') {
+            query.seller = userId;
+        } else if (userRole === 'buyer') {
+            query.buyer = userId;
+        }
+
+        const order = await Order.findOne(query)
+            .populate('buyer', 'name email buyerProfile.businessName buyerProfile.businessType')
+            .populate('seller', 'name email farmerProfile.farmName farmerProfile.location')
+            .populate('items.product', 'name image unit category');
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found or unauthorized' });
+        }
+
+        res.json({ success: true, data: order });
+    } catch (error) {
+        console.error('Get order error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch order' });
+    }
+};
+
+const createOrder = async (req, res) => {
+    try {
+        const { items, shippingAddress, paymentMethod, notes } = req.body;
+        const buyerId = req.user.id;
+
+        // Validate items and calculate total
+        let totalAmount = 0;
+        const orderItems = [];
+
+        for (const item of items) {
+            const product = await Product.findById(item.product);
+            if (!product) {
+                return res.status(404).json({ success: false, message: `Product ${item.product} not found` });
+            }
+
+            if (product.stock < item.quantity) {
+                return res.status(400).json({ success: false, message: `Insufficient stock for ${product.name}` });
+            }
+
+            const itemTotal = product.price * item.quantity;
+            totalAmount += itemTotal;
+
+            orderItems.push({
+                product: product._id,
+                name: product.name,
+                price: product.price,
+                quantity: item.quantity,
+                unit: product.unit,
+                total: itemTotal
+            });
+
+            // Update product stock
+            product.stock -= item.quantity;
+            await product.save();
+        }
+
+        // Generate tracking ID
+        const trackingId = `ORD${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+        const order = new Order({
+            buyer: buyerId,
+            seller: orderItems[0].product.seller, // Assuming all items from same seller for now
+            items: orderItems,
+            totalAmount,
+            shippingAddress,
+            paymentMethod,
+            trackingId,
+            notes
+        });
+
+        await order.save();
+
+        const populatedOrder = await Order.findById(order._id)
+            .populate('buyer', 'name email buyerProfile.businessName')
+            .populate('seller', 'name email farmerProfile.farmName')
+            .populate('items.product', 'name image unit');
+
+        res.status(201).json({ success: true, data: populatedOrder });
+    } catch (error) {
+        console.error('Create order error:', error);
+        res.status(500).json({ success: false, message: 'Failed to create order' });
+    }
+};
+
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, deliveryDate, notes } = req.body;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        let query = { _id: id };
+
+        if (userRole === 'farmer') {
+            query.seller = userId;
+        } else if (userRole === 'buyer') {
+            query.buyer = userId;
+        }
+
+        const order = await Order.findOne(query);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found or unauthorized' });
+        }
+
+        // Update order
+        order.status = status;
+        if (deliveryDate) order.deliveryDate = deliveryDate;
+        if (notes) order.notes = notes;
+        order.updatedAt = new Date();
+
+        await order.save();
+
+        // If order is delivered, create delivery record
+        if (status === 'delivered' && !order.deliveryDate) {
+            order.deliveryDate = new Date();
+            await order.save();
+
+            // Create delivery record
+            const delivery = new Delivery({
+                order: order._id,
+                status: 'delivered',
+                trackingId: order.trackingId,
+                deliveryAddress: order.shippingAddress,
+                actualDeliveryDate: new Date()
+            });
+            await delivery.save();
+        }
+
+        const populatedOrder = await Order.findById(order._id)
+            .populate('buyer', 'name email buyerProfile.businessName')
+            .populate('seller', 'name email farmerProfile.farmName')
+            .populate('items.product', 'name image unit');
+
+        res.json({ success: true, data: populatedOrder });
+    } catch (error) {
+        console.error('Update order status error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update order status' });
+    }
+};
+
+const cancelOrder = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        let query = { _id: id };
+
+        if (userRole === 'farmer') {
+            query.seller = userId;
+        } else if (userRole === 'buyer') {
+            query.buyer = userId;
+        }
+
+        const order = await Order.findOne(query);
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found or unauthorized' });
+        }
+
+        if (order.status !== 'pending' && order.status !== 'confirmed') {
+            return res.status(400).json({ success: false, message: 'Order cannot be cancelled at this stage' });
+        }
+
+        // Restore product stock
+        for (const item of order.items) {
+            await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
+        }
+
+        order.status = 'cancelled';
+        order.updatedAt = new Date();
+        await order.save();
+
+        res.json({ success: true, message: 'Order cancelled successfully' });
+    } catch (error) {
+        console.error('Cancel order error:', error);
+        res.status(500).json({ success: false, message: 'Failed to cancel order' });
+    }
+};
+
+// Delivery Controllers
+const getDeliveries = async (req, res) => {
+    try {
+        const { status, page = 1, limit = 10 } = req.query;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        let orderQuery = {};
+
+        if (userRole === 'farmer') {
+            orderQuery.seller = userId;
+        } else if (userRole === 'buyer') {
+            orderQuery.buyer = userId;
+        }
+
+        // Get orders first
+        const orders = await Order.find(orderQuery, '_id');
+        const orderIds = orders.map(order => order._id);
+
+        let deliveryQuery = { order: { $in: orderIds } };
+
+        if (status) {
+            deliveryQuery.status = status;
+        }
+
+        const deliveries = await Delivery.find(deliveryQuery)
+            .populate({
+                path: 'order',
+                populate: [
+                    { path: 'buyer', select: 'name email buyerProfile.businessName' },
+                    { path: 'seller', select: 'name email farmerProfile.farmName' }
+                ]
+            })
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Delivery.countDocuments(deliveryQuery);
+
+        res.json({
+            success: true,
+            data: deliveries,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Get deliveries error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch deliveries' });
+    }
+};
+
+const getDeliveryById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const delivery = await Delivery.findById(id)
+            .populate({
+                path: 'order',
+                populate: [
+                    { path: 'buyer', select: 'name email buyerProfile.businessName buyerProfile.businessType' },
+                    { path: 'seller', select: 'name email farmerProfile.farmName farmerProfile.location' },
+                    { path: 'items.product', select: 'name image unit category' }
+                ]
+            });
+
+        if (!delivery) {
+            return res.status(404).json({ success: false, message: 'Delivery not found' });
+        }
+
+        res.json({ success: true, data: delivery });
+    } catch (error) {
+        console.error('Get delivery error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch delivery' });
+    }
+};
+
+const updateDeliveryStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, currentLocation, notes, proofOfDelivery } = req.body;
+
+        const delivery = await Delivery.findById(id);
+
+        if (!delivery) {
+            return res.status(404).json({ success: false, message: 'Delivery not found' });
+        }
+
+        // Update delivery
+        delivery.status = status;
+        if (currentLocation) delivery.currentLocation = currentLocation;
+        if (notes) delivery.notes = notes;
+        if (proofOfDelivery) delivery.proofOfDelivery = proofOfDelivery;
+
+        if (status === 'delivered') {
+            delivery.actualDeliveryDate = new Date();
+        }
+
+        delivery.updatedAt = new Date();
+        await delivery.save();
+
+        // Update order status if delivery is completed
+        if (status === 'delivered') {
+            await Order.findByIdAndUpdate(delivery.order, {
+                status: 'delivered',
+                deliveryDate: new Date()
+            });
+        }
+
+        const populatedDelivery = await Delivery.findById(delivery._id)
+            .populate({
+                path: 'order',
+                populate: [
+                    { path: 'buyer', select: 'name email buyerProfile.businessName' },
+                    { path: 'seller', select: 'name email farmerProfile.farmName' }
+                ]
+            });
+
+        res.json({ success: true, data: populatedDelivery });
+    } catch (error) {
+        console.error('Update delivery status error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update delivery status' });
+    }
+};
+
+const getDeliveryByTrackingId = async (req, res) => {
+    try {
+        const { trackingId } = req.params;
+
+        const delivery = await Delivery.findOne({ trackingId })
+            .populate({
+                path: 'order',
+                populate: [
+                    { path: 'buyer', select: 'name email buyerProfile.businessName buyerProfile.businessType' },
+                    { path: 'seller', select: 'name email farmerProfile.farmName farmerProfile.location' },
+                    { path: 'items.product', select: 'name image unit category' }
+                ]
+            });
+
+        if (!delivery) {
+            return res.status(404).json({ success: false, message: 'Delivery not found' });
+        }
+
+        res.json({ success: true, data: delivery });
+    } catch (error) {
+        console.error('Get delivery by tracking ID error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch delivery' });
+    }
+};
+
+// Cart Controllers
+const getCart = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const cart = await Cart.findOne({ user: userId })
+            .populate('items.product', 'name price image unit category stock organic')
+            .lean();
+
+        if (!cart) {
+            return res.json({ success: true, data: { items: [] } });
+        }
+
+        // Calculate totals
+        const items = cart.items.map(item => ({
+            ...item,
+            total: item.product.price * item.quantity
+        }));
+
+        const totalAmount = items.reduce((sum, item) => sum + item.total, 0);
+        const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+        res.json({
+            success: true,
+            data: {
+                items,
+                totalAmount,
+                totalItems
+            }
+        });
+    } catch (error) {
+        console.error('Get cart error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch cart' });
+    }
+};
+
+const addToCart = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId, quantity = 1 } = req.body;
+
+        // Validate product exists and has stock
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        if (product.stock < quantity) {
+            return res.status(400).json({ success: false, message: 'Insufficient stock' });
+        }
+
+        // Find or create cart
+        let cart = await Cart.findOne({ user: userId });
+
+        if (!cart) {
+            cart = new Cart({ user: userId, items: [] });
+        }
+
+        // Check if product already in cart
+        const existingItem = cart.items.find(item =>
+            item.product.toString() === productId
+        );
+
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            cart.items.push({
+                product: productId,
+                quantity
+            });
+        }
+
+        cart.updatedAt = new Date();
+        await cart.save();
+
+        const populatedCart = await Cart.findById(cart._id)
+            .populate('items.product', 'name price image unit category stock organic');
+
+        res.json({ success: true, data: populatedCart });
+    } catch (error) {
+        console.error('Add to cart error:', error);
+        res.status(500).json({ success: false, message: 'Failed to add item to cart' });
+    }
+};
+
+const updateCartItem = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId } = req.params;
+        const { quantity } = req.body;
+
+        const cart = await Cart.findOne({ user: userId });
+        if (!cart) {
+            return res.status(404).json({ success: false, message: 'Cart not found' });
+        }
+
+        const itemIndex = cart.items.findIndex(item =>
+            item.product.toString() === productId
+        );
+
+        if (itemIndex === -1) {
+            return res.status(404).json({ success: false, message: 'Item not found in cart' });
+        }
+
+        if (quantity <= 0) {
+            cart.items.splice(itemIndex, 1);
+        } else {
+            // Check stock availability
+            const product = await Product.findById(productId);
+            if (product && product.stock < quantity) {
+                return res.status(400).json({ success: false, message: 'Insufficient stock' });
+            }
+            cart.items[itemIndex].quantity = quantity;
+        }
+
+        cart.updatedAt = new Date();
+        await cart.save();
+
+        const populatedCart = await Cart.findById(cart._id)
+            .populate('items.product', 'name price image unit category stock organic');
+
+        res.json({ success: true, data: populatedCart });
+    } catch (error) {
+        console.error('Update cart item error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update cart item' });
+    }
+};
+
+const removeFromCart = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId } = req.params;
+
+        const cart = await Cart.findOne({ user: userId });
+        if (!cart) {
+            return res.status(404).json({ success: false, message: 'Cart not found' });
+        }
+
+        cart.items = cart.items.filter(item =>
+            item.product.toString() !== productId
+        );
+
+        cart.updatedAt = new Date();
+        await cart.save();
+
+        const populatedCart = await Cart.findById(cart._id)
+            .populate('items.product', 'name price image unit category stock organic');
+
+        res.json({ success: true, data: populatedCart });
+    } catch (error) {
+        console.error('Remove from cart error:', error);
+        res.status(500).json({ success: false, message: 'Failed to remove item from cart' });
+    }
+};
+
+const clearCart = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        await Cart.findOneAndUpdate(
+            { user: userId },
+            { items: [], updatedAt: new Date() },
+            { upsert: true }
+        );
+
+        res.json({ success: true, message: 'Cart cleared successfully' });
+    } catch (error) {
+        console.error('Clear cart error:', error);
+        res.status(500).json({ success: false, message: 'Failed to clear cart' });
+    }
+};
+
+// Wishlist Controllers
+const getWishlist = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const wishlist = await Wishlist.find({ user: userId })
+            .populate('product', 'name price image category rating stock unit organic seller')
+            .populate('product.seller', 'name farmerProfile.businessName')
+            .sort({ addedAt: -1 });
+
+        res.json({ success: true, data: wishlist });
+    } catch (error) {
+        console.error('Get wishlist error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch wishlist' });
+    }
+};
+
+const addToWishlist = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId } = req.body;
+
+        // Check if product exists
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        // Check if already in wishlist
+        const existingItem = await Wishlist.findOne({ user: userId, product: productId });
+        if (existingItem) {
+            return res.status(400).json({ success: false, message: 'Product already in wishlist' });
+        }
+
+        const wishlistItem = new Wishlist({
+            user: userId,
+            product: productId
+        });
+
+        await wishlistItem.save();
+
+        const populatedItem = await Wishlist.findById(wishlistItem._id)
+            .populate('product', 'name price image category rating stock unit organic seller')
+            .populate('product.seller', 'name farmerProfile.businessName');
+
+        res.status(201).json({ success: true, data: populatedItem });
+    } catch (error) {
+        console.error('Add to wishlist error:', error);
+        res.status(500).json({ success: false, message: 'Failed to add to wishlist' });
+    }
+};
+
+const removeFromWishlist = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId } = req.params;
+
+        const result = await Wishlist.findOneAndDelete({
+            user: userId,
+            product: productId
+        });
+
+        if (!result) {
+            return res.status(404).json({ success: false, message: 'Item not found in wishlist' });
+        }
+
+        res.json({ success: true, message: 'Removed from wishlist' });
+    } catch (error) {
+        console.error('Remove from wishlist error:', error);
+        res.status(500).json({ success: false, message: 'Failed to remove from wishlist' });
+    }
+};
+
+const checkWishlistStatus = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId } = req.params;
+
+        const item = await Wishlist.findOne({ user: userId, product: productId });
+
+        res.json({ success: true, data: { isInWishlist: !!item } });
+    } catch (error) {
+        console.error('Check wishlist status error:', error);
+        res.status(500).json({ success: false, message: 'Failed to check wishlist status' });
+    }
+};
+
+// Review Controllers
+const getProductReviews = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const { page = 1, limit = 10 } = req.query;
+
+        const reviews = await Review.find({ product: productId })
+            .populate('user', 'name avatar')
+            .populate('order', 'id')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Review.countDocuments({ product: productId });
+
+        // Calculate average rating
+        const ratingStats = await Review.aggregate([
+            { $match: { product: mongoose.Types.ObjectId(productId) } },
+            {
+                $group: {
+                    _id: null,
+                    averageRating: { $avg: '$rating' },
+                    totalReviews: { $sum: 1 },
+                    ratingDistribution: {
+                        $push: '$rating'
+                    }
+                }
+            }
+        ]);
+
+        res.json({
+            success: true,
+            data: reviews,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            },
+            stats: ratingStats[0] || { averageRating: 0, totalReviews: 0 }
+        });
+    } catch (error) {
+        console.error('Get product reviews error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch reviews' });
+    }
+};
+
+const createReview = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { productId, orderId, rating, title, comment, images } = req.body;
+
+        // Check if user has purchased this product
+        if (orderId) {
+            const order = await Order.findOne({
+                _id: orderId,
+                buyer: userId,
+                items: { $elemMatch: { product: productId } }
+            });
+
+            if (!order) {
+                return res.status(403).json({ success: false, message: 'You can only review products you have purchased' });
+            }
+        }
+
+        // Check if user already reviewed this product
+        const existingReview = await Review.findOne({ user: userId, product: productId });
+        if (existingReview) {
+            return res.status(400).json({ success: false, message: 'You have already reviewed this product' });
+        }
+
+        const review = new Review({
+            user: userId,
+            product: productId,
+            order: orderId,
+            rating,
+            title,
+            comment,
+            images,
+            isVerified: !!orderId
+        });
+
+        await review.save();
+
+        // Update product rating
+        const productReviews = await Review.find({ product: productId });
+        const averageRating = productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length;
+
+        await Product.findByIdAndUpdate(productId, {
+            rating: Math.round(averageRating * 10) / 10 // Round to 1 decimal
+        });
+
+        const populatedReview = await Review.findById(review._id)
+            .populate('user', 'name avatar')
+            .populate('order', 'id');
+
+        res.status(201).json({ success: true, data: populatedReview });
+    } catch (error) {
+        console.error('Create review error:', error);
+        res.status(500).json({ success: false, message: 'Failed to create review' });
+    }
+};
+
+const updateReview = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { reviewId } = req.params;
+        const updates = req.body;
+
+        const review = await Review.findOne({ _id: reviewId, user: userId });
+        if (!review) {
+            return res.status(404).json({ success: false, message: 'Review not found' });
+        }
+
+        Object.assign(review, updates);
+        review.updatedAt = new Date();
+        await review.save();
+
+        const populatedReview = await Review.findById(review._id)
+            .populate('user', 'name avatar')
+            .populate('order', 'id');
+
+        res.json({ success: true, data: populatedReview });
+    } catch (error) {
+        console.error('Update review error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update review' });
+    }
+};
+
+const deleteReview = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { reviewId } = req.params;
+
+        const review = await Review.findOneAndDelete({ _id: reviewId, user: userId });
+        if (!review) {
+            return res.status(404).json({ success: false, message: 'Review not found' });
+        }
+
+        res.json({ success: true, message: 'Review deleted successfully' });
+    } catch (error) {
+        console.error('Delete review error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete review' });
+    }
+};
+
+const getUserReviews = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { page = 1, limit = 10 } = req.query;
+
+        const reviews = await Review.find({ user: userId })
+            .populate('product', 'name image category')
+            .populate('order', 'id status')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Review.countDocuments({ user: userId });
+
+        res.json({
+            success: true,
+            data: reviews,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Get user reviews error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch user reviews' });
+    }
+};
+
+// Category Controllers
+const getCategories = async (req, res) => {
+    try {
+        const categories = await Category.find({ isActive: true })
+            .sort({ sortOrder: 1, name: 1 });
+
+        res.json({ success: true, data: categories });
+    } catch (error) {
+        console.error('Get categories error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    }
+};
+
+const createCategory = async (req, res) => {
+    try {
+        const { name, slug, description, image, parent, sortOrder } = req.body;
+
+        const category = new Category({
+            name,
+            slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+            description,
+            image,
+            parent,
+            sortOrder
+        });
+
+        await category.save();
+        res.status(201).json({ success: true, data: category });
+    } catch (error) {
+        console.error('Create category error:', error);
+        if (error.code === 11000) {
+            res.status(400).json({ success: false, message: 'Category name or slug already exists' });
+        } else {
+            res.status(500).json({ success: false, message: 'Failed to create category' });
+        }
+    }
+};
+
+const updateCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        const category = await Category.findByIdAndUpdate(id, updates, { new: true });
+
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Category not found' });
+        }
+
+        res.json({ success: true, data: category });
+    } catch (error) {
+        console.error('Update category error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update category' });
+    }
+};
+
+const deleteCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const category = await Category.findByIdAndDelete(id);
+
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Category not found' });
+        }
+
+        res.json({ success: true, message: 'Category deleted successfully' });
+    } catch (error) {
+        console.error('Delete category error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete category' });
+    }
+};
+
+// Notification Controllers
+const getNotifications = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { page = 1, limit = 20, unreadOnly = false } = req.query;
+
+        let query = { user: userId };
+        if (unreadOnly === 'true') {
+            query.isRead = false;
+        }
+
+        const notifications = await Notification.find(query)
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Notification.countDocuments(query);
+        const unreadCount = await Notification.countDocuments({ user: userId, isRead: false });
+
+        res.json({
+            success: true,
+            data: notifications,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / limit)
+            },
+            unreadCount
+        });
+    } catch (error) {
+        console.error('Get notifications error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch notifications' });
+    }
+};
+
+const markNotificationAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+
+        const notification = await Notification.findOneAndUpdate(
+            { _id: id, user: userId },
+            { isRead: true, readAt: new Date() },
+            { new: true }
+        );
+
+        if (!notification) {
+            return res.status(404).json({ success: false, message: 'Notification not found' });
+        }
+
+        res.json({ success: true, data: notification });
+    } catch (error) {
+        console.error('Mark notification as read error:', error);
+        res.status(500).json({ success: false, message: 'Failed to mark notification as read' });
+    }
+};
+
+const markAllNotificationsAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        await Notification.updateMany(
+            { user: userId, isRead: false },
+            { isRead: true, readAt: new Date() }
+        );
+
+        res.json({ success: true, message: 'All notifications marked as read' });
+    } catch (error) {
+        console.error('Mark all notifications as read error:', error);
+        res.status(500).json({ success: false, message: 'Failed to mark notifications as read' });
+    }
+};
+
+const deleteNotification = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+
+        const notification = await Notification.findOneAndDelete({ _id: id, user: userId });
+
+        if (!notification) {
+            return res.status(404).json({ success: false, message: 'Notification not found' });
+        }
+
+        res.json({ success: true, message: 'Notification deleted successfully' });
+    } catch (error) {
+        console.error('Delete notification error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete notification' });
+    }
+};
+
+// Analytics Controllers
+const getSellerAnalytics = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { period = '30d' } = req.query;
+
+        // Calculate date range
+        const endDate = new Date();
+        const startDate = new Date();
+
+        switch (period) {
+            case '7d':
+                startDate.setDate(endDate.getDate() - 7);
+                break;
+            case '30d':
+                startDate.setDate(endDate.getDate() - 30);
+                break;
+            case '90d':
+                startDate.setDate(endDate.getDate() - 90);
+                break;
+            case '1y':
+                startDate.setFullYear(endDate.getFullYear() - 1);
+                break;
+            default:
+                startDate.setDate(endDate.getDate() - 30);
+        }
+
+        // Get seller's products
+        const products = await Product.find({ seller: userId }, '_id name');
+        const productIds = products.map(p => p._id);
+
+        // Orders analytics
+        const orders = await Order.find({
+            seller: userId,
+            createdAt: { $gte: startDate, $lte: endDate }
+        });
+
+        const totalOrders = orders.length;
+        const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+        const completedOrders = orders.filter(order => order.status === 'delivered').length;
+
+        // Product performance
+        const productStats = await Promise.all(
+            products.map(async (product) => {
+                const productOrders = orders.filter(order =>
+                    order.items.some(item => item.product.toString() === product._id.toString())
+                );
+
+                const totalSold = productOrders.reduce((sum, order) => {
+                    const item = order.items.find(item => item.product.toString() === product._id.toString());
+                    return sum + (item ? item.quantity : 0);
+                }, 0);
+
+                const revenue = productOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+                return {
+                    productId: product._id,
+                    productName: product.name,
+                    totalSold,
+                    revenue,
+                    orders: productOrders.length
+                };
+            })
+        );
+
+        res.json({
+            success: true,
+            data: {
+                period,
+                overview: {
+                    totalOrders,
+                    totalRevenue,
+                    completedOrders,
+                    completionRate: totalOrders > 0 ? (completedOrders / totalOrders * 100).toFixed(1) : 0
+                },
+                products: productStats.sort((a, b) => b.revenue - a.revenue)
+            }
+        });
+    } catch (error) {
+        console.error('Get seller analytics error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch seller analytics' });
+    }
+};
+
+const getBuyerAnalytics = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { period = '30d' } = req.query;
+
+        // Calculate date range
+        const endDate = new Date();
+        const startDate = new Date();
+
+        switch (period) {
+            case '7d':
+                startDate.setDate(endDate.getDate() - 7);
+                break;
+            case '30d':
+                startDate.setDate(endDate.getDate() - 30);
+                break;
+            case '90d':
+                startDate.setDate(endDate.getDate() - 90);
+                break;
+            case '1y':
+                startDate.setFullYear(endDate.getFullYear() - 1);
+                break;
+            default:
+                startDate.setDate(endDate.getDate() - 30);
+        }
+
+        // Orders analytics
+        const orders = await Order.find({
+            buyer: userId,
+            createdAt: { $gte: startDate, $lte: endDate }
+        }).populate('items.product', 'category');
+
+        const totalOrders = orders.length;
+        const totalSpent = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+        const completedOrders = orders.filter(order => order.status === 'delivered').length;
+
+        // Category preferences
+        const categoryStats = {};
+        orders.forEach(order => {
+            order.items.forEach(item => {
+                const category = item.product.category;
+                if (!categoryStats[category]) {
+                    categoryStats[category] = { count: 0, spent: 0 };
+                }
+                categoryStats[category].count += item.quantity;
+                categoryStats[category].spent += item.total;
+            });
+        });
+
+        res.json({
+            success: true,
+            data: {
+                period,
+                overview: {
+                    totalOrders,
+                    totalSpent,
+                    completedOrders,
+                    completionRate: totalOrders > 0 ? (completedOrders / totalOrders * 100).toFixed(1) : 0
+                },
+                categories: Object.entries(categoryStats).map(([category, stats]) => ({
+                    category,
+                    itemsPurchased: stats.count,
+                    amountSpent: stats.spent
+                })).sort((a, b) => b.amountSpent - a.amountSpent)
+            }
+        });
+    } catch (error) {
+        console.error('Get buyer analytics error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch buyer analytics' });
+    }
+};
+
+const getProductAnalytics = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const { period = '30d' } = req.query;
+
+        // Calculate date range
+        const endDate = new Date();
+        const startDate = new Date();
+
+        switch (period) {
+            case '7d':
+                startDate.setDate(endDate.getDate() - 7);
+                break;
+            case '30d':
+                startDate.setDate(endDate.getDate() - 30);
+                break;
+            case '90d':
+                startDate.setDate(endDate.getDate() - 90);
+                break;
+            case '1y':
+                startDate.setFullYear(endDate.getFullYear() - 1);
+                break;
+            default:
+                startDate.setDate(endDate.getDate() - 30);
+        }
+
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        // Get orders containing this product
+        const orders = await Order.find({
+            'items.product': productId,
+            createdAt: { $gte: startDate, $lte: endDate }
+        });
+
+        const totalSold = orders.reduce((sum, order) => {
+            const item = order.items.find(item => item.product.toString() === productId);
+            return sum + (item ? item.quantity : 0);
+        }, 0);
+
+        const totalRevenue = orders.reduce((sum, order) => {
+            const item = order.items.find(item => item.product.toString() === productId);
+            return sum + (item ? item.total : 0);
+        }, 0);
+
+        const uniqueBuyers = new Set(orders.map(order => order.buyer.toString())).size;
+
+        // Reviews analytics
+        const reviews = await Review.find({
+            product: productId,
+            createdAt: { $gte: startDate, $lte: endDate }
+        });
+
+        const averageRating = reviews.length > 0
+            ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+            : 0;
+
+        res.json({
+            success: true,
+            data: {
+                productId,
+                productName: product.name,
+                period,
+                sales: {
+                    totalSold,
+                    totalRevenue,
+                    uniqueBuyers,
+                    ordersCount: orders.length
+                },
+                reviews: {
+                    totalReviews: reviews.length,
+                    averageRating: Math.round(averageRating * 10) / 10
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Get product analytics error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch product analytics' });
+    }
+};
+
 module.exports = {
     // Auth controllers
     register,
@@ -908,5 +2334,62 @@ module.exports = {
     getMarketTrends,
     getMarketAnalysis,
     createMarketPriceAlert,
-    deleteMarketPriceAlert
+    deleteMarketPriceAlert,
+
+    // Product controllers
+    getProducts,
+    getProductById,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+
+    // Order controllers
+    getOrders,
+    getOrderById,
+    createOrder,
+    updateOrderStatus,
+    cancelOrder,
+
+    // Delivery controllers
+    getDeliveries,
+    getDeliveryById,
+    updateDeliveryStatus,
+    getDeliveryByTrackingId,
+
+    // Cart controllers
+    getCart,
+    addToCart,
+    updateCartItem,
+    removeFromCart,
+    clearCart,
+
+    // Wishlist controllers
+    getWishlist,
+    addToWishlist,
+    removeFromWishlist,
+    checkWishlistStatus,
+
+    // Review controllers
+    getProductReviews,
+    createReview,
+    updateReview,
+    deleteReview,
+    getUserReviews,
+
+    // Category controllers
+    getCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+
+    // Notification controllers
+    getNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification,
+
+    // Analytics controllers
+    getSellerAnalytics,
+    getBuyerAnalytics,
+    getProductAnalytics
 };

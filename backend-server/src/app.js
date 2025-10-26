@@ -129,6 +129,258 @@ app.get('/', (req, res) => {
                     url: '/api/market/analysis?commodity={commodity}',
                     description: 'Get market analysis'
                 }
+            },
+            marketplace: {
+                products: {
+                    list: {
+                        method: 'GET',
+                        url: '/api/products?page={page}&limit={limit}&category={category}&search={search}',
+                        description: 'Get all products'
+                    },
+                    get: {
+                        method: 'GET',
+                        url: '/api/products/{id}',
+                        description: 'Get product by ID'
+                    },
+                    create: {
+                        method: 'POST',
+                        url: '/api/products',
+                        description: 'Create new product (farmers only)',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ name, description, price, category, stock, images, organic }'
+                    },
+                    update: {
+                        method: 'PUT',
+                        url: '/api/products/{id}',
+                        description: 'Update product (owner only)',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    delete: {
+                        method: 'DELETE',
+                        url: '/api/products/{id}',
+                        description: 'Delete product (owner only)',
+                        headers: { Authorization: 'Bearer <token>' }
+                    }
+                },
+                orders: {
+                    list: {
+                        method: 'GET',
+                        url: '/api/orders',
+                        description: 'Get user orders',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    get: {
+                        method: 'GET',
+                        url: '/api/orders/{id}',
+                        description: 'Get order by ID',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    create: {
+                        method: 'POST',
+                        url: '/api/orders',
+                        description: 'Create new order',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ items: [{ productId, quantity }], deliveryAddress }'
+                    },
+                    updateStatus: {
+                        method: 'PUT',
+                        url: '/api/orders/{id}/status',
+                        description: 'Update order status (seller/admin only)',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ status }'
+                    }
+                },
+                deliveries: {
+                    list: {
+                        method: 'GET',
+                        url: '/api/deliveries',
+                        description: 'Get user deliveries',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    get: {
+                        method: 'GET',
+                        url: '/api/deliveries/{id}',
+                        description: 'Get delivery by ID',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    updateStatus: {
+                        method: 'PUT',
+                        url: '/api/deliveries/{id}/status',
+                        description: 'Update delivery status',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ status, location }'
+                    },
+                    track: {
+                        method: 'GET',
+                        url: '/api/deliveries/track/{trackingId}',
+                        description: 'Track delivery by tracking ID'
+                    }
+                },
+                cart: {
+                    get: {
+                        method: 'GET',
+                        url: '/api/cart',
+                        description: 'Get user cart',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    add: {
+                        method: 'POST',
+                        url: '/api/cart',
+                        description: 'Add item to cart',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ productId, quantity }'
+                    },
+                    update: {
+                        method: 'PUT',
+                        url: '/api/cart/{productId}',
+                        description: 'Update cart item quantity',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ quantity }'
+                    },
+                    remove: {
+                        method: 'DELETE',
+                        url: '/api/cart/{productId}',
+                        description: 'Remove item from cart',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    clear: {
+                        method: 'DELETE',
+                        url: '/api/cart',
+                        description: 'Clear entire cart',
+                        headers: { Authorization: 'Bearer <token>' }
+                    }
+                },
+                wishlist: {
+                    get: {
+                        method: 'GET',
+                        url: '/api/wishlist',
+                        description: 'Get user wishlist',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    add: {
+                        method: 'POST',
+                        url: '/api/wishlist',
+                        description: 'Add product to wishlist',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ productId }'
+                    },
+                    remove: {
+                        method: 'DELETE',
+                        url: '/api/wishlist/{productId}',
+                        description: 'Remove from wishlist',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    check: {
+                        method: 'GET',
+                        url: '/api/wishlist/{productId}/status',
+                        description: 'Check if product is in wishlist',
+                        headers: { Authorization: 'Bearer <token>' }
+                    }
+                },
+                reviews: {
+                    getProduct: {
+                        method: 'GET',
+                        url: '/api/reviews/product/{productId}?page={page}&limit={limit}',
+                        description: 'Get product reviews'
+                    },
+                    create: {
+                        method: 'POST',
+                        url: '/api/reviews',
+                        description: 'Create product review',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ productId, orderId, rating, title, comment, images }'
+                    },
+                    update: {
+                        method: 'PUT',
+                        url: '/api/reviews/{reviewId}',
+                        description: 'Update review (owner only)',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    delete: {
+                        method: 'DELETE',
+                        url: '/api/reviews/{reviewId}',
+                        description: 'Delete review (owner only)',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    getUser: {
+                        method: 'GET',
+                        url: '/api/reviews/user?page={page}&limit={limit}',
+                        description: 'Get user reviews',
+                        headers: { Authorization: 'Bearer <token>' }
+                    }
+                },
+                categories: {
+                    list: {
+                        method: 'GET',
+                        url: '/api/categories',
+                        description: 'Get all categories'
+                    },
+                    create: {
+                        method: 'POST',
+                        url: '/api/categories',
+                        description: 'Create category (admin only)',
+                        headers: { Authorization: 'Bearer <token>' },
+                        body: '{ name, slug, description, image, parent, sortOrder }'
+                    },
+                    update: {
+                        method: 'PUT',
+                        url: '/api/categories/{id}',
+                        description: 'Update category (admin only)',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    delete: {
+                        method: 'DELETE',
+                        url: '/api/categories/{id}',
+                        description: 'Delete category (admin only)',
+                        headers: { Authorization: 'Bearer <token>' }
+                    }
+                },
+                notifications: {
+                    get: {
+                        method: 'GET',
+                        url: '/api/notifications?page={page}&limit={limit}&unreadOnly={true}',
+                        description: 'Get user notifications',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    markRead: {
+                        method: 'PUT',
+                        url: '/api/notifications/{id}/read',
+                        description: 'Mark notification as read',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    markAllRead: {
+                        method: 'PUT',
+                        url: '/api/notifications/read-all',
+                        description: 'Mark all notifications as read',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    delete: {
+                        method: 'DELETE',
+                        url: '/api/notifications/{id}',
+                        description: 'Delete notification',
+                        headers: { Authorization: 'Bearer <token>' }
+                    }
+                },
+                analytics: {
+                    seller: {
+                        method: 'GET',
+                        url: '/api/analytics/seller?period={7d|30d|90d|1y}',
+                        description: 'Get seller analytics',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    buyer: {
+                        method: 'GET',
+                        url: '/api/analytics/buyer?period={7d|30d|90d|1y}',
+                        description: 'Get buyer analytics',
+                        headers: { Authorization: 'Bearer <token>' }
+                    },
+                    product: {
+                        method: 'GET',
+                        url: '/api/analytics/product/{productId}?period={7d|30d|90d|1y}',
+                        description: 'Get product analytics',
+                        headers: { Authorization: 'Bearer <token>' }
+                    }
+                }
             }
         },
         database: global.dbConnected ? 'Connected' : 'Mock Mode',

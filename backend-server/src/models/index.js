@@ -16,8 +16,47 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['admin', 'seller', 'user'],
-        default: 'user'
+        enum: ['admin', 'farmer', 'buyer'],
+        default: 'buyer'
+    },
+    // Farmer specific fields
+    farmerProfile: {
+        farmName: String,
+        farmSize: String, // e.g., "15 acres"
+        location: {
+            address: String,
+            city: String,
+            state: String,
+            pincode: String,
+            coordinates: {
+                lat: Number,
+                lng: Number
+            }
+        },
+        crops: [String], // Array of crop names
+        experience: String, // e.g., "12 years"
+        certifications: [String], // Organic, etc.
+        contactNumber: String
+    },
+    // Buyer specific fields
+    buyerProfile: {
+        businessName: String,
+        businessType: {
+            type: String,
+            enum: ['individual', 'retail', 'wholesale', 'restaurant', 'cooperative']
+        },
+        preferredProducts: [String], // Product categories they buy
+        deliveryAddress: {
+            address: String,
+            city: String,
+            state: String,
+            pincode: String,
+            coordinates: {
+                lat: Number,
+                lng: Number
+            }
+        },
+        gstNumber: String
     },
     avatar: {
         type: String, // URL to avatar image
@@ -55,6 +94,410 @@ const userSchema = new mongoose.Schema({
         default: Date.now
     },
     updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Product Model
+const productSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    category: {
+        type: String,
+        enum: ['seeds', 'fertilizers', 'tools', 'pesticides', 'equipment', 'other'],
+        required: true
+    },
+    image: {
+        type: String,
+        default: ''
+    },
+    stock: {
+        type: Number,
+        required: true,
+        min: 0,
+        default: 0
+    },
+    rating: {
+        type: Number,
+        min: 0,
+        max: 5,
+        default: 0
+    },
+    seller: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    unit: {
+        type: String,
+        required: true,
+        default: 'kg'
+    },
+    organic: {
+        type: Boolean,
+        default: false
+    },
+    location: {
+        address: String,
+        city: String,
+        state: String,
+        pincode: String,
+        coordinates: {
+            lat: Number,
+            lng: Number
+        }
+    },
+    discount: {
+        type: Number,
+        min: 0,
+        max: 100,
+        default: 0
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Order Model
+const orderSchema = new mongoose.Schema({
+    buyer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    seller: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    items: [{
+        product: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product',
+            required: true
+        },
+        name: String,
+        price: Number,
+        quantity: {
+            type: Number,
+            required: true,
+            min: 1
+        },
+        unit: String,
+        total: Number
+    }],
+    totalAmount: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
+        default: 'pending'
+    },
+    orderDate: {
+        type: Date,
+        default: Date.now
+    },
+    deliveryDate: {
+        type: Date
+    },
+    shippingAddress: {
+        name: String,
+        address: String,
+        city: String,
+        state: String,
+        pincode: String,
+        phone: String,
+        coordinates: {
+            lat: Number,
+            lng: Number
+        }
+    },
+    paymentMethod: {
+        type: String,
+        enum: ['cod', 'online', 'upi'],
+        required: true
+    },
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'completed', 'failed'],
+        default: 'pending'
+    },
+    trackingId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    notes: String,
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Delivery Model
+const deliverySchema = new mongoose.Schema({
+    order: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'failed'],
+        default: 'pending'
+    },
+    trackingId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    deliveryPartner: {
+        name: String,
+        contact: String,
+        vehicleNumber: String
+    },
+    estimatedDeliveryDate: Date,
+    actualDeliveryDate: Date,
+    deliveryAddress: {
+        name: String,
+        address: String,
+        city: String,
+        state: String,
+        pincode: String,
+        phone: String,
+        coordinates: {
+            lat: Number,
+            lng: Number
+        }
+    },
+    currentLocation: {
+        coordinates: {
+            lat: Number,
+            lng: Number
+        },
+        address: String,
+        timestamp: Date
+    },
+    notes: String,
+    proofOfDelivery: {
+        signature: String,
+        photo: String,
+        timestamp: Date
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Cart Model
+const cartSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        unique: true
+    },
+    items: [{
+        product: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product',
+            required: true
+        },
+        quantity: {
+            type: Number,
+            required: true,
+            min: 1,
+            default: 1
+        },
+        addedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Wishlist Model
+const wishlistSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
+    },
+    addedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Create compound index to prevent duplicate wishlist items
+wishlistSchema.index({ user: 1, product: 1 }, { unique: true });
+
+// Review Model
+const reviewSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
+    },
+    order: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order'
+    },
+    rating: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 5
+    },
+    title: {
+        type: String,
+        maxlength: 100
+    },
+    comment: {
+        type: String,
+        maxlength: 1000
+    },
+    images: [{
+        url: String,
+        alt: String
+    }],
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    helpful: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Category Model
+const categorySchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    slug: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    description: String,
+    image: String,
+    parent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category'
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    sortOrder: {
+        type: Number,
+        default: 0
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Notification Model
+const notificationSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    type: {
+        type: String,
+        enum: ['order_placed', 'order_confirmed', 'order_shipped', 'order_delivered', 'order_cancelled', 'product_review', 'payment_received', 'low_stock', 'new_message'],
+        required: true
+    },
+    title: {
+        type: String,
+        required: true
+    },
+    message: {
+        type: String,
+        required: true
+    },
+    data: {
+        orderId: mongoose.Schema.Types.ObjectId,
+        productId: mongoose.Schema.Types.ObjectId,
+        amount: Number,
+        quantity: Number
+    },
+    isRead: {
+        type: Boolean,
+        default: false
+    },
+    readAt: Date,
+    createdAt: {
         type: Date,
         default: Date.now
     }
@@ -307,8 +750,26 @@ const MarketPrice = mongoose.model('MarketPrice', marketPriceSchema);
 const MarketTrend = mongoose.model('MarketTrend', marketTrendSchema);
 const MarketAlert = mongoose.model('MarketAlert', marketAlertSchema);
 
+// Marketplace Models
+const Product = mongoose.model('Product', productSchema);
+const Order = mongoose.model('Order', orderSchema);
+const Delivery = mongoose.model('Delivery', deliverySchema);
+const Cart = mongoose.model('Cart', cartSchema);
+const Wishlist = mongoose.model('Wishlist', wishlistSchema);
+const Review = mongoose.model('Review', reviewSchema);
+const Category = mongoose.model('Category', categorySchema);
+const Notification = mongoose.model('Notification', notificationSchema);
+
 module.exports = {
     User,
+    Product,
+    Order,
+    Delivery,
+    Cart,
+    Wishlist,
+    Review,
+    Category,
+    Notification,
     WeatherCurrent,
     WeatherForecast,
     WeatherAlert,

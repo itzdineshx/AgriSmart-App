@@ -23,6 +23,21 @@ const registerValidation = [
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ];
 
+const farmerRegisterValidation = [
+    ...registerValidation,
+    body('farmerProfile.farmName').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Farm name must be 2-100 characters'),
+    body('farmerProfile.farmSize').optional().trim().isLength({ min: 1, max: 50 }).withMessage('Farm size is required'),
+    body('farmerProfile.location.city').optional().trim().isLength({ min: 2, max: 50 }).withMessage('City is required'),
+    body('farmerProfile.contactNumber').optional().isMobilePhone().withMessage('Valid contact number required')
+];
+
+const buyerRegisterValidation = [
+    ...registerValidation,
+    body('buyerProfile.businessName').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Business name must be 2-100 characters'),
+    body('buyerProfile.businessType').optional().isIn(['individual', 'retail', 'wholesale', 'restaurant', 'cooperative']).withMessage('Invalid business type'),
+    body('buyerProfile.deliveryAddress.city').optional().trim().isLength({ min: 2, max: 50 }).withMessage('City is required')
+];
+
 const loginValidation = [
     body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
     body('password').notEmpty().withMessage('Password is required')
@@ -39,6 +54,14 @@ const resetPasswordValidation = [
 
 // Public routes
 router.post('/register', registerValidation, register);
+router.post('/register/farmer', farmerRegisterValidation, (req, res, next) => {
+    req.body.role = 'farmer';
+    next();
+}, register);
+router.post('/register/buyer', buyerRegisterValidation, (req, res, next) => {
+    req.body.role = 'buyer';
+    next();
+}, register);
 router.post('/login', loginValidation, login);
 router.post('/logout', logout);
 router.post('/refresh-token', refreshToken);
