@@ -1,8 +1,8 @@
 import { WeatherData } from './weatherService';
 import { MandiPrice } from './mandiService';
 
-const GEMINI_API_KEY = 'AIzaSyB7_4jF675ctOel_Ndyf0KAL3Ay8wFpJkM';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 export interface GeminiSuggestion {
   title: string;

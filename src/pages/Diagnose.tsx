@@ -668,7 +668,7 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                 </h4>
                 <div className="aspect-video w-full max-w-2xl mx-auto rounded-lg overflow-hidden shadow-lg">
                   <iframe
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    src="https://www.youtube.com/embed/gKrNI5PIMeM"
                     title="How to Use Plant Health Diagnosis - Demo"
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
