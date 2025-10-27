@@ -186,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const demoCredentials = {
       admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
       buyer: { username: 'buyer_pro', password: 'BuyPro@2024' },
-      user: { username: 'farmer_user', password: 'FarmUser@2024' }
+      farmer: { username: 'farmer_user', password: 'FarmUser@2024' }
     };
 
     const roleCredentials = demoCredentials[role as keyof typeof demoCredentials];

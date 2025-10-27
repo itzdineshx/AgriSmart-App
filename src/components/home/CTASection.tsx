@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   ArrowRight, 
   MessageCircle, 
@@ -14,6 +15,7 @@ import {
 
 export function CTASection() {
   const navigate = useNavigate();
+  const { isAuthenticated, userRole } = useAuth();
 
   const benefits = [
     { icon: Zap, text: "Instant AI Analysis" },
@@ -61,10 +63,29 @@ export function CTASection() {
             <Button
               variant="hero"
               size="xl"
-              onClick={() => navigate("/user-profile")}
+              onClick={() => {
+                if (isAuthenticated) {
+                  // Route based on user role
+                  switch (userRole) {
+                    case 'admin':
+                      navigate('/admin');
+                      break;
+                    case 'buyer':
+                      navigate('/buyer-panel');
+                      break;
+                    case 'farmer':
+                      navigate('/user-profile');
+                      break;
+                    default:
+                      navigate('/role-login');
+                  }
+                } else {
+                  navigate('/role-login');
+                }
+              }}
               className="w-full sm:w-auto group"
             >
-              Get Started Free
+              {isAuthenticated ? `Go to ${userRole?.charAt(0).toUpperCase()}${userRole?.slice(1)} Dashboard` : 'Get Started Free'}
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             
