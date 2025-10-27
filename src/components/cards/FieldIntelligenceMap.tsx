@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+
+// Extend window type for telemetry blocking
+declare global {
+  interface Window {
+    disabledMapboxTelemetry?: boolean;
+  }
+}
 import { 
   MapPin, 
   Loader2, 
@@ -157,7 +164,7 @@ if (typeof document !== 'undefined') {
 
 // Constants
 const MAPBOX_API_KEY = 'pk.eyJ1IjoiaGFyaXNod2FyYW4iLCJhIjoiY21hZHhwZGs2MDF4YzJxczh2aDd0cWg1MyJ9.qcu0lpqVlZlC2WFxhwb1Pg';
-const PUNJAB_CENTER = { lat: 31.1471, lng: 75.3412 };
+const CHENNAI_CENTER = { lat: 13.0827, lng: 80.2707 };
 
 // Custom mock locations - Chennai, Thiruvallur, Kanchipuram area
 const MOCK_LOCATIONS: MockLocation[] = [
@@ -225,6 +232,47 @@ const MOCK_LOCATIONS: MockLocation[] = [
   { lat: 13.0298, lng: 80.0298, type: 'farm', name: 'Saveetha Aquaculture Center', description: 'Fish farming and research facility' },
   { lat: 13.0323, lng: 80.0323, type: 'office', name: 'Thandalam Cooperative Bank', description: 'Agricultural cooperative banking services' },
   { lat: 13.0178, lng: 80.0178, type: 'farm', name: 'Thandalam Floriculture Unit', description: 'Commercial flower cultivation and export' },
+  
+  // Tambaram area
+  { lat: 12.9249, lng: 80.1000, type: 'farm', name: 'Tambaram Rice Research Farm', description: 'Rice cultivation research and development' },
+  { lat: 12.9167, lng: 80.1278, type: 'farm', name: 'Tambaram Vegetable Collective', description: 'Community vegetable farming cooperative' },
+  { lat: 12.9311, lng: 80.1156, type: 'marketplace', name: 'Tambaram Farmers Market', description: 'Daily fresh produce and agricultural products' },
+  { lat: 12.9189, lng: 80.1211, type: 'farm', name: 'Tambaram Dairy Farm', description: 'Modern dairy farming with milk processing' },
+  { lat: 12.9356, lng: 80.1089, type: 'office', name: 'Tambaram Agri Extension Center', description: 'Government agricultural advisory services' },
+  { lat: 12.9123, lng: 80.1345, type: 'farm', name: 'Tambaram Fruit Orchard', description: 'Mixed fruit cultivation and export facility' },
+  { lat: 12.9289, lng: 80.1023, type: 'marketplace', name: 'Tambaram Wholesale Market', description: 'Bulk agricultural commodities trading' },
+  { lat: 12.9211, lng: 80.1189, type: 'farm', name: 'Tambaram Organic Farm', description: 'Certified organic farming practices' },
+  
+  // Guduvancherry area
+  { lat: 12.8467, lng: 80.0606, type: 'farm', name: 'Guduvancherry Paddy Fields', description: 'Traditional paddy cultivation in fertile lands' },
+  { lat: 12.8411, lng: 80.0533, type: 'farm', name: 'Guduvancherry Vegetable Farm', description: 'Seasonal vegetable farming cooperative' },
+  { lat: 12.8523, lng: 80.0678, type: 'marketplace', name: 'Guduvancherry Village Market', description: 'Local produce and agricultural goods market' },
+  { lat: 12.8389, lng: 80.0494, type: 'office', name: 'Guduvancherry Agri Office', description: 'District agricultural administration center' },
+  { lat: 12.8556, lng: 80.0711, type: 'farm', name: 'Guduvancherry Floriculture', description: 'Commercial flower and ornamental plant cultivation' },
+  { lat: 12.8433, lng: 80.0567, type: 'farm', name: 'Guduvancherry Aquaculture', description: 'Fish farming and aquaculture research' },
+  { lat: 12.8494, lng: 80.0639, type: 'marketplace', name: 'Guduvancherry Grain Market', description: 'Regional grain and cereal trading center' },
+  
+  // Chengalpattu area
+  { lat: 12.6911, lng: 79.9756, type: 'farm', name: 'Chengalpattu Rice Research Center', description: 'Advanced rice cultivation research facility' },
+  { lat: 12.6856, lng: 79.9823, type: 'farm', name: 'Chengalpattu Coconut Plantation', description: 'Large scale coconut cultivation and processing' },
+  { lat: 12.6989, lng: 79.9689, type: 'marketplace', name: 'Chengalpattu Agricultural Market', description: 'Major agricultural commodities market' },
+  { lat: 12.6811, lng: 79.9894, type: 'office', name: 'Chengalpattu District Agri Office', description: 'District-level agricultural administration' },
+  { lat: 12.7023, lng: 79.9611, type: 'farm', name: 'Chengalpattu Mango Orchard', description: 'Premium mango cultivation and export' },
+  { lat: 12.6778, lng: 79.9967, type: 'farm', name: 'Chengalpattu Vegetable Hub', description: 'Integrated vegetable farming complex' },
+  { lat: 12.7056, lng: 79.9544, type: 'marketplace', name: 'Chengalpattu Fruit Market', description: 'Specialized fruit and produce trading' },
+  { lat: 12.6733, lng: 80.0033, type: 'farm', name: 'Chengalpattu Dairy Cooperative', description: 'Community dairy farming and processing' },
+  
+  // Kattangalathur SRM area
+  { lat: 12.8233, lng: 80.0367, type: 'farm', name: 'SRM University Agri Research Farm', description: 'University agricultural research and education' },
+  { lat: 12.8189, lng: 80.0294, type: 'farm', name: 'Kattangalathur Vegetable Research', description: 'Advanced vegetable cultivation research' },
+  { lat: 12.8278, lng: 80.0433, type: 'marketplace', name: 'Kattangalathur Campus Market', description: 'Student and local community market' },
+  { lat: 12.8156, lng: 80.0223, type: 'office', name: 'SRM Agri Tech Innovation Hub', description: 'Agricultural technology research center' },
+  { lat: 12.8311, lng: 80.0494, type: 'farm', name: 'Kattangalathur Fruit Research', description: 'Fruit cultivation research and development' },
+  { lat: 12.8123, lng: 80.0156, type: 'farm', name: 'SRM Aquaculture Research', description: 'Fish farming research and training facility' },
+  { lat: 12.8344, lng: 80.0556, type: 'marketplace', name: 'Kattangalathur Organic Market', description: 'Premium organic produce marketplace' },
+  { lat: 12.8094, lng: 80.0089, type: 'office', name: 'Kattangalathur Agri Extension', description: 'Agricultural extension and advisory services' },
+  { lat: 12.8378, lng: 80.0617, type: 'farm', name: 'SRM Floriculture Center', description: 'Flower and ornamental plant research' },
+  { lat: 12.8067, lng: 80.0023, type: 'farm', name: 'Kattangalathur Dairy Research', description: 'Dairy farming research and development' },
 ];
 
 // Type definitions
@@ -245,7 +293,7 @@ interface NearbyCount {
 interface WeatherOverlay {
   id: string;
   name: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   enabled: boolean;
   opacity: number;
 }
@@ -269,10 +317,12 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
   const [marker, setMarker] = useState<mapboxgl.Marker | null>(null);
   const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'hybrid'>('satellite');
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(false);
   const [nearbyCount, setNearbyCount] = useState<NearbyCount>({ farms: 0, markets: 0 });
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'loading' | 'success' | 'fallback' | 'error'>('loading');
   const [weatherLayers, setWeatherLayers] = useState<WeatherOverlay[]>([
     { id: 'clouds', name: 'Cloud Cover', icon: Cloud, enabled: true, opacity: 0.6 },
     { id: 'precipitation', name: 'Precipitation', icon: CloudRain, enabled: true, opacity: 0.7 },
@@ -400,10 +450,35 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
   useEffect(() => {
     const initMap = async () => {
       try {
-        if (!mapRef.current) return;
+        console.log('🗺️ Initializing Field Intelligence Map...');
+        if (!mapRef.current) {
+          console.warn('⚠️ Map container not found');
+          return;
+        }
+
+        console.log('🗺️ Map container found:', mapRef.current);
+        console.log('🗺️ Container dimensions:', {
+          width: mapRef.current.offsetWidth,
+          height: mapRef.current.offsetHeight,
+          clientWidth: mapRef.current.clientWidth,
+          clientHeight: mapRef.current.clientHeight
+        });
+
+        // Ensure container has dimensions before creating map
+        if (mapRef.current.offsetWidth === 0 || mapRef.current.offsetHeight === 0) {
+          console.warn('⚠️ Map container has no dimensions, waiting...');
+          setTimeout(() => initMap(), 100);
+          return;
+        }
 
         // Mapbox access token
         mapboxgl.accessToken = MAPBOX_API_KEY;
+        console.log('🗺️ Mapbox access token set');
+
+        // Completely disable Mapbox telemetry at the source
+        if (typeof window !== 'undefined' && !window.disabledMapboxTelemetry) {
+          window.disabledMapboxTelemetry = true;
+        }
 
         const styleUrl = mapType === 'satellite'
           ? 'mapbox://styles/mapbox/satellite-v9'
@@ -411,11 +486,37 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
           ? 'mapbox://styles/mapbox/satellite-streets-v12'
           : 'mapbox://styles/mapbox/streets-v12';
 
+        console.log(`🗺️ Creating map with style: ${styleUrl}`);
+
         const mapboxMap = new mapboxgl.Map({
           container: mapRef.current,
           style: styleUrl,
-          center: [PUNJAB_CENTER.lng, PUNJAB_CENTER.lat],
+          center: [CHENNAI_CENTER.lng, CHENNAI_CENTER.lat],
           zoom: 8,
+        });
+
+        console.log('🗺️ Map instance created:', mapboxMap);
+        console.log('🗺️ Map container after creation:', mapRef.current);
+
+        // Handle map creation errors immediately
+        try {
+          // Test if map is valid
+          if (!mapboxMap) {
+            throw new Error('Map instance is null');
+          }
+        } catch (error) {
+          console.error('🗺️ Map creation failed:', error);
+          setLoadingError('Failed to create map instance.');
+          setIsLoading(false);
+          return;
+        }
+
+        // Handle map creation errors
+        mapboxMap.on('error', (e) => {
+          console.error('🗺️ Map creation error:', e);
+          console.error('🗺️ Error details:', e.error);
+          setLoadingError('Failed to create map. Please check your connection.');
+          setIsLoading(false);
         });
 
         mapboxMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -423,27 +524,37 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
 
         // Add marker for user location
         const mapboxMarker = new mapboxgl.Marker({ color: '#10b981', draggable: false })
-          .setLngLat([PUNJAB_CENTER.lng, PUNJAB_CENTER.lat])
+          .setLngLat([CHENNAI_CENTER.lng, CHENNAI_CENTER.lat])
           .addTo(mapboxMap);
 
-        // Get user location
+        // Get user location with enhanced error handling and permissions
         if (navigator.geolocation) {
+          console.log('📍 Requesting user location...');
+          setLocationStatus('loading');
           navigator.geolocation.getCurrentPosition(
             async (position) => {
-              const { latitude: lat, longitude: lng } = position.coords;
-              
+              const { latitude: lat, longitude: lng, accuracy } = position.coords;
+              console.log(`📍 User location obtained: ${lat}, ${lng} (accuracy: ${accuracy}m)`);
+
               // Store user location for distance calculations
               setUserLocation({ lat, lng });
-              
+              setLocationStatus('success');
+
+              // Fly to user's actual location with smooth animation
               mapboxMap.flyTo({
                 center: [lng, lat],
                 zoom: 15,
-                essential: true
+                essential: true,
+                duration: 2000 // 2 second smooth animation
               });
+
+              // Update marker to user's exact location
               mapboxMarker.setLngLat([lng, lat]);
+
+              // Get weather data for user's location
               await updateLocationWeather(lat, lng, mapboxMarker);
 
-              // Update nearby counts
+              // Update nearby counts based on user's real location
               const userPos = { lat, lng };
               const nearby = MOCK_LOCATIONS.reduce(
                 (acc, loc) => {
@@ -457,19 +568,71 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
                 { farms: 0, markets: 0 }
               );
               setNearbyCount(nearby);
+
+              console.log(`📍 Found ${nearby.farms} farms and ${nearby.markets} markets within 3km`);
             },
-            () => {
-              console.log('Using default location');
-              // Set default location for Chennai area
-              const defaultLocation = { lat: 13.0827, lng: 80.2707 };
+            (error) => {
+              console.warn('⚠️ Geolocation failed:', error.message);
+              console.log('📍 Falling back to default location (Chennai area)');
+
+              // Enhanced fallback with better user feedback
+              const defaultLocation = { lat: 13.0827, lng: 80.2707 }; // Chennai center
               setUserLocation(defaultLocation);
+              setLocationStatus('fallback');
+
+              // Show user-friendly message about location access
+              console.log('💡 Tip: Allow location access for personalized farm intelligence');
+
+              // Still center on default location but with lower zoom
+              mapboxMap.flyTo({
+                center: [defaultLocation.lng, defaultLocation.lat],
+                zoom: 10,
+                essential: true
+              });
+
+              mapboxMarker.setLngLat([defaultLocation.lng, defaultLocation.lat]);
               updateLocationWeather(defaultLocation.lat, defaultLocation.lng, mapboxMarker);
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000, // 10 second timeout
+              maximumAge: 300000 // Accept cached location up to 5 minutes old
             }
           );
+        } else {
+          console.warn('⚠️ Geolocation not supported by this browser');
+          setLocationStatus('error');
+          // Fallback for browsers without geolocation
+          const defaultLocation = { lat: 13.0827, lng: 80.2707 };
+          setUserLocation(defaultLocation);
+          mapboxMarker.setLngLat([defaultLocation.lng, defaultLocation.lat]);
+          updateLocationWeather(defaultLocation.lat, defaultLocation.lng, mapboxMarker);
         }
 
         mapboxMap.on('load', () => {
+          console.log('🗺️ Map loaded successfully');
+          console.log('🗺️ Map canvas elements:', mapRef.current?.querySelectorAll('canvas'));
+          console.log('🗺️ Map container children:', mapRef.current?.children);
           setIsLoading(false);
+        });
+
+        // Add timeout fallback in case map load event doesn't fire
+        const loadTimeout = setTimeout(() => {
+          console.warn('⚠️ Map load timeout - forcing loading state to false');
+          setIsLoading(false);
+        }, 10000); // 10 second timeout
+
+        // Clear timeout when map loads
+        mapboxMap.on('load', () => {
+          clearTimeout(loadTimeout);
+        });
+
+        // Add error handling for map loading failures
+        mapboxMap.on('error', (e) => {
+          console.error('🗺️ Map loading error:', e);
+          setLoadingError('Failed to load map. Please check your internet connection and try again.');
+          setIsLoading(false);
+          clearTimeout(loadTimeout);
         });
 
         setMap(mapboxMap);
@@ -549,6 +712,7 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
         };
       } catch (error) {
         console.error('Error initializing map:', error);
+        setLoadingError('Failed to initialize map. Please refresh the page and try again.');
         setIsLoading(false);
       }
     };
@@ -725,9 +889,23 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
                 <div className="text-center space-y-2">
                   <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
                   <div>
-                    <p className="text-lg font-medium">Loading Field Intelligence Map</p>
-                    <p className="text-sm text-muted-foreground">Initializing satellite view and weather data...</p>
+                    <p className="text-lg font-medium">
+                      {loadingError ? 'Map Loading Error' : 'Loading Field Intelligence Map'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {loadingError || 'Initializing satellite view and weather data...'}
+                    </p>
                   </div>
+                  {loadingError && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => window.location.reload()}
+                      className="mt-2"
+                    >
+                      Retry
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -777,7 +955,7 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
               </div>
             )}
 
-            <div ref={mapRef} className="w-full h-full" />
+            <div ref={mapRef} className="w-full h-full relative z-0" />
           </div>
 
           {/* Weather Controls Sidebar */}
@@ -857,7 +1035,11 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
                         </div>
                         {layer.enabled && (
                           <div className="pl-13">
+                            <label htmlFor={`opacity-${layer.id}`} className="text-xs text-muted-foreground block mb-1">
+                              Opacity: {Math.round(layer.opacity * 100)}%
+                            </label>
                             <input
+                              id={`opacity-${layer.id}`}
                               type="range"
                               min="0.1"
                               max="1"
@@ -888,6 +1070,44 @@ export const FieldIntelligenceMap: React.FC<FieldIntelligenceMapProps> = ({ clas
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Location Status Indicator */}
+        <div className="flex items-center justify-center mb-4">
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
+            locationStatus === 'success' 
+              ? 'bg-green-100 text-green-800 border border-green-200' 
+              : locationStatus === 'fallback'
+              ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+              : locationStatus === 'loading'
+              ? 'bg-blue-100 text-blue-800 border border-blue-200'
+              : 'bg-red-100 text-red-800 border border-red-200'
+          }`}>
+            {locationStatus === 'success' && (
+              <>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                📍 Using Your Real Location
+              </>
+            )}
+            {locationStatus === 'fallback' && (
+              <>
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                📍 Using Default Location (Chennai)
+              </>
+            )}
+            {locationStatus === 'loading' && (
+              <>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                📍 Detecting Your Location...
+              </>
+            )}
+            {locationStatus === 'error' && (
+              <>
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                📍 Location Access Denied
+              </>
+            )}
           </div>
         </div>
         

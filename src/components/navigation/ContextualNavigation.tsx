@@ -15,7 +15,8 @@ import {
   Leaf,
   BookOpen,
   Star,
-  Award
+  Award,
+  Store
 } from "lucide-react";
 
 interface RelatedAction {
@@ -60,6 +61,13 @@ const relatedActions: Record<string, RelatedAction[]> = {
       priority: 'medium'
     },
     {
+      title: "Sell Products",
+      description: "List your produce for sale",
+      path: "/sell",
+      icon: Store,
+      priority: 'medium'
+    },
+    {
       title: "Ask Community",
       description: "Get advice from other farmers", 
       path: "/community",
@@ -98,11 +106,42 @@ const relatedActions: Record<string, RelatedAction[]> = {
       priority: 'medium'
     }
   ],
+  "/sell": [
+    {
+      title: "Market Analysis",
+      description: "Check current market prices and trends",
+      path: "/market-analysis",
+      icon: TrendingUp,
+      badge: "Hot",
+      priority: 'high'
+    },
+    {
+      title: "Buy Supplies",
+      description: "Purchase equipment and supplies",
+      path: "/buy",
+      icon: ShoppingCart,
+      priority: 'high'
+    },
+    {
+      title: "Community Reviews",
+      description: "Read reviews from other sellers",
+      path: "/community",
+      icon: Users,
+      priority: 'medium'
+    },
+    {
+      title: "Government Schemes",
+      description: "Check for subsidies and schemes",
+      path: "/government-schemes",
+      icon: Star,
+      priority: 'medium'
+    }
+  ],
   "/market-analysis": [
     {
       title: "Sell in Marketplace",
       description: "List your crops for sale",
-      path: "/buy",
+      path: "/sell",
       icon: ShoppingCart,
       badge: "Action",
       priority: 'high'
@@ -205,6 +244,13 @@ const relatedActions: Record<string, RelatedAction[]> = {
       path: "/buy",
       icon: ShoppingCart,
       badge: "Action",
+      priority: 'high'
+    },
+    {
+      title: "Sell Products",
+      description: "List your produce for sale",
+      path: "/sell",
+      icon: Store,
       priority: 'high'
     },
     {

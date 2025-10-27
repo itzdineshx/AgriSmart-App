@@ -17,11 +17,11 @@ export default function RoleLogin() {
   const [error, setError] = useState('');
   const [showCredentials, setShowCredentials] = useState(false);
   
-  const { login } = useAuth();
+  const { demoLogin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -30,7 +30,8 @@ export default function RoleLogin() {
       return;
     }
 
-    if (login(username, password, role)) {
+    const success = await demoLogin(username, password, role);
+    if (success) {
       toast({
         title: "Login Successful",
         description: `Welcome, ${role}!`,
@@ -41,10 +42,10 @@ export default function RoleLogin() {
         case 'admin':
           navigate('/admin');
           break;
-        case 'seller':
-          navigate('/seller-panel');
+        case 'buyer':
+          navigate('/buyer-panel');
           break;
-        case 'user':
+        case 'farmer':
           navigate('/user-profile');
           break;
       }
@@ -55,14 +56,14 @@ export default function RoleLogin() {
 
   const roleIcons = {
     admin: Shield,
-    seller: Store,
-    user: User
+    buyer: Store,
+    farmer: User
   };
 
   const credentials = {
     admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
-    seller: { username: 'seller_pro', password: 'SellPro@2024' },
-    user: { username: 'farmer_user', password: 'FarmUser@2024' }
+    buyer: { username: 'buyer_pro', password: 'BuyPro@2024' },
+    farmer: { username: 'farmer_user', password: 'FarmUser@2024' }
   };
 
   return (
@@ -100,16 +101,16 @@ export default function RoleLogin() {
                         <span>Administrator</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="seller">
+                    <SelectItem value="buyer">
                       <div className="flex items-center space-x-2">
                         <Store className="h-4 w-4" />
-                        <span>Seller</span>
+                        <span>Buyer</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="user">
+                    <SelectItem value="farmer">
                       <div className="flex items-center space-x-2">
                         <User className="h-4 w-4" />
-                        <span>Farmer/User</span>
+                        <span>Farmer</span>
                       </div>
                     </SelectItem>
                   </SelectContent>

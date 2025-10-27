@@ -9,14 +9,17 @@ import { Card, CardContent } from "@/components/ui/card";
 const Index = lazy(() => import("@/pages/Index"));
 const Diagnose = lazy(() => import("@/pages/Diagnose"));
 const Buy = lazy(() => import("@/pages/Buy"));
+const Sell = lazy(() => import("@/pages/Sell"));
 const MarketAnalysis = lazy(() => import("@/pages/MarketAnalysis"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
-const SellerPanel = lazy(() => import("@/pages/SellerPanel"));
+const BuyerPanel = lazy(() => import("@/pages/BuyerPanel"));
 const GovernmentSchemes = lazy(() => import("@/pages/GovernmentSchemes"));
 const Weather = lazy(() => import("@/pages/Weather"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const Auth = lazy(() => import("@/pages/Auth"));
 const RoleLogin = lazy(() => import("@/pages/RoleLogin"));
+const SignIn = lazy(() => import("@/pages/SignIn"));
+const SignUp = lazy(() => import("@/pages/SignUp"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Chatbot = lazy(() => import("@/pages/Chatbot"));
 const Admin = lazy(() => import("@/pages/Admin"));
@@ -95,6 +98,14 @@ export function AppRouter() {
           element={
             <LazyWrapper>
               <Layout><Buy /></Layout>
+            </LazyWrapper>
+          } 
+        />
+        <Route 
+          path="/sell" 
+          element={
+            <LazyWrapper>
+              <Layout><Sell /></Layout>
             </LazyWrapper>
           } 
         />
@@ -213,6 +224,22 @@ export function AppRouter() {
           } 
         />
         <Route 
+          path="/sign-in" 
+          element={
+            <LazyWrapper>
+              <SignIn />
+            </LazyWrapper>
+          } 
+        />
+        <Route 
+          path="/sign-up" 
+          element={
+            <LazyWrapper>
+              <SignUp />
+            </LazyWrapper>
+          } 
+        />
+        <Route 
           path="/chatbot" 
           element={
             <LazyWrapper>
@@ -226,18 +253,18 @@ export function AppRouter() {
           path="/user-profile" 
           element={
             <LazyWrapper>
-              <ProtectedRoute requiredRole="user">
+              <ProtectedRoute requiredRole="farmer">
                 <Layout><UserProfile /></Layout>
               </ProtectedRoute>
             </LazyWrapper>
           } 
         />
         <Route 
-          path="/seller-panel" 
+          path="/buyer-panel" 
           element={
             <LazyWrapper>
-              <ProtectedRoute requiredRole="seller">
-                <Layout><SellerPanel /></Layout>
+              <ProtectedRoute requiredRole="buyer">
+                <Layout><BuyerPanel /></Layout>
               </ProtectedRoute>
             </LazyWrapper>
           } 

@@ -38,6 +38,11 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
 
         // Set Mapbox access token
         mapboxgl.accessToken = MAPBOX_API_KEY;
+        
+        // Disable telemetry at map level
+        if (!(window as { __mapboxTelemetryBlocked?: boolean }).__mapboxTelemetryBlocked) {
+          console.log('🔒 Blocking Mapbox telemetry for LocationMapSelector');
+        }
 
         // Parse current location if it exists
         let initialLng = 77.1025; // Default to Delhi
@@ -158,37 +163,56 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
     }
   };
 
-  // Get current location
+  // Get current location with enhanced accuracy and feedback
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
+      console.log('📍 Requesting user location for location selection...');
       navigator.geolocation.getCurrentPosition(
         async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+          const { latitude: lat, longitude: lng, accuracy } = position.coords;
+          console.log(`📍 Location selector obtained: ${lat}, ${lng} (accuracy: ${accuracy}m)`);
 
           if (map && marker) {
-            map.setCenter([lng, lat]);
-            map.setZoom(12);
+            // Smooth fly animation to user's location
+            map.flyTo({
+              center: [lng, lat],
+              zoom: 15,
+              essential: true,
+              duration: 2000
+            });
+
             marker.setLngLat([lng, lat]);
 
-            // Get address using reverse geocoding
+            // Get precise address using reverse geocoding
             try {
               const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}`
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}&types=address,poi,place,locality&limit=1`
               );
               const data = await response.json();
-              const address = data.features[0]?.place_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+              const address = data.features[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              console.log(`📍 Address resolved: ${address}`);
               setSelectedAddress(address);
             } catch (error) {
-              const address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-              setSelectedAddress(address);
+              console.warn('⚠️ Reverse geocoding failed:', error);
+              const fallbackAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              setSelectedAddress(fallbackAddress);
             }
           }
         },
         (error) => {
-          console.error('Geolocation error:', error);
+          console.warn('⚠️ Location selector geolocation failed:', error.message);
+          console.log('💡 Allow location access for precise location selection');
+          setSelectedAddress('Location access denied - please select manually');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 300000
         }
       );
+    } else {
+      console.warn('⚠️ Geolocation not supported for location selection');
+      setSelectedAddress('Geolocation not supported');
     }
   };
 

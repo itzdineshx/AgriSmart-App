@@ -187,7 +187,7 @@ export default function GovernmentSchemes() {
                         <div className="flex-1">
                           <div className="flex items-start gap-3 mb-2">
                             <h3 className="text-xl font-semibold">{scheme.title}</h3>
-                            <Badge variant={getStatusColor(scheme.status) as any} className="flex items-center gap-1">
+                            <Badge variant={getStatusColor(scheme.status) as "success" | "warning" | "destructive" | "secondary"} className="flex items-center gap-1">
                               <StatusIcon className="h-3 w-3" />
                               {scheme.status}
                             </Badge>

@@ -18,7 +18,7 @@ import {
 
 interface Notification {
   id: string;
-  type: "weather" | "market" | "system" | "order" | "alert";
+  type: "weather" | "market" | "system" | "order" | "alert" | "match" | "demand" | "purchase";
   title: string;
   message: string;
   timestamp: string;
@@ -28,7 +28,7 @@ interface Notification {
 }
 
 interface NotificationCenterProps {
-  userType?: "farmer" | "seller" | "admin";
+  userType?: "farmer" | "buyer" | "admin";
 }
 
 export function NotificationCenter({ userType = "farmer" }: NotificationCenterProps) {
@@ -116,6 +116,38 @@ export function NotificationCenter({ userType = "farmer" }: NotificationCenterPr
       }
     ];
 
+    const buyerNotifications: Notification[] = [
+      {
+        id: "1",
+        type: "match",
+        title: "New Supplier Match",
+        message: "Rajesh Farms can supply 200kg of tomatoes at ₹42/kg",
+        timestamp: "30 minutes ago",
+        priority: "high",
+        read: false,
+        actionable: true
+      },
+      {
+        id: "2",
+        type: "demand",
+        title: "Demand Expiring",
+        message: "Your sugarcane demand expires in 2 days - 8 suppliers interested",
+        timestamp: "2 hours ago",
+        priority: "medium",
+        read: false,
+        actionable: true
+      },
+      {
+        id: "3",
+        type: "purchase",
+        title: "Purchase Confirmed",
+        message: "Hybrid Rice Seeds order confirmed - Delivery in 3 days",
+        timestamp: "1 day ago",
+        priority: "low",
+        read: true
+      }
+    ];
+
     const adminNotifications: Notification[] = [
       {
         id: "1",
@@ -148,8 +180,8 @@ export function NotificationCenter({ userType = "farmer" }: NotificationCenterPr
     ];
 
     switch (userType) {
-      case "seller":
-        return sellerNotifications;
+      case "buyer":
+        return buyerNotifications;
       case "admin":
         return adminNotifications;
       default:
@@ -169,6 +201,12 @@ export function NotificationCenter({ userType = "farmer" }: NotificationCenterPr
         return Info;
       case "alert":
         return AlertTriangle;
+      case "match":
+        return Users;
+      case "demand":
+        return Package;
+      case "purchase":
+        return Package;
       default:
         return Bell;
     }

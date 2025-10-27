@@ -1,5 +1,5 @@
 // Service Worker for better caching, offline support, and push notifications
-const CACHE_NAME = 'agrismart-v1';
+const CACHE_NAME = 'agrismart-v3';
 const urlsToCache = [
   '/',
   '/static/css/',
@@ -36,6 +36,24 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Completely block and silence Mapbox telemetry calls
+  if (event.request.url.includes('events.mapbox.com')) {
+    console.log('🔒 Service Worker blocked Mapbox telemetry:', event.request.url);
+    event.respondWith(new Response(null, { 
+      status: 204, 
+      statusText: 'No Content - Blocked by Service Worker'
+    }));
+    return;
+  }
+
+  // Only handle requests for our own domain
+  const url = new URL(event.request.url);
+
+  // Skip all external requests (let them pass through naturally)
+  if (url.origin !== self.location.origin) {
+    return; // Don't intercept external requests
+  }
+
   // Handle navigation requests (SPA routing)
   if (event.request.mode === 'navigate') {
     event.respondWith(

@@ -8,17 +8,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { useAuth } from "@/contexts/AuthContext";
 // import { LanguageToggle } from "@/components/LanguageToggle";
 // import { useLanguage } from "@/contexts/LanguageContext";
-import { 
-  Home, 
-  Camera, 
-  ShoppingCart, 
-  User, 
-  Menu, 
+import {
+  Home,
+  Camera,
+  ShoppingCart,
+  User,
+  Menu,
   Leaf,
   TrendingUp,
   Users,
@@ -27,19 +27,20 @@ import {
   Sparkles,
   Bell,
   Search,
-  ChevronDown
-} from "lucide-react";
-
-export function Navigation() {
+  ChevronDown,
+  LogOut
+} from "lucide-react";export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, userRole, logout } = useAuth();
   // const { t } = useLanguage();
 
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
     { name: "Home", path: "/", icon: Home },
-    { name: "Marketplace", path: "/buy", icon: ShoppingCart },
+    { name: "Buy", path: "/buy", icon: ShoppingCart },
+    { name: "Sell", path: "/sell", icon: TrendingUp },
     { name: "Community", path: "/community", icon: Users },
     { name: "Weather", path: "/weather", icon: Cloud }, 
     { name: "", path: "/user-profile", icon: User }, 
@@ -55,7 +56,7 @@ export function Navigation() {
     { name: "Market Analysis", path: "/market-analysis", icon: TrendingUp },
     { name: "Crops & Hybrids", path: "/crops-hybrid", icon: Leaf },
     { name: "Government Schemes", path: "/government-schemes", icon: Users },
-    { name: "Seller Panel", path: "/seller-panel", icon: ShoppingCart },
+    { name: "Buyer Panel", path: "/buyer-panel", icon: ShoppingCart },
     { name: "News & Blogs", path: "/blogs", icon: MessageCircle },
     { name: "Admin", path: "/admin", icon: Users },
     { name: "Support", path: "/support", icon: MessageCircle },
@@ -138,23 +139,36 @@ export function Navigation() {
               </div>
 
               {/* Authentication */}
-              <SignedOut>
-                <Link to="/auth">
+              {!isAuthenticated ? (
+                <Link to="/role-login">
                   <Button variant="outline" size="sm">
                     <User className="h-4 w-4 mr-2" />
                     Sign In
                   </Button>
                 </Link>
-              </SignedOut>
-              <SignedIn>
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8"
-                    }
-                  }}
-                />
-              </SignedIn>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      {userRole}
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background border-border">
+                    <DropdownMenuItem asChild>
+                      <Link to="/user-profile" className="flex items-center space-x-2 w-full px-2 py-1.5 text-sm cursor-pointer">
+                        <User className="h-4 w-4" />
+                        <span>Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={logout} className="flex items-center space-x-2 w-full px-2 py-1.5 text-sm cursor-pointer">
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
         </div>
@@ -271,28 +285,39 @@ export function Navigation() {
           
           <div className="flex items-center space-x-2">
             {/* Notifications and Theme for Mobile */}
-            <NotificationBell 
+            <NotificationBell
               variant="outline"
               size="sm"
               showBadge={true}
             />
             <ThemeToggle />
-            <SignedOut>
-              <Link to="/auth">
+            {!isAuthenticated ? (
+              <Link to="/sign-in">
                 <Button variant="outline" size="icon">
                   <User className="h-4 w-4" />
                 </Button>
               </Link>
-            </SignedOut>
-            <SignedIn>
-              <UserButton 
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8"
-                  }
-                }}
-              />
-            </SignedIn>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background border-border">
+                  <DropdownMenuItem asChild>
+                    <Link to="/user-profile" className="flex items-center space-x-2 w-full px-2 py-1.5 text-sm cursor-pointer">
+                      <User className="h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout} className="flex items-center space-x-2 w-full px-2 py-1.5 text-sm cursor-pointer">
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </div>

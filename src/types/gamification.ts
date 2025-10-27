@@ -150,7 +150,7 @@ export interface GamificationNotification {
   timestamp: Date;
   read: boolean;
   actionUrl?: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 // Enums
@@ -341,7 +341,7 @@ export interface StreakMilestone {
 export interface UserAction {
   type: string;
   timestamp: Date;
-  data: any;
+  data: Record<string, unknown>;
   pointsEarned: number;
   questProgress?: QuestProgress[];
   achievementProgress?: AchievementProgress[];

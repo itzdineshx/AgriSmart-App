@@ -40,12 +40,21 @@ const quickActions: QuickAction[] = [
   },
   {
     id: "marketplace",
-    title: "Marketplace",
+    title: "Buy Products",
     path: "/buy",
     icon: ShoppingCart,
     color: "bg-green-500 hover:bg-green-600",
-    badge: "Buy/Sell",
-    description: "Buy & sell crops"
+    badge: "Buy",
+    description: "Buy crops & equipment"
+  },
+  {
+    id: "sell",
+    title: "Sell Products",
+    path: "/sell",
+    icon: Zap,
+    color: "bg-orange-500 hover:bg-orange-600",
+    badge: "Sell",
+    description: "Sell your produce"
   },
   {
     id: "weather",
@@ -105,7 +114,7 @@ export function FloatingActionMenu() {
     <div className="fixed bottom-20 md:bottom-8 right-4 z-40">
       {/* Quick Actions Menu */}
       {isOpen && (
-        <Card className="mb-4 shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
+        <Card className="absolute bottom-16 right-16 shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
           <CardContent className="p-3">
             <div className="space-y-2 w-64">
               <div className="text-center mb-3">
@@ -123,10 +132,10 @@ export function FloatingActionMenu() {
                     onClick={() => handleActionClick(action.path)}
                     disabled={isCurrentPage}
                     className={cn(
-                      "w-full flex items-center space-x-3 p-3 rounded-lg text-left transition-all duration-200",
+                      "w-full flex items-center space-x-3 p-3 rounded-lg text-left",
                       isCurrentPage 
                         ? "bg-primary/10 text-primary cursor-not-allowed opacity-60" 
-                        : "hover:bg-accent hover:scale-102 active:scale-98"
+                        : "hover:bg-accent"
                     )}
                   >
                     <div className={cn(
@@ -169,10 +178,10 @@ export function FloatingActionMenu() {
         onClick={() => setIsOpen(!isOpen)}
         size="lg"
         className={cn(
-          "h-14 w-14 rounded-full shadow-2xl transition-all duration-300",
+          "h-14 w-14 rounded-full shadow-2xl",
           isOpen 
             ? "bg-destructive hover:bg-destructive/90 rotate-45" 
-            : "bg-primary hover:bg-primary/90 hover:scale-110 shadow-primary/25"
+            : "bg-primary hover:bg-primary/90"
         )}
       >
         {isOpen ? (
@@ -181,11 +190,6 @@ export function FloatingActionMenu() {
           <Zap className="h-6 w-6" />
         )}
       </Button>
-
-      {/* Subtle pulse animation when closed */}
-      {!isOpen && (
-        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping"></div>
-      )}
     </div>
   );
 }

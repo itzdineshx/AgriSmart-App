@@ -2,10 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart3, TrendingUp, Calendar } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import type { TooltipProps } from "recharts";
 import { useState } from "react";
 
 interface RevenueChartProps {
-  userType?: "farmer" | "seller" | "admin";
+  userType?: "farmer" | "buyer" | "admin";
 }
 
 export function RevenueChart({ userType = "farmer" }: RevenueChartProps) {
@@ -42,6 +43,21 @@ export function RevenueChart({ userType = "farmer" }: RevenueChartProps) {
     description: "Weekly marketplace sales"
   });
 
+  const getBuyerData = () => ({
+    title: "Purchase Spending",
+    data: [
+      { name: 'Mon', value: 12000, previous: 10000 },
+      { name: 'Tue', value: 15000, previous: 13000 },
+      { name: 'Wed', value: 18000, previous: 16000 },
+      { name: 'Thu', value: 14000, previous: 17000 },
+      { name: 'Fri', value: 22000, previous: 19000 },
+      { name: 'Sat', value: 25000, previous: 22000 },
+      { name: 'Sun', value: 21000, previous: 24000 }
+    ],
+    color: "#8b5cf6",
+    description: "Weekly procurement spending"
+  });
+
   const getAdminData = () => ({
     title: "Platform Revenue",
     data: [
@@ -68,8 +84,8 @@ export function RevenueChart({ userType = "farmer" }: RevenueChartProps) {
 
   const getData = () => {
     switch (userType) {
-      case "seller":
-        return getSellerData();
+      case "buyer":
+        return getBuyerData();
       case "admin":
         return getAdminData();
       default:
@@ -84,7 +100,7 @@ export function RevenueChart({ userType = "farmer" }: RevenueChartProps) {
   const previousTotal = displayData.reduce((sum, item) => sum + item.previous, 0);
   const growth = ((totalRevenue - previousTotal) / previousTotal * 100).toFixed(1);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card border border-border rounded-lg p-3 shadow-lg">

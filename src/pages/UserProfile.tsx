@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardMetrics } from "@/components/dashboard/DashboardMetrics";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -33,7 +34,20 @@ import {
   Crown,
   Target,
   Zap,
-  Flame
+  Flame,
+  Home,
+  BarChart3,
+  Activity,
+  DollarSign,
+  Tractor,
+  Calendar as CalendarIcon,
+  Wrench,
+  Sidebar,
+  Truck,
+  Package,
+  Clock,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 import { FarmFieldMapping } from "@/components/dashboard/FarmFieldMapping";
 import { FinancialManagement } from "@/components/dashboard/FinancialManagement";
@@ -42,6 +56,7 @@ import { EquipmentManagement } from "@/components/dashboard/EquipmentManagement"
 
 export default function UserProfile() {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   
   // Gamification hooks
   const { userLevel, userStats, levelProgress } = useUserProgress();
@@ -152,18 +167,18 @@ export default function UserProfile() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-8">
+    <div className="min-h-screen bg-background pb-20 md:pb-8 lg:pb-8">
       {/* Header */}
       <div className="bg-gradient-primary text-primary-foreground p-6 md:p-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Farmer Dashboard</h1>
           <p className="text-primary-foreground/90">Your farming journey and achievements</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Profile Header Card */}
-        <Card className="shadow-elegant">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Profile Header Card - Always visible */}
+        <Card className="shadow-elegant mb-8">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               {/* Avatar and Basic Info */}
@@ -182,7 +197,6 @@ export default function UserProfile() {
                   <Badge className="mt-2 bg-success text-success-foreground">
                     Verified Farmer
                   </Badge>
-            Trash2
                 </div>
               </div>
 
@@ -230,155 +244,185 @@ export default function UserProfile() {
           </CardContent>
         </Card>
 
-        {/* Gamification Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="shadow-elegant">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Current Level</p>
-                  <p className="text-2xl font-bold text-foreground">{userLevel.currentLevel}</p>
-                  <p className="text-xs text-muted-foreground">{levelProgress}% to next level</p>
-                </div>
-                <Crown className="h-8 w-8 text-yellow-500 dark:text-yellow-400" />
-              </div>
-              <Progress value={levelProgress} className="mt-2 h-2" />
-            </CardContent>
-          </Card>
+        {/* Main Content with Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="hidden lg:grid w-full grid-cols-6 lg:w-auto lg:grid-cols-6">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="farm" className="flex items-center gap-2">
+              <Tractor className="h-4 w-4" />
+              <span className="hidden sm:inline">Farm</span>
+            </TabsTrigger>
+            <TabsTrigger value="activities" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Activities</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="financial" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              <span className="hidden sm:inline">Financial</span>
+            </TabsTrigger>
+            <TabsTrigger value="sell" className="flex items-center gap-2">
+              <Truck className="h-4 w-4" />
+              <span className="hidden sm:inline">Sell</span>
+            </TabsTrigger>
+          </TabsList>
 
-          <Card className="shadow-elegant">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Points</p>
-                  <p className="text-2xl font-bold text-foreground">{userStats.totalPoints.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">+{userStats.weeklyPoints} this week</p>
-                </div>
-                <Star className="h-8 w-8 text-blue-500 dark:text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Gamification Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="shadow-elegant">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Current Level</p>
+                      <p className="text-2xl font-bold text-foreground">{userLevel.currentLevel}</p>
+                      <p className="text-xs text-muted-foreground">{levelProgress}% to next level</p>
+                    </div>
+                    <Crown className="h-8 w-8 text-yellow-500 dark:text-yellow-400" />
+                  </div>
+                  <Progress value={levelProgress} className="mt-2 h-2" />
+                </CardContent>
+              </Card>
 
-          <Card className="shadow-elegant">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Achievements</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {achievements.filter(a => a.unlocked).length}/{achievements.length}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{recentAchievements.length} recent</p>
-                </div>
-                <Trophy className="h-8 w-8 text-green-500 dark:text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="shadow-elegant">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total Points</p>
+                      <p className="text-2xl font-bold text-foreground">{userStats.totalPoints.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">+{userStats.weeklyPoints} this week</p>
+                    </div>
+                    <Star className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="shadow-elegant">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Badges Earned</p>
-                  <p className="text-2xl font-bold text-foreground">{badges.length}</p>
-                  <p className="text-xs text-muted-foreground">{recentBadges.length} new</p>
-                </div>
-                <Award className="h-8 w-8 text-purple-500 dark:text-purple-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card className="shadow-elegant">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Achievements</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {achievements.filter(a => a.unlocked).length}/{achievements.length}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{recentAchievements.length} recent</p>
+                    </div>
+                    <Trophy className="h-8 w-8 text-green-500 dark:text-green-400" />
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Recent Achievements */}
-        {recentAchievements.length > 0 && (
-          <Card className="shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                Recent Achievements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recentAchievements.slice(0, 3).map((achievement) => (
-                  <Card key={achievement.id} className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="text-yellow-500 dark:text-yellow-400">
-                          <Trophy size={24} />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-foreground">{achievement.name}</h4>
-                          <p className="text-sm text-muted-foreground mt-1">{achievement.description}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">
-                              +{achievement.points} points
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              {achievement.rarity}
-                            </Badge>
+              <Card className="shadow-elegant">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Badges Earned</p>
+                      <p className="text-2xl font-bold text-foreground">{badges.length}</p>
+                      <p className="text-xs text-muted-foreground">{recentBadges.length} new</p>
+                    </div>
+                    <Award className="h-8 w-8 text-purple-500 dark:text-purple-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Achievements */}
+            {recentAchievements.length > 0 && (
+              <Card className="shadow-elegant">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    Recent Achievements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {recentAchievements.slice(0, 3).map((achievement) => (
+                      <Card key={achievement.id} className="shadow-sm">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="text-yellow-500 dark:text-yellow-400">
+                              <Trophy size={24} />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-foreground">{achievement.name}</h4>
+                              <p className="text-sm text-muted-foreground mt-1">{achievement.description}</p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="outline" className="text-xs">
+                                  +{achievement.points} points
+                                </Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                  {achievement.rarity}
+                                </Badge>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-        {/* Activity Streak */}
-        <Card className="shadow-elegant">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-500" />
-              Daily Activity Streak
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-3xl font-bold text-orange-500 dark:text-orange-400">{userStats.currentStreak}</p>
-                <p className="text-sm text-muted-foreground">Days in a row</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-foreground">Weekly Goal</p>
-                <p className="text-xs text-muted-foreground">Complete 5 activities</p>
-              </div>
-            </div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-foreground">Progress this week</span>
-              <span className="text-sm font-medium text-foreground">4/5 activities</span>
-            </div>
-            <Progress value={80} className="h-2" />
-            <div className="flex gap-1 mt-3">
-              {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                <div
-                  key={day}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                    day <= 4
-                      ? 'bg-orange-500 dark:bg-orange-600 text-white'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {day <= 4 ? '✓' : day}
+            {/* Activity Streak */}
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Flame className="h-5 w-5 text-orange-500" />
+                  Daily Activity Streak
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-3xl font-bold text-orange-500 dark:text-orange-400">{userStats.currentStreak}</p>
+                    <p className="text-sm text-muted-foreground">Days in a row</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-foreground">Weekly Goal</p>
+                    <p className="text-xs text-muted-foreground">Complete 5 activities</p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-foreground">Progress this week</span>
+                  <span className="text-sm font-medium text-foreground">4/5 activities</span>
+                </div>
+                <Progress value={80} className="h-2" />
+                <div className="flex gap-1 mt-3">
+                  {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                    <div
+                      key={day}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                        day <= 4
+                          ? 'bg-orange-500 dark:bg-orange-600 text-white'
+                          : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {day <= 4 ? '✓' : day}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Dashboard Metrics */}
-        <DashboardMetrics userType="farmer" />
+            {/* Quick Actions */}
+            <QuickActions userType="farmer" />
 
-        {/* Main Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Charts and Data */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Revenue Chart */}
-            <RevenueChart userType="farmer" />
+            {/* Dashboard Metrics */}
+            <DashboardMetrics userType="farmer" />
+          </TabsContent>
 
-            {/* Farm Details Card */}
+          {/* Farm Management Tab */}
+          <TabsContent value="farm" className="space-y-6">
+            {/* Farm Information */}
             <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -407,6 +451,7 @@ export default function UserProfile() {
                                 value={editCropName} 
                                 onChange={e => setEditCropName(e.target.value)} 
                                 className="border border-border rounded px-2 py-1 text-sm bg-background text-foreground" 
+                                placeholder="Crop name"
                               />
                               <Button size="sm" variant="outline" onClick={handleUpdateCrop}>Save</Button>
                               <Button size="sm" variant="ghost" onClick={() => { setEditCropIdx(null); setEditCropName(""); }}>Cancel</Button>
@@ -433,13 +478,42 @@ export default function UserProfile() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <QuickActions userType="farmer" />
-
-            {/* Activities CRUD */}
-            <Card className="shadow-elegant mt-8">
+            {/* Farm Field Mapping */}
+            <Card className="shadow-elegant">
               <CardHeader>
-                <CardTitle>Activities</CardTitle>
+                <CardTitle>Farm Field Mapping</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FarmFieldMapping />
+              </CardContent>
+            </Card>
+
+            {/* Crop Planning Calendar */}
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <CardTitle>Crop Planning Calendar</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CropPlanningCalendar />
+              </CardContent>
+            </Card>
+
+            {/* Equipment Management */}
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <CardTitle>Equipment Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EquipmentManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Activities Tab */}
+          <TabsContent value="activities" className="space-y-6">
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <CardTitle>Activities Management</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -486,6 +560,7 @@ export default function UserProfile() {
                       value={activityForm.type} 
                       onChange={e => setActivityForm({ ...activityForm, type: e.target.value })} 
                       className="border border-border rounded px-2 py-1 bg-background text-foreground"
+                      title="Activity Type"
                     >
                       <option value="diagnosis">Diagnosis</option>
                       <option value="market">Market</option>
@@ -496,6 +571,7 @@ export default function UserProfile() {
                       value={activityForm.status} 
                       onChange={e => setActivityForm({ ...activityForm, status: e.target.value })} 
                       className="border border-border rounded px-2 py-1 bg-background text-foreground"
+                      title="Activity Status"
                     >
                       <option value="pending">Pending</option>
                       <option value="completed">Completed</option>
@@ -516,19 +592,31 @@ export default function UserProfile() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Farm Field Mapping */}
-            <Card className="shadow-elegant mt-8">
-              <CardHeader>
-                <CardTitle>Farm Field Mapping</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FarmFieldMapping />
-              </CardContent>
-            </Card>
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column - Charts and Data */}
+              <div className="lg:col-span-2 space-y-8">
+                {/* Revenue Chart */}
+                <RevenueChart userType="farmer" />
+              </div>
 
-            {/* Financial Management */}
-            <Card className="shadow-elegant mt-8">
+              {/* Right Column - Sidebar */}
+              <div className="space-y-8">
+                {/* Activity Feed */}
+                <ActivityFeed userType="farmer" limit={6} />
+
+                {/* Notification Center */}
+                <NotificationCenter userType="farmer" />
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Financial Tab */}
+          <TabsContent value="financial" className="space-y-6">
+            <Card className="shadow-elegant">
               <CardHeader>
                 <CardTitle>Financial Management</CardTitle>
               </CardHeader>
@@ -536,35 +624,380 @@ export default function UserProfile() {
                 <FinancialManagement />
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Crop Planning Calendar */}
-            <Card className="shadow-elegant mt-8">
+          {/* Sell Tab */}
+          <TabsContent value="sell" className="space-y-6">
+            {/* Sell Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="shadow-elegant">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Active Orders</p>
+                      <p className="text-2xl font-bold text-foreground">12</p>
+                      <p className="text-xs text-muted-foreground">+3 from yesterday</p>
+                    </div>
+                    <Package className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-elegant">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Pending Delivery</p>
+                      <p className="text-2xl font-bold text-foreground">8</p>
+                      <p className="text-xs text-muted-foreground">2 urgent</p>
+                    </div>
+                    <Truck className="h-8 w-8 text-orange-500 dark:text-orange-400" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-elegant">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Completed Today</p>
+                      <p className="text-2xl font-bold text-foreground">5</p>
+                      <p className="text-xs text-muted-foreground">₹12,500 earned</p>
+                    </div>
+                    <CheckCircle className="h-8 w-8 text-green-500 dark:text-green-400" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-elegant">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Order Requests</p>
+                      <p className="text-2xl font-bold text-foreground">3</p>
+                      <p className="text-xs text-muted-foreground">Awaiting response</p>
+                    </div>
+                    <AlertCircle className="h-8 w-8 text-red-500 dark:text-red-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Order Requests */}
+            <Card className="shadow-elegant">
               <CardHeader>
-                <CardTitle>Crop Planning Calendar</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                  Order Requests
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <CropPlanningCalendar />
+                <div className="space-y-4">
+                  {[
+                    {
+                      id: 1,
+                      buyer: "Green Market Co-op",
+                      product: "Premium Tomatoes",
+                      quantity: "500 kg",
+                      price: "₹45/kg",
+                      location: "Delhi",
+                      time: "2 hours ago"
+                    },
+                    {
+                      id: 2,
+                      buyer: "Fresh Foods Ltd",
+                      product: "Organic Carrots",
+                      quantity: "200 kg",
+                      price: "₹55/kg",
+                      location: "Mumbai",
+                      time: "4 hours ago"
+                    },
+                    {
+                      id: 3,
+                      buyer: "Local Restaurant Chain",
+                      product: "Rice Straw Bales",
+                      quantity: "50 bales",
+                      price: "₹25/quintal",
+                      location: "Pune",
+                      time: "6 hours ago"
+                    }
+                  ].map((request) => (
+                    <div key={request.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <div>
+                            <p className="font-medium text-foreground">{request.buyer}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {request.product} • {request.quantity} • {request.price}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              📍 {request.location} • {request.time}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">Accept</Button>
+                        <Button size="sm" variant="ghost">Decline</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Equipment Management */}
-            <Card className="shadow-elegant mt-8">
+            {/* Active Orders */}
+            <Card className="shadow-elegant">
               <CardHeader>
-                <CardTitle>Equipment Management</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-blue-500" />
+                  Active Orders
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <EquipmentManagement />
+                <div className="space-y-4">
+                  {[
+                    {
+                      id: 1001,
+                      buyer: "SuperMart Chain",
+                      product: "Alphonso Mangoes",
+                      quantity: "300 kg",
+                      status: "Confirmed",
+                      deliveryDate: "Tomorrow",
+                      amount: "₹39,000"
+                    },
+                    {
+                      id: 1002,
+                      buyer: "Organic Store",
+                      product: "Premium Apples",
+                      quantity: "200 kg",
+                      status: "In Transit",
+                      deliveryDate: "Today",
+                      amount: "₹24,000"
+                    },
+                    {
+                      id: 1003,
+                      buyer: "Restaurant Group",
+                      product: "Fresh Tomatoes",
+                      quantity: "150 kg",
+                      status: "Ready for Pickup",
+                      deliveryDate: "Today",
+                      amount: "₹6,750"
+                    }
+                  ].map((order) => (
+                    <div key={order.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2 h-2 rounded-full ${
+                            order.status === 'Confirmed' ? 'bg-yellow-500' :
+                            order.status === 'In Transit' ? 'bg-blue-500' :
+                            'bg-green-500'
+                          }`}></div>
+                          <div>
+                            <p className="font-medium text-foreground">Order #{order.id}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {order.buyer} • {order.product} • {order.quantity}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Status: {order.status} • Delivery: {order.deliveryDate}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-foreground">{order.amount}</p>
+                        <Button size="sm" variant="outline" className="mt-2">Track</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
+
+            {/* Delivery Tracking */}
+            <Card className="shadow-elegant">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-orange-500" />
+                  Delivery Tracking
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    {
+                      id: 2001,
+                      product: "Rice Straw Bales",
+                      destination: "Biogas Plant, Haryana",
+                      driver: "Rajesh Transport",
+                      eta: "2 hours",
+                      status: "On Route"
+                    },
+                    {
+                      id: 2002,
+                      product: "Cow Manure",
+                      destination: "Organic Farm, Punjab",
+                      driver: "Green Logistics",
+                      eta: "4 hours",
+                      status: "Loading"
+                    }
+                  ].map((delivery) => (
+                    <div key={delivery.id} className="p-4 border border-border rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-foreground">Delivery #{delivery.id}</h4>
+                        <Badge variant={delivery.status === 'On Route' ? 'default' : 'secondary'}>
+                          {delivery.status}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Product</p>
+                          <p className="font-medium">{delivery.product}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Destination</p>
+                          <p className="font-medium">{delivery.destination}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Driver</p>
+                          <p className="font-medium">{delivery.driver}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">ETA</p>
+                          <p className="font-medium">{delivery.eta}</p>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <Button size="sm" variant="outline" className="w-full">View Details</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Mobile Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-background/95 backdrop-blur-sm border-t border-border">
+          <div className="grid grid-cols-6 gap-1 p-2">
+            <Button
+              variant={activeTab === "overview" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("overview")}
+              className="flex flex-col items-center gap-1 h-auto py-2"
+            >
+              <Home className="h-4 w-4" />
+              <span className="text-xs">Overview</span>
+            </Button>
+            <Button
+              variant={activeTab === "farm" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("farm")}
+              className="flex flex-col items-center gap-1 h-auto py-2"
+            >
+              <Tractor className="h-4 w-4" />
+              <span className="text-xs">Farm</span>
+            </Button>
+            <Button
+              variant={activeTab === "activities" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("activities")}
+              className="flex flex-col items-center gap-1 h-auto py-2"
+            >
+              <Activity className="h-4 w-4" />
+              <span className="text-xs">Activities</span>
+            </Button>
+            <Button
+              variant={activeTab === "analytics" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("analytics")}
+              className="flex flex-col items-center gap-1 h-auto py-2"
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span className="text-xs">Analytics</span>
+            </Button>
+            <Button
+              variant={activeTab === "financial" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("financial")}
+              className="flex flex-col items-center gap-1 h-auto py-2"
+            >
+              <DollarSign className="h-4 w-4" />
+              <span className="text-xs">Financial</span>
+            </Button>
+            <Button
+              variant={activeTab === "sell" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("sell")}
+              className="flex flex-col items-center gap-1 h-auto py-2"
+            >
+              <Truck className="h-4 w-4" />
+              <span className="text-xs">Sell</span>
+            </Button>
           </div>
+        </div>
 
-          {/* Right Column - Sidebar */}
-          <div className="space-y-8">
-            {/* Activity Feed */}
-            <ActivityFeed userType="farmer" limit={6} />
-
-            {/* Notification Center */}
-            <NotificationCenter userType="farmer" />
+        {/* Quick Access Sidebar - Desktop Only */}
+        <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-40 hidden lg:flex flex-col gap-2">
+          <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg">
+            <div className="flex flex-col gap-1">
+              <Button
+                variant={activeTab === "overview" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("overview")}
+                className="w-10 h-10 p-0"
+                title="Overview"
+              >
+                <Home className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={activeTab === "farm" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("farm")}
+                className="w-10 h-10 p-0"
+                title="Farm Management"
+              >
+                <Tractor className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={activeTab === "activities" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("activities")}
+                className="w-10 h-10 p-0"
+                title="Activities"
+              >
+                <Activity className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={activeTab === "analytics" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("analytics")}
+                className="w-10 h-10 p-0"
+                title="Analytics"
+              >
+                <BarChart3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={activeTab === "financial" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("financial")}
+                className="w-10 h-10 p-0"
+                title="Financial"
+              >
+                <DollarSign className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={activeTab === "sell" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("sell")}
+                className="w-10 h-10 p-0"
+                title="Sell Management"
+              >
+                <Truck className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

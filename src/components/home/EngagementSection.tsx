@@ -1,13 +1,71 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Medal, Award, Star, ChevronRight } from "lucide-react";
-import { mockData } from "@/data/mockData";
+import { Trophy, Award, Star, TrendingUp, Medal } from "lucide-react";
 
 export function EngagementSection() {
-  const { leaderboard, achievements, progress } = mockData;
+  const userProgress = {
+    level: 12,
+    xp: 2450,
+    xpToNext: 3000,
+    achievements: 8,
+    streak: 15
+  };
+
+  const recentAchievements = [
+    {
+      id: 1,
+      title: "First Harvest",
+      description: "Completed your first successful harvest",
+      icon: "🌾",
+      date: "2024-01-15",
+      rarity: "common"
+    },
+    {
+      id: 2,
+      title: "Weather Expert",
+      description: "Accurately predicted weather for 7 days",
+      icon: "🌤️",
+      date: "2024-01-12",
+      rarity: "rare"
+    },
+    {
+      id: 3,
+      title: "Community Helper",
+      description: "Helped 5 fellow farmers with advice",
+      icon: "🤝",
+      date: "2024-01-10",
+      rarity: "uncommon"
+    }
+  ];
+
+  const topFarmers = [
+    {
+      id: 1,
+      name: "Rajesh Kumar",
+      location: "Punjab",
+      score: 9850,
+      badge: "🥇",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+    },
+    {
+      id: 2,
+      name: "Priya Sharma",
+      location: "Haryana",
+      score: 9420,
+      badge: "🥈",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
+    },
+    {
+      id: 3,
+      name: "Amit Singh",
+      location: "UP",
+      score: 9180,
+      badge: "🥉",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+    }
+  ];
 
   return (
     <div className="px-4 py-6 space-y-6">
@@ -20,27 +78,28 @@ export function EngagementSection() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
-              <div className="text-lg font-bold text-foreground">{progress.cropsMonitored}</div>
-              <div className="text-xs text-muted-foreground">Crops Monitored</div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Level {userProgress.level}</p>
+              <p className="text-xs text-muted-foreground">
+                {userProgress.xp} / {userProgress.xpToNext} XP
+              </p>
             </div>
-            <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
-              <div className="text-lg font-bold text-foreground">{progress.diagnosesCompleted}</div>
-              <div className="text-xs text-muted-foreground">Diagnoses</div>
-            </div>
-            <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
-              <div className="text-lg font-bold text-foreground">{progress.totalPoints}</div>
-              <div className="text-xs text-muted-foreground">Total Points</div>
-            </div>
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              {userProgress.streak} day streak
+            </Badge>
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Community Activity</span>
-              <span className="font-medium text-foreground">{progress.communityPosts} posts</span>
+          <Progress value={(userProgress.xp / userProgress.xpToNext) * 100} className="h-2" />
+          <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="text-center">
+              <p className="text-lg font-bold text-primary">{userProgress.achievements}</p>
+              <p className="text-xs text-muted-foreground">Achievements</p>
             </div>
-            <Progress value={(progress.communityPosts / 50) * 100} className="h-2" />
+            <div className="text-center">
+              <p className="text-lg font-bold text-primary">{userProgress.streak}</p>
+              <p className="text-xs text-muted-foreground">Day Streak</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -54,24 +113,22 @@ export function EngagementSection() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {achievements.slice(0, 2).map((achievement, index) => (
-            <div key={index} className="flex items-center gap-3 p-3 bg-muted/30 dark:bg-muted/20 rounded-lg">
-              <div className="text-2xl">
-                {achievement.icon}
-              </div>
+          {recentAchievements.map((achievement) => (
+            <div key={achievement.id} className="flex items-center gap-3 p-3 rounded-lg bg-accent/50">
+              <div className="text-2xl">{achievement.icon}</div>
               <div className="flex-1">
-                <h4 className="font-medium text-sm text-foreground">{achievement.name}</h4>
+                <p className="font-medium text-sm">{achievement.title}</p>
                 <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                <Badge variant="secondary" className="text-xs mt-1">
-                  {achievement.unlocked ? "Unlocked" : "Locked"}
-                </Badge>
+                <p className="text-xs text-muted-foreground">{achievement.date}</p>
               </div>
+              <Badge
+                variant={achievement.rarity === 'rare' ? 'default' : achievement.rarity === 'uncommon' ? 'secondary' : 'outline'}
+                className="text-xs"
+              >
+                {achievement.rarity}
+              </Badge>
             </div>
           ))}
-          <Button variant="ghost" size="sm" className="w-full">
-            View All Achievements
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
         </CardContent>
       </Card>
 
@@ -79,37 +136,31 @@ export function EngagementSection() {
       <Card className="shadow-sm border border-border bg-card dark:bg-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
-            <Trophy className="h-5 w-5 text-primary" />
+            <Medal className="h-5 w-5 text-primary" />
             Top Farmers
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {leaderboard.slice(0, 3).map((farmer, index) => (
-            <div key={farmer.rank} className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-bold text-foreground">
-                {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+          {topFarmers.map((farmer, index) => (
+            <div key={farmer.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors">
+              <div className="text-lg font-bold text-muted-foreground w-6">{farmer.badge}</div>
+              <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
+                <img
+                  src={farmer.avatar}
+                  alt={farmer.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs">
-                  {farmer.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-foreground">{farmer.name}</p>
+              <div className="flex-1">
+                <p className="font-medium text-sm">{farmer.name}</p>
                 <p className="text-xs text-muted-foreground">{farmer.location}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-foreground">{farmer.points}</p>
-                <div className="flex gap-1 items-center">
-                  <span className="text-xs">{farmer.badges.join(' ')}</span>
-                </div>
+                <p className="font-bold text-sm">{farmer.score.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">points</p>
               </div>
             </div>
           ))}
-          <Button variant="ghost" size="sm" className="w-full">
-            View Full Leaderboard
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
         </CardContent>
       </Card>
     </div>

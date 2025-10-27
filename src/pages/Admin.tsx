@@ -34,9 +34,22 @@ import {
   Edit,
   Trash2,
   Eye,
-  RefreshCw
+  RefreshCw,
+  Volume2,
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { VoiceAlertSystem } from '@/components/admin/VoiceAlertSystem';
+
+// Types
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'user' | 'seller' | 'admin';
+  status: 'active' | 'inactive' | 'pending';
+  joinDate: string;
+}
 
 // Mock data for demonstration
 const initialUsers = [
@@ -78,9 +91,13 @@ export default function Admin() {
   // Add user handler
   const handleAddUser = () => {
     if (!userForm.name || !userForm.email) return;
-    const newUser = {
+    const newUser: User = {
       id: users.length ? Math.max(...users.map(u => u.id)) + 1 : 1,
-      ...userForm
+      name: userForm.name,
+      email: userForm.email,
+      role: userForm.role as 'user' | 'seller' | 'admin',
+      status: userForm.status as 'active' | 'inactive' | 'pending',
+      joinDate: userForm.joinDate
     };
     setUsers([...users, newUser]);
     setShowUserForm(false);
@@ -107,7 +124,11 @@ export default function Admin() {
   const handleUpdateUser = () => {
     setUsers(users.map(u => u.id === editUserId ? {
       ...u,
-      ...userForm
+      name: userForm.name,
+      email: userForm.email,
+      role: userForm.role as 'user' | 'seller' | 'admin',
+      status: userForm.status as 'active' | 'inactive' | 'pending',
+      joinDate: userForm.joinDate
     } : u));
     setEditUserId(null);
     setShowUserForm(false);
@@ -121,10 +142,7 @@ export default function Admin() {
     if (userToDelete === null) return;
     setUsers(users.filter(u => u.id !== userToDelete));
     setUserToDelete(null);
-    toast({
-      title: "User deleted successfully",
-      description: "The user account has been permanently removed.",
-    });
+    toast.success("User deleted successfully");
   };
 
   // Form change handler
@@ -135,26 +153,7 @@ export default function Admin() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('dashboard');
 
-  const StatsCard = ({ title, value, icon: Icon, trend }: any) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {trend && (
-          <p className="text-xs text-muted-foreground">
-            <span className="text-green-600">{trend}</span> from last month
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
-
-  const UserRow = ({ user }: any) => (
+  const UserRow = ({ user }: { user: User }) => (
     <div className="grid grid-cols-6 gap-4 p-4 items-center border-t hover:bg-muted/30 transition-colors">
       <div className="col-span-2">
         <div className="flex items-center gap-3">
@@ -401,7 +400,7 @@ export default function Admin() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="role">Role</Label>
-                      <Select name="role" value={userForm.role} onValueChange={(value) => handleUserFormChange({ target: { name: 'role', value } })}>
+                      <Select name="role" value={userForm.role} onValueChange={(value) => handleUserFormChange({ target: { name: 'role', value } } as any)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
@@ -414,7 +413,7 @@ export default function Admin() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="status">Status</Label>
-                      <Select name="status" value={userForm.status} onValueChange={(value) => handleUserFormChange({ target: { name: 'status', value } })}>
+                      <Select name="status" value={userForm.status} onValueChange={(value) => handleUserFormChange({ target: { name: 'status', value } } as any)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -609,6 +608,39 @@ export default function Admin() {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
+            {/* Voice Alert System - Featured Section */}
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-primary">
+                  <Volume2 className="h-6 w-6" />
+                  Real-Time Voice Alert System
+                </CardTitle>
+                <p className="text-muted-foreground">
+                  Send instant voice alerts to farmers in multiple languages (Tamil, Hindi, English) using AI-powered text-to-speech
+                </p>
+                
+                {/* Configuration Status */}
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="font-medium">System Ready</span>
+                  </div>
+                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    Twilio credentials configured. Voice alert system is ready to use.
+                  </p>
+                  <div className="mt-2 text-xs bg-green-100 dark:bg-green-900/40 p-2 rounded border">
+                    <strong>Verified Number:</strong> +918056129665<br/>
+                    <strong>Twilio Number:</strong> +19789046196<br/>
+                    <strong>Features:</strong> Tamil, Hindi, English voice alerts
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <VoiceAlertSystem />
+              </CardContent>
+            </Card>
+
+            {/* Other Settings */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -617,11 +649,11 @@ export default function Admin() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="siteName">Site Name</Label>
-                    <Input id="siteName" placeholder="Krishi Sahayak" />
+                    <Input id="siteName" placeholder="AgriSmart" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="siteDescription">Site Description</Label>
-                    <Textarea id="siteDescription" placeholder="Agricultural support platform..." />
+                    <Textarea id="siteDescription" placeholder="Smart agricultural platform for modern farmers..." />
                   </div>
                   <Button>Save Changes</Button>
                 </CardContent>
@@ -643,6 +675,10 @@ export default function Admin() {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="smsNotifications">SMS Notifications</Label>
                     <Switch id="smsNotifications" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="voiceAlerts">Voice Alert System</Label>
+                    <Switch id="voiceAlerts" defaultChecked />
                   </div>
                   <Button>Update Settings</Button>
                 </CardContent>

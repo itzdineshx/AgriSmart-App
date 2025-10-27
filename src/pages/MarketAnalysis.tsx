@@ -36,7 +36,10 @@ import {
   MANDI_LOCATIONS,
   FilterOptions,
   isChennaiAreaUser,
-  getChennaiMarketAlternatives
+  getChennaiMarketAlternatives,
+  COMMODITY_CATEGORIES,
+  getCommodityCategory,
+  MandiLocation
 } from '@/services/mandiService';
 import {
   getLiveMarketData,
@@ -62,7 +65,7 @@ export default function MarketAnalysis() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
-  const [nearestMandis, setNearestMandis] = useState<any[]>([]);
+  const [nearestMandis, setNearestMandis] = useState<(MandiLocation & { distance: number })[]>([]);
   const [filters, setFilters] = useState<FilterOptions>({ onlyRecentData: true });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -200,7 +203,7 @@ export default function MarketAnalysis() {
         setError(result.message || 'API temporarily unavailable - showing sample data for reference');
       } else if (result.freshness && !result.freshness.isRealTime) {
         // Show data freshness warning for stale data
-        const liveDataCount = finalData.filter((item: any) => item.isLiveData).length;
+        const liveDataCount = finalData.filter((item: MandiPrice) => item.isLiveData).length;
         if (liveDataCount > 0) {
           setError(`📊 Showing ${liveDataCount} live prices + ${result.data.length} government records. ${result.freshness.message}.`);
         } else if (result.freshness.status === 'very-stale') {
@@ -263,7 +266,6 @@ export default function MarketAnalysis() {
 
     // Commodity category filter
     if (filters.commodityCategory) {
-      const { COMMODITY_CATEGORIES, getCommodityCategory } = require('@/services/mandiService');
       filtered = filtered.filter(item =>
         getCommodityCategory(item.commodity) === filters.commodityCategory
       );
@@ -560,8 +562,8 @@ export default function MarketAnalysis() {
                 </div>
                 <div className="text-sm space-y-1">
                   <div>• <strong>Total Markets:</strong> {data.length} records</div>
-                  <div>• <strong>Live Data:</strong> {data.filter((item: any) => item.isLiveData).length} current prices from major markets</div>
-                  <div>• <strong>Government Data:</strong> {data.filter((item: any) => !item.isLiveData).length} official records (may be historical)</div>
+                  <div>• <strong>Live Data:</strong> {data.filter((item: MandiPrice) => item.isLiveData).length} current prices from major markets</div>
+                  <div>• <strong>Government Data:</strong> {data.filter((item: MandiPrice) => !item.isLiveData).length} official records (may be historical)</div>
                   <div>• <strong>Best Practice:</strong> Cross-verify prices with local traders before transactions</div>
                 </div>
                 {hasLiveData(filters.commodity || '', filters.state, filters.district) && (

@@ -172,7 +172,7 @@ export default function SellerPanel() {
     }
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): "default" | "secondary" | "destructive" | "success" | "warning" => {
     switch (status) {
       case "active": return "success";
       case "low-stock": return "warning";
@@ -186,14 +186,14 @@ export default function SellerPanel() {
   const renderDashboard = () => (
     <div className="space-y-8">
       {/* Dashboard Metrics */}
-      <DashboardMetrics userType="seller" />
+      <DashboardMetrics userType="farmer" />
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-8">
           {/* Revenue Chart */}
-          <RevenueChart userType="seller" />
+          <RevenueChart userType="farmer" />
 
           {/* Recent Orders */}
           <Card className="shadow-elegant">
@@ -215,7 +215,7 @@ export default function SellerPanel() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold">₹{order.amount}</p>
-                      <Badge variant={getStatusColor(order.status) as any}>
+                      <Badge variant={getStatusColor(order.status)}>
                         {order.status}
                       </Badge>
                     </div>
@@ -226,16 +226,16 @@ export default function SellerPanel() {
           </Card>
 
           {/* Quick Actions */}
-          <QuickActions userType="seller" />
+          <QuickActions userType="farmer" />
         </div>
 
         {/* Right Column */}
         <div className="space-y-8">
           {/* Activity Feed */}
-          <ActivityFeed userType="seller" limit={6} />
+          <ActivityFeed userType="farmer" limit={6} />
 
           {/* Notification Center */}
-          <NotificationCenter userType="seller" />
+          <NotificationCenter userType="farmer" />
         </div>
       </div>
     </div>
@@ -262,7 +262,7 @@ export default function SellerPanel() {
               </div>
               <Badge 
                 className="absolute top-2 right-2" 
-                variant={getStatusColor(product.status) as any}
+                variant={getStatusColor(product.status)}
               >
                 {product.status.replace('-', ' ')}
               </Badge>
@@ -330,7 +330,7 @@ export default function SellerPanel() {
           </div>
           <div>
             <Label htmlFor="category">Category</Label>
-            <select id="category" value={formData.category} onChange={handleFormChange} className="w-full p-2 border rounded-md">
+            <select id="category" value={formData.category} onChange={handleFormChange} className="w-full p-2 border rounded-md" title="Select product category">
               <option value="">Select category</option>
               <option value="Vegetables">Vegetables</option>
               <option value="Fruits">Fruits</option>

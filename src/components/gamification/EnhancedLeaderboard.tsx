@@ -273,7 +273,7 @@ export function EnhancedLeaderboard() {
             <div className="flex gap-2 flex-wrap">
               <select
                 value={timeframe}
-                onChange={(e) => setTimeframe(e.target.value as any)}
+                onChange={(e) => setTimeframe(e.target.value as 'daily' | 'weekly' | 'monthly' | 'all-time')}
                 className="px-3 py-2 border rounded-md bg-background"
               >
                 {timeframes.map(tf => (
@@ -285,8 +285,9 @@ export function EnhancedLeaderboard() {
               
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value as any)}
+                onChange={(e) => setCategory(e.target.value as 'points' | 'achievements' | 'community' | 'sustainability' | 'innovation')}
                 className="px-3 py-2 border rounded-md bg-background"
+                aria-label="Select leaderboard category"
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat} className="capitalize">
@@ -299,6 +300,7 @@ export function EnhancedLeaderboard() {
                 value={selectedRegion}
                 onChange={(e) => setSelectedRegion(e.target.value)}
                 className="px-3 py-2 border rounded-md bg-background"
+                aria-label="Select region filter"
               >
                 {regions.map(region => (
                   <option key={region} value={region} className="capitalize">

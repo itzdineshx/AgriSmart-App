@@ -4,12 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Search, 
-  Filter, 
-  ShoppingCart, 
-  Star, 
-  MapPin, 
+import {
+  Search,
+  Filter,
+  Star,
+  MapPin,
   Truck,
   Apple,
   Wheat,
@@ -21,425 +20,385 @@ import {
   Package,
   Recycle,
   Leaf,
-  TreePine
+  TreePine,
+  X,
+  SlidersHorizontal
 } from "lucide-react";
 import marketplaceImage from "@/assets/marketplace.jpg";
+import { ProductCard } from "@/components/marketplace/ProductCard";
+import { Product } from "@/types/marketplace";
 
 const categories = [
-  { name: "All", icon: Package, count: 892 },
-  { name: "Fruits", icon: Apple, count: 145 },
-  { name: "Vegetables", icon: Wheat, count: 230 },
-  { name: "Fertilizers", icon: Zap, count: 189 },
-  { name: "Seeds", icon: Wheat, count: 156 },
-  { name: "Equipment", icon: Package, count: 172 },
-  { name: "Crop Residue", icon: Wheat, count: 45, category: "recycle" },
-  { name: "Animal Waste", icon: TreePine, count: 32, category: "recycle" },
-  { name: "Food Waste", icon: Apple, count: 28, category: "recycle" },
-  { name: "Other Biomass", icon: Leaf, count: 67, category: "recycle" },
+  { name: "All", icon: Package, count: 18 },
+  { name: "Fruits", icon: Apple, count: 2 },
+  { name: "Vegetables", icon: Wheat, count: 2 },
+  { name: "Fertilizers", icon: Zap, count: 2 },
+  { name: "Seeds", icon: Wheat, count: 2 },
+  { name: "Equipment", icon: Package, count: 2 },
+  { name: "Crop Residue", icon: Wheat, count: 2, category: "recycle" },
+  { name: "Animal Waste", icon: TreePine, count: 2, category: "recycle" },
+  { name: "Food Waste", icon: Apple, count: 2, category: "recycle" },
+  { name: "Other Biomass", icon: Leaf, count: 2, category: "recycle" },
 ];
 
-const products = [
+const products: Product[] = [
   // Fruits
   {
-    id: 1,
+    id: "1",
     name: "Premium Apples",
     category: "Fruits",
     price: 120,
     unit: "kg",
     rating: 4.8,
-    seller: "Kashmir Orchards",
-    location: "Kashmir",
+    seller: "Namma Chennai Farms",
+    location: "Multiple locations around Chennai",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Fresh red apples from Kashmir valleys",
+    description: "Fresh red apples from Chennai region farms",
     discount: 10,
+    stock: 100,
   },
   {
-    id: 2,
+    id: "2",
     name: "Alphonso Mangoes",
     category: "Fruits",
     price: 280,
     unit: "kg",
     rating: 4.9,
-    seller: "Ratnagiri Farms",
-    location: "Maharashtra",
+    seller: "Kokilammal Mango Farms",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "King of mangoes - Premium Alphonso variety",
+    description: "King of mangoes - Premium Alphonso variety from Chennai farms",
     discount: 0,
+    stock: 50,
   },
-  {
-    id: 3,
-    name: "Fresh Bananas",
-    category: "Fruits",
-    price: 60,
-    unit: "dozen",
-    rating: 4.5,
-    seller: "Kerala Plantations",
-    location: "Kerala",
-    image: marketplaceImage,
-    inStock: true,
-    organic: false,
-    description: "Fresh yellow bananas, rich in potassium",
-    discount: 5,
-  },
-  
+
   // Vegetables
   {
-    id: 4,
+    id: "3",
     name: "Premium Tomatoes",
     category: "Vegetables",
     price: 45,
     unit: "kg",
     rating: 4.7,
-    seller: "Green Valley Farm",
-    location: "Punjab",
+    seller: "Sunantha Organic Farms",
+    location: "Melkothakuppam Village, Ambur (Retail: Ramapuram, Chennai)",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Vine-ripened organic tomatoes",
+    description: "Vine-ripened organic tomatoes from certified chemical-free farms",
     discount: 0,
+    stock: 200,
   },
   {
-    id: 5,
-    name: "Fresh Potatoes",
-    category: "Vegetables",
-    price: 25,
-    unit: "kg",
-    rating: 4.4,
-    seller: "Punjab Farms",
-    location: "Punjab",
-    image: marketplaceImage,
-    inStock: true,
-    organic: false,
-    description: "Grade A potatoes perfect for cooking",
-    discount: 15,
-  },
-  {
-    id: 6,
+    id: "4",
     name: "Organic Carrots",
     category: "Vegetables",
     price: 55,
     unit: "kg",
     rating: 4.6,
-    seller: "Organic Harvest",
-    location: "Haryana",
+    seller: "GetFarms",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Sweet and crunchy organic carrots",
+    description: "Sweet and crunchy organic carrots from Chennai farms",
     discount: 0,
+    stock: 150,
   },
   
   // Fertilizers
   {
-    id: 7,
+    id: "5",
     name: "NPK Fertilizer 19:19:19",
-    category: "Fertilizers",
+    category: "fertilizers",
     price: 850,
     unit: "50kg bag",
     rating: 4.6,
-    seller: "AgriCorp Ltd",
-    location: "Haryana",
+    seller: "AgriCorp Chennai",
+    location: "Chennai",
     image: marketplaceImage,
     inStock: true,
     organic: false,
-    description: "Balanced NPK fertilizer for all crops",
+    description: "Balanced NPK fertilizer for all crops - Chennai distribution",
     discount: 8,
+    stock: 75,
   },
   {
-    id: 8,
+    id: "6",
     name: "Organic Compost",
-    category: "Fertilizers",
+    category: "fertilizers",
     price: 450,
     unit: "50kg bag",
     rating: 4.8,
-    seller: "EcoFarm Solutions",
-    location: "Karnataka",
+    seller: "Green Chennai Farms",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Rich organic compost made from cow dung",
+    description: "Rich organic compost made from cow dung - Chennai certified",
     discount: 12,
-  },
-  {
-    id: 9,
-    name: "Urea Fertilizer",
-    category: "Fertilizers",
-    price: 650,
-    unit: "50kg bag",
-    rating: 4.3,
-    seller: "Fertilizer Corp",
-    location: "Gujarat",
-    image: marketplaceImage,
-    inStock: false,
-    organic: false,
-    description: "High nitrogen content urea fertilizer",
-    discount: 0,
+    stock: 60,
   },
   
   // Seeds
   {
-    id: 10,
+    id: "7",
     name: "Wheat Seeds (HD-3086)",
-    category: "Seeds",
+    category: "seeds",
     price: 1200,
     unit: "quintal",
     rating: 4.9,
-    seller: "SeedTech Ltd",
-    location: "Rajasthan",
+    seller: "Chennai Seed Hub",
+    location: "Chennai",
     image: marketplaceImage,
     inStock: true,
     organic: false,
-    description: "High yielding drought resistant wheat variety",
+    description: "High yielding drought resistant wheat variety - Chennai distribution",
     discount: 5,
+    stock: 25,
   },
   {
-    id: 11,
-    name: "Hybrid Corn Seeds",
-    category: "Seeds",
-    price: 2800,
-    unit: "25kg bag",
-    rating: 4.7,
-    seller: "Pioneer Seeds",
-    location: "Maharashtra",
-    image: marketplaceImage,
-    inStock: true,
-    organic: false,
-    description: "High yielding hybrid corn seeds",
-    discount: 0,
-  },
-  {
-    id: 12,
+    id: "8",
     name: "Tomato Seeds (Hybrid)",
-    category: "Seeds",
+    category: "seeds",
     price: 450,
     unit: "100g packet",
     rating: 4.5,
-    seller: "VegSeed Co",
-    location: "Karnataka",
+    seller: "Tamil Nadu Seeds",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: false,
-    description: "Disease resistant hybrid tomato seeds",
+    description: "Disease resistant hybrid tomato seeds - Tamil Nadu variety",
     discount: 10,
+    stock: 200,
   },
   
   // Equipment
   {
-    id: 13,
+    id: "9",
     name: "Garden Hose 50ft",
-    category: "Equipment",
+    category: "equipment",
     price: 1250,
     unit: "piece",
     rating: 4.4,
-    seller: "AgriTools",
-    location: "Delhi",
+    seller: "Chennai AgriTools",
+    location: "Chennai",
     image: marketplaceImage,
     inStock: true,
     organic: false,
-    description: "Heavy duty garden hose with spray nozzle",
+    description: "Heavy duty garden hose with spray nozzle - Chennai delivery",
     discount: 20,
+    stock: 30,
   },
   {
-    id: 14,
+    id: "10",
     name: "Hand Pruning Shears",
-    category: "Equipment",
+    category: "equipment",
     price: 350,
     unit: "piece",
     rating: 4.6,
-    seller: "FarmTools Ltd",
-    location: "Punjab",
+    seller: "Chennai Garden Tools",
+    location: "Chennai",
     image: marketplaceImage,
     inStock: true,
     organic: false,
-    description: "Sharp steel pruning shears for garden use",
+    description: "Sharp steel pruning shears for garden use - Chennai supplier",
     discount: 0,
-  },
-  {
-    id: 15,
-    name: "Watering Can 10L",
-    category: "Equipment",
-    price: 450,
-    unit: "piece",
-    rating: 4.2,
-    seller: "Garden Essentials",
-    location: "Maharashtra",
-    image: marketplaceImage,
-    inStock: false,
-    organic: false,
-    description: "Large capacity plastic watering can",
-    discount: 15,
+    stock: 45,
   },
   
   // Recycle & Reuse - Crop Residue
   {
-    id: 16,
+    id: "11",
     name: "Rice Straw Bales",
     category: "Crop Residue",
     price: 25,
     unit: "quintal",
     rating: 4.6,
-    seller: "Punjab Rice Mills",
-    location: "Punjab",
+    seller: "Chennai Rice Mills",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Clean rice straw bales perfect for biogas production",
+    description: "Clean rice straw bales perfect for biogas production - Chennai farms",
     discount: 0,
     recyclable: true,
+    stock: 500,
   },
   {
-    id: 17,
+    id: "12",
     name: "Wheat Stubble",
     category: "Crop Residue",
     price: 20,
     unit: "quintal",
     rating: 4.4,
-    seller: "Haryana Agri Co-op",
-    location: "Haryana",
+    seller: "Tamil Nadu Agri Co-op",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Fresh wheat stubble available for biogas companies",
+    description: "Fresh wheat stubble available for biogas companies - Chennai region",
     discount: 5,
     recyclable: true,
-  },
-  {
-    id: 18,
-    name: "Corn Husks & Stalks",
-    category: "Crop Residue",
-    price: 30,
-    unit: "quintal",
-    rating: 4.7,
-    seller: "Maharashtra Corn Farm",
-    location: "Maharashtra",
-    image: marketplaceImage,
-    inStock: true,
-    organic: true,
-    description: "High cellulose corn residue for efficient biogas",
-    discount: 0,
-    recyclable: true,
+    stock: 300,
   },
   
   // Animal Waste
   {
-    id: 19,
+    id: "13",
     name: "Dairy Cow Manure",
     category: "Animal Waste",
     price: 15,
     unit: "quintal",
     rating: 4.8,
-    seller: "Amul Dairy Farm",
-    location: "Gujarat",
+    seller: "Chennai Dairy Farms",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Fresh cow dung from 500+ dairy cows, high methane potential",
+    description: "Fresh cow dung from Chennai dairy farms, high methane potential",
     discount: 0,
     recyclable: true,
+    stock: 800,
   },
   {
-    id: 20,
+    id: "14",
     name: "Poultry Litter",
     category: "Animal Waste",
     price: 35,
     unit: "quintal",
     rating: 4.5,
-    seller: "Venky's Poultry",
-    location: "Andhra Pradesh",
+    seller: "Tamil Nadu Poultry",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Nitrogen-rich poultry waste for biogas and fertilizer",
+    description: "Nitrogen-rich poultry waste for biogas and fertilizer - Chennai farms",
     discount: 10,
     recyclable: true,
+    stock: 400,
   },
   
   // Food Waste
   {
-    id: 21,
+    id: "15",
     name: "Vegetable Market Waste",
     category: "Food Waste",
     price: 10,
     unit: "quintal",
     rating: 4.3,
-    seller: "Mumbai Veg Market",
-    location: "Maharashtra",
+    seller: "Chennai Veg Market",
+    location: "Chennai wholesale markets",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Daily fresh vegetable waste from wholesale market",
+    description: "Daily fresh vegetable waste from Chennai wholesale markets",
     discount: 0,
     recyclable: true,
+    stock: 1000,
   },
   {
-    id: 22,
+    id: "16",
     name: "Fruit Processing Waste",
     category: "Food Waste",
     price: 12,
     unit: "quintal",
     rating: 4.6,
-    seller: "Real Fruit Juice Co",
-    location: "Punjab",
+    seller: "Chennai Fruit Processors",
+    location: "Chennai",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Fruit peels and pulp waste from juice processing",
+    description: "Fruit peels and pulp waste from juice processing - Chennai facilities",
     discount: 15,
     recyclable: true,
+    stock: 600,
   },
   
   // Other Biomass
   {
-    id: 23,
+    id: "17",
     name: "Water Hyacinth",
     category: "Other Biomass",
     price: 8,
     unit: "quintal",
     rating: 4.4,
-    seller: "Kerala Backwaters Clean",
-    location: "Kerala",
+    seller: "Chennai Water Management",
+    location: "Chennai waterways",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "Harvested water hyacinth for biogas production",
+    description: "Harvested water hyacinth for biogas production - Chennai region",
     discount: 0,
     recyclable: true,
+    stock: 200,
   },
   {
-    id: 24,
+    id: "18",
     name: "Sugarcane Bagasse",
     category: "Other Biomass",
     price: 18,
     unit: "quintal",
     rating: 4.7,
-    seller: "Sugar Mill Cooperative",
-    location: "Uttar Pradesh",
+    seller: "Tamil Nadu Sugar Mills",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
     organic: true,
-    description: "High energy bagasse waste from sugar processing",
+    description: "High energy bagasse waste from sugar processing - Chennai mills",
     discount: 0,
     recyclable: true,
+    stock: 350,
   },
+
+  // ⭐ FEATURED PRODUCT: Complete Payment & Blockchain Integration Demo
   {
-    id: 25,
-    name: "Biogas Plant Starter Kit",
-    category: "Other Biomass",
-    price: 25000,
-    unit: "kit",
+    id: "19",
+    name: "Premium Organic Tomatoes - Blockchain Verified",
+    category: "Vegetables",
+    price: 500,
+    unit: "kg",
     rating: 4.9,
-    seller: "GreenTech Solutions",
-    location: "Karnataka",
+    seller: "Chennai Organic Farms (Verified)",
+    location: "Chennai region",
     image: marketplaceImage,
     inStock: true,
-    organic: false,
-    description: "Complete small-scale biogas plant setup for farms",
-    discount: 12,
-    recyclable: false,
+    organic: true,
+    description: "Fresh organic tomatoes with complete payment protection, escrow security, and blockchain transparency. Experience the future of agricultural trading.",
+    discount: 10,
+    stock: 100,
+    // Enhanced payment and blockchain features
+    paymentFeatures: {
+      razorpayEnabled: true,
+      escrowProtection: true,
+      blockchainRecording: true,
+      fraudDetection: true,
+      autoRelease: true,
+      disputeResolution: true
+    },
+    blockchainInfo: {
+      transactionCount: 1247,
+      lastTransactionHash: "0x1a2b3c4d5e6f7890abcdef1234567890abcdef12",
+      network: "Ethereum Mainnet",
+      verificationStatus: "verified"
+    },
+    securityFeatures: {
+      buyerProtection: true,
+      sellerVerification: true,
+      paymentGuarantee: true,
+      transparentPricing: true
+    },
+    analytics: {
+      totalSales: 2847,
+      successRate: 98.5,
+      averageRating: 4.8,
+      customerSatisfaction: 96.2
+    }
   },
 ];
 
@@ -447,8 +406,8 @@ export default function Buy() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("name");
-  const [cart, setCart] = useState<{[key: number]: number}>({});
-  const [wishlist, setWishlist] = useState<number[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const filteredProducts = products
     .filter((product) => {
@@ -471,40 +430,12 @@ export default function Buy() {
       }
     });
 
-  const addToCart = (productId: number) => {
-    setCart(prev => ({ ...prev, [productId]: (prev[productId] || 0) + 1 }));
-  };
-
-  const removeFromCart = (productId: number) => {
-    setCart(prev => {
-      const newCart = { ...prev };
-      if (newCart[productId] > 1) {
-        newCart[productId] -= 1;
-      } else {
-        delete newCart[productId];
-      }
-      return newCart;
-    });
-  };
-
-  const toggleWishlist = (productId: number) => {
+  const toggleWishlist = (productId: string) => {
     setWishlist(prev => 
       prev.includes(productId) 
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
-  };
-
-  const getTotalCartItems = () => {
-    return Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
-  };
-
-  const getCartTotal = () => {
-    return Object.entries(cart).reduce((total, [productId, quantity]) => {
-      const product = products.find(p => p.id === parseInt(productId));
-      const price = product ? product.price * (1 - product.discount / 100) : 0;
-      return total + (price * quantity);
-    }, 0);
   };
 
   return (
@@ -533,56 +464,226 @@ export default function Buy() {
                 />
               </div>
 
-              {/* Sort Dropdown */}
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48">
-                  <SortAsc className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Sort by Name</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Desktop Sort Dropdown */}
+              <div className="hidden md:block">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-48">
+                    <SortAsc className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Sort by Name</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {/* Cart Summary */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ShoppingCart className="h-4 w-4" />
-                <span>{getTotalCartItems()} items • ₹{getCartTotal().toFixed(2)}</span>
+              {/* Mobile Filter Button */}
+              <div className="md:hidden">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="w-full"
+                >
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
+                  Filters & Sort
+                  {(selectedCategory || sortBy !== "name") && (
+                    <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                      {(selectedCategory ? 1 : 0) + (sortBy !== "name" ? 1 : 0)}
+                    </Badge>
+                  )}
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Categories */}
-        <div className="space-y-6">
+        {/* Mobile Filter Drawer */}
+        {isMobileFilterOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setIsMobileFilterOpen(false)}
+            />
+
+            {/* Drawer */}
+            <div className="absolute right-0 top-0 h-full w-80 max-w-[90vw] bg-background shadow-xl">
+              <div className="flex flex-col h-full">
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b">
+                  <h2 className="text-lg font-semibold">Filters & Sort</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsMobileFilterOpen(false)}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                  {/* Sort Options */}
+                  <div>
+                    <h3 className="font-medium mb-3">Sort By</h3>
+                    <div className="space-y-2">
+                      {[
+                        { value: "name", label: "Name (A-Z)" },
+                        { value: "price-low", label: "Price: Low to High" },
+                        { value: "price-high", label: "Price: High to Low" },
+                        { value: "rating", label: "Highest Rated" }
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => setSortBy(option.value)}
+                          className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                            sortBy === option.value
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Categories */}
+                  <div>
+                    <h3 className="font-medium mb-3">Categories</h3>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => setSelectedCategory(null)}
+                        className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                          !selectedCategory
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Package className="h-5 w-5" />
+                          <div>
+                            <div className="font-medium">All Categories</div>
+                            <div className="text-sm text-muted-foreground">18 items</div>
+                          </div>
+                        </div>
+                      </button>
+
+                      {categories.slice(1, 7).map((category) => {
+                        const IconComponent = category.icon;
+                        return (
+                          <button
+                            key={category.name}
+                            onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
+                            className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                              selectedCategory === category.name
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <IconComponent className="h-5 w-5" />
+                              <div>
+                                <div className="font-medium">{category.name}</div>
+                                <div className="text-sm text-muted-foreground">{category.count} items</div>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Recycle & Reuse */}
+                  <div>
+                    <h3 className="font-medium mb-3 flex items-center gap-2">
+                      <Recycle className="h-4 w-4 text-success" />
+                      Recycle & Reuse
+                    </h3>
+                    <div className="space-y-2">
+                      {categories.slice(7).map((category) => {
+                        const IconComponent = category.icon;
+                        return (
+                          <button
+                            key={category.name}
+                            onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
+                            className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                              selectedCategory === category.name
+                                ? "border-success bg-success/5 text-success"
+                                : "border-border hover:border-success/50"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <IconComponent className="h-5 w-5" />
+                              <div>
+                                <div className="font-medium">{category.name}</div>
+                                <div className="text-sm text-muted-foreground">{category.count} items</div>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="border-t p-4 space-y-3">
+                  <Button
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      setSortBy("name");
+                    }}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Clear All Filters
+                  </Button>
+                  <Button
+                    onClick={() => setIsMobileFilterOpen(false)}
+                    className="w-full"
+                  >
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Categories - Hidden on Mobile */}
+        <div className="hidden md:block space-y-6">
           {/* Regular Marketplace */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Marketplace</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {categories.slice(0, 6).map((category) => (
-                <Card
-                  key={category.name}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-primary ${
-                    selectedCategory === category.name
-                      ? "border-primary shadow-primary"
-                      : "hover:border-primary/50"
-                  }`}
-                  onClick={() =>
-                    setSelectedCategory(
-                      selectedCategory === category.name ? null : category.name
-                    )
-                  }
-                >
-                  <CardContent className="p-4 text-center">
-                    <category.icon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                    <h3 className="font-medium">{category.name}</h3>
-                    <p className="text-sm text-muted-foreground">{category.count} items</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {categories.slice(0, 6).map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <Card
+                    key={category.name}
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-primary ${
+                      selectedCategory === category.name
+                        ? "border-primary shadow-primary"
+                        : "hover:border-primary/50"
+                    }`}
+                    onClick={() =>
+                      setSelectedCategory(
+                        selectedCategory === category.name ? null : category.name
+                      )
+                    }
+                  >
+                    <CardContent className="p-4 text-center">
+                      <IconComponent className="h-8 w-8 mx-auto mb-2 text-primary" />
+                      <h3 className="font-medium">{category.name}</h3>
+                      <p className="text-sm text-muted-foreground">{category.count} items</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
@@ -599,29 +700,60 @@ export default function Buy() {
               </p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {categories.slice(6).map((category) => (
-                <Card
-                  key={category.name}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-success border-success/20 ${
-                    selectedCategory === category.name
-                      ? "border-success shadow-success bg-success/5"
-                      : "hover:border-success/50"
-                  }`}
-                  onClick={() =>
-                    setSelectedCategory(
-                      selectedCategory === category.name ? null : category.name
-                    )
-                  }
-                >
-                  <CardContent className="p-4 text-center">
-                    <category.icon className="h-8 w-8 mx-auto mb-2 text-success" />
-                    <h3 className="font-medium">{category.name}</h3>
-                    <p className="text-sm text-muted-foreground">{category.count} items</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {categories.slice(6).map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <Card
+                    key={category.name}
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-success border-success/20 ${
+                      selectedCategory === category.name
+                        ? "border-success shadow-success bg-success/5"
+                        : "hover:border-success/50"
+                    }`}
+                    onClick={() =>
+                      setSelectedCategory(
+                        selectedCategory === category.name ? null : category.name
+                      )
+                    }
+                  >
+                    <CardContent className="p-4 text-center">
+                      <IconComponent className="h-8 w-8 mx-auto mb-2 text-success" />
+                      <h3 className="font-medium">{category.name}</h3>
+                      <p className="text-sm text-muted-foreground">{category.count} items</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
+        </div>
+
+        {/* Mobile Category Selector */}
+        <div className="md:hidden">
+          <Card className="shadow-elegant">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    {selectedCategory || "All Categories"}
+                  </span>
+                  {selectedCategory && (
+                    <Badge variant="secondary" className="text-xs">
+                      {categories.find(c => c.name === selectedCategory)?.count} items
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMobileFilterOpen(true)}
+                >
+                  Change
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Products Grid */}
@@ -635,157 +767,10 @@ export default function Buy() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="shadow-elegant hover:shadow-glow transition-all duration-300">
-                <div className="relative">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                  {product.organic && (
-                    <Badge className="absolute top-2 left-2 bg-success text-success-foreground">
-                      Organic
-                    </Badge>
-                  )}
-                  {product.recyclable && (
-                    <Badge className="absolute top-2 right-2 bg-success/10 text-success border border-success/30">
-                      <Recycle className="h-3 w-3 mr-1" />
-                      Recyclable
-                    </Badge>
-                  )}
-                  {!product.inStock && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-t-lg">
-                      <Badge variant="destructive">Out of Stock</Badge>
-                    </div>
-                  )}
-                </div>
-
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                  {/* Product Info */}
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">{product.name}</h3>
-                        <p className="text-muted-foreground text-sm">{product.category}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleWishlist(product.id)}
-                        className="p-1"
-                      >
-                        <Heart 
-                          className={`h-5 w-5 ${
-                            wishlist.includes(product.id) 
-                              ? 'fill-red-500 text-red-500' 
-                              : 'text-muted-foreground'
-                          }`} 
-                        />
-                      </Button>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
-                  </div>
-
-                  {/* Price & Rating */}
-                  <div className="flex justify-between items-center">
-                    <div>
-                      {product.discount > 0 && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg line-through text-muted-foreground">₹{product.price}</span>
-                          <Badge variant="destructive" className="text-xs">-{product.discount}%</Badge>
-                        </div>
-                      )}
-                      <span className="text-2xl font-bold text-primary">
-                        ₹{(product.price * (1 - product.discount / 100)).toFixed(2)}
-                      </span>
-                      <span className="text-muted-foreground">/{product.unit}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="text-sm font-medium">{product.rating}</span>
-                    </div>
-                  </div>
-
-                  {/* Seller Info */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{product.seller}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="h-3 w-3" />
-                      <span>{product.location}</span>
-                      <Truck className="h-3 w-3 ml-2" />
-                      <span>Free delivery</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="space-y-2 pt-2">
-                    {cart[product.id] ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeFromCart(product.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span className="font-medium w-8 text-center">{cart[product.id]}</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => addToCart(product.id)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <span className="text-sm font-medium">
-                          ₹{((product.price * (1 - product.discount / 100)) * cart[product.id]).toFixed(2)}
-                        </span>
-                      </div>
-                    ) : (
-                      <Button
-                        variant={product.inStock ? "default" : "outline"}
-                        disabled={!product.inStock}
-                        onClick={() => product.inStock && addToCart(product.id)}
-                        className="w-full"
-                      >
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        {product.inStock ? "Add to Cart" : "Notify Me"}
-                      </Button>
-                    )}
-                  </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         </div>
-
-        {/* Quick Actions */}
-        <Card className="bg-gradient-card">
-          <CardContent className="p-6">
-            <h3 className="font-semibold mb-4">Quick Actions</h3>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <Button variant="outline" className="justify-start">
-                <Truck className="h-4 w-4 mr-2" />
-                Track Orders
-              </Button>
-              <Button variant="outline" className="justify-start">
-                <Star className="h-4 w-4 mr-2" />
-                My Wishlist
-              </Button>
-              <Button variant="outline" className="justify-start">
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                View Cart
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

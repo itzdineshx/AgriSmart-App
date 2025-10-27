@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Cloud, Sun, CloudRain, Loader2, MapPin, Thermometer, Droplets, Wind } from "lucide-react";
 import { fetchWeatherApi } from 'openmeteo';
@@ -132,6 +132,9 @@ export function WeatherWidget() {
             <Cloud className="h-5 w-5" />
             Weather Details
           </DialogTitle>
+          <DialogDescription>
+            Current weather conditions and forecast details for your location.
+          </DialogDescription>
         </DialogHeader>
         <Card>
           <CardContent className="p-6 space-y-4">

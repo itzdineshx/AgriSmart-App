@@ -234,8 +234,8 @@ export const getCurrentLocation = (): Promise<LocationData> => {
           
           // Extract additional location data
           const context = feature?.context || [];
-          const country = context.find((c: any) => c.id.startsWith('country'))?.text || 'Unknown';
-          const region = context.find((c: any) => c.id.startsWith('region'))?.text || 'Unknown';
+          const country = context.find((c: { id: string; text: string }) => c.id.startsWith('country'))?.text || 'Unknown';
+          const region = context.find((c: { id: string; text: string }) => c.id.startsWith('region'))?.text || 'Unknown';
           
           resolve({
             latitude,

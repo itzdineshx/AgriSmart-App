@@ -14,8 +14,8 @@ export function BottomNavigation() {
 
   const navItems = [
     { name: "Home", path: "/", icon: Home },
-    { name: "Diagnose", path: "/diagnose", icon: Camera },
-    { name: "Marketplace", path: "/buy", icon: ShoppingCart, isCenter: true },
+    { name: "Buy", path: "/buy", icon: ShoppingCart },
+    { name: "Sell", path: "/sell", icon: Camera, isCenter: true },
     { name: "Community", path: "/community", icon: Users },
     { name: "Profile", path: "/user-profile", icon: User },
   ];

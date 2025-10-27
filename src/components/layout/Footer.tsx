@@ -21,7 +21,8 @@ export function Footer() {
 
   const quickLinks = [
     { name: "Disease Detection", path: "/diagnose" },
-    { name: "Marketplace", path: "/buy" },
+    { name: "Buy Products", path: "/buy" },
+    { name: "Sell Products", path: "/sell" },
     { name: "Recommendations", path: "/recommendations" },
     { name: "Weather Forecast", path: "/weather" },
     { name: "Achievements", path: "/gamification" },

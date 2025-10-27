@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -31,13 +31,21 @@ interface WeatherMapModalProps {
   currentLocation?: { lat: number; lng: number; address: string };
 }
 
+interface WeatherData {
+  temperature: number;
+  weatherCode: number;
+  windSpeed: number;
+  humidity: number;
+  address: string;
+}
+
 const MAPBOX_API_KEY = 'pk.eyJ1IjoiaGFyaXNod2FyYW4iLCJhIjoiY21hZHhwZGs2MDF4YzJxczh2aDd0cWg1MyJ9.qcu0lpqVlZlC2WFxhwb1Pg';
 
 // Weather overlay types
 interface WeatherOverlay {
   id: string;
   name: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   enabled: boolean;
   opacity: number;
 }
@@ -59,8 +67,91 @@ export const WeatherMapModal: React.FC<WeatherMapModalProps> = ({
     { id: 'wind', name: 'Wind Speed', icon: Wind, enabled: false, opacity: 0.5 },
   ]);
   const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'hybrid'>('satellite');
-  const [currentWeatherData, setCurrentWeatherData] = useState<any>(null);
+  const [currentWeatherData, setCurrentWeatherData] = useState<WeatherData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(false);
+
+  // Update weather data for location
+  const updateLocationWeather = useCallback(async (
+    lat: number,
+    lng: number,
+    mapMarker: mapboxgl.Marker
+  ) => {
+    setLoadingWeather(true);
+    try {
+      // Get address from coordinates via Mapbox with high precision
+      let address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      try {
+        const resp = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}&types=address,poi,place,locality&limit=1`
+        );
+        const data = await resp.json();
+        address = data.features?.[0]?.place_name || address;
+      } catch (error) {
+        console.error('Reverse geocoding error:', error);
+      }
+
+      // Get weather data from OpenMeteo
+      const weatherResponse = await fetchWeatherApi('https://api.open-meteo.com/v1/forecast', {
+        latitude: lat,
+        longitude: lng,
+        current: ['temperature_2m', 'weather_code', 'wind_speed_10m', 'relative_humidity_2m', 'cloud_cover'],
+        hourly: ['temperature_2m', 'precipitation_probability', 'weather_code'],
+        forecast_days: 3
+      });
+
+      const response = weatherResponse[0];
+      const current = response.current()!;
+      
+      const weatherData = {
+        temperature: Math.round(current.variables(0)!.value()),
+        weatherCode: current.variables(1)!.value(),
+        windSpeed: Math.round(current.variables(2)!.value()),
+        humidity: Math.round(current.variables(3)!.value()),
+        cloudCover: Math.round(current.variables(4)!.value()),
+        address
+      };
+
+      setCurrentWeatherData(weatherData);
+
+      // Update popup
+      const weatherIcon = getWeatherIcon(weatherData.weatherCode);
+      const weatherCondition = getWeatherCondition(weatherData.weatherCode);
+      const infoContent = `
+        <div class="p-4 min-w-[200px]">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-2xl">${weatherIcon}</div>
+            <div>
+              <div class="font-bold text-lg">${weatherData.temperature}°C</div>
+              <div class="text-sm text-gray-600">${weatherCondition}</div>
+            </div>
+          </div>
+          <div class="space-y-1 text-sm">
+            <div class="flex justify-between">
+              <span>Wind:</span>
+              <span class="font-medium">${weatherData.windSpeed} km/h</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Humidity:</span>
+              <span class="font-medium">${weatherData.humidity}%</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Clouds:</span>
+              <span class="font-medium">${weatherData.cloudCover}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      mapMarker.setPopup(
+        new mapboxgl.Popup({ offset: 25, className: 'custom-popup' })
+          .setHTML(infoContent)
+      );
+    } catch (error) {
+      console.error('Weather update error:', error);
+    } finally {
+      setLoadingWeather(false);
+    }
+  }, []);
 
   // Initialize Mapbox with weather layers
   useEffect(() => {
@@ -70,6 +161,11 @@ export const WeatherMapModal: React.FC<WeatherMapModalProps> = ({
 
         // Mapbox access token
         mapboxgl.accessToken = MAPBOX_API_KEY;
+        
+        // Disable telemetry at map level
+        if (!(window as { __mapboxTelemetryBlocked?: boolean }).__mapboxTelemetryBlocked) {
+          console.log('🔒 Blocking Mapbox telemetry for WeatherMapModal');
+        }
 
         const styleUrl = mapType === 'satellite'
           ? 'mapbox://styles/mapbox/satellite-v9'
@@ -129,91 +225,7 @@ export const WeatherMapModal: React.FC<WeatherMapModalProps> = ({
     };
 
     initMap();
-  }, [currentLocation, mapType]);
-
-  // Update weather data for location
-  const updateLocationWeather = async (
-    lat: number,
-    lng: number,
-    mapMarker: mapboxgl.Marker
-  ) => {
-    setLoadingWeather(true);
-    try {
-      // Get address from coordinates via Mapbox with high precision
-      let address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-      try {
-        const resp = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}&types=address,poi,place,locality&limit=1`
-        );
-        const data = await resp.json();
-        address = data.features?.[0]?.place_name || address;
-      } catch (error) {
-        console.error('Reverse geocoding error:', error);
-      }
-
-      // Get weather data from OpenMeteo
-      const weatherResponse = await fetchWeatherApi('https://api.open-meteo.com/v1/forecast', {
-        latitude: lat,
-        longitude: lng,
-        current: ['temperature_2m', 'weather_code', 'wind_speed_10m', 'relative_humidity_2m', 'cloud_cover'],
-        hourly: ['temperature_2m', 'precipitation_probability', 'weather_code'],
-        forecast_days: 3
-      });
-
-      const response = weatherResponse[0];
-      const current = response.current()!;
-      
-      const weatherData = {
-        temperature: Math.round(current.variables(0)!.value()),
-        weatherCode: current.variables(1)!.value(),
-        windSpeed: Math.round(current.variables(2)!.value()),
-        humidity: Math.round(current.variables(3)!.value()),
-        cloudCover: Math.round(current.variables(4)!.value()),
-        address
-      };
-
-      setCurrentWeatherData(weatherData);
-
-      // Update popup
-      const weatherIcon = getWeatherIcon(weatherData.weatherCode);
-      const weatherCondition = getWeatherCondition(weatherData.weatherCode);
-      const infoContent = `
-        <div class="p-4 min-w-[200px]">
-          <div class="flex items-center gap-2 mb-2">
-            <div class="text-2xl">${weatherIcon}</div>
-            <div>
-              <div class="font-bold text-lg">${weatherData.temperature}°C</div>
-              <div class="text-sm text-gray-600">${weatherCondition}</div>
-            </div>
-          </div>
-          <div class="space-y-1 text-sm">
-            <div>Wind: ${weatherData.windSpeed} km/h</div>
-            <div>Humidity: ${weatherData.humidity}%</div>
-            <div>Cloud Cover: ${weatherData.cloudCover}%</div>
-          </div>
-          <div class="mt-2 pt-2 border-t text-xs text-gray-500">
-            ${address}
-          </div>
-        </div>
-      `;
-
-      if (!popupRef.current) {
-        popupRef.current = new mapboxgl.Popup({ closeOnClick: false, closeButton: true });
-      }
-
-      popupRef.current
-        .setLngLat([lng, lat])
-        .setHTML(infoContent)
-        .addTo(map!);
-
-      // Notify parent
-      onLocationSelect(lat, lng, address);
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
-    } finally {
-      setLoadingWeather(false);
-    }
-  };
+  }, [currentLocation, mapType, updateLocationWeather]);
 
   // Handle search functionality
   const handleSearch = async () => {
@@ -240,25 +252,41 @@ export const WeatherMapModal: React.FC<WeatherMapModalProps> = ({
     }
   };
 
-  // Get current location
+  // Get current location with enhanced accuracy
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
+      console.log('📍 Requesting user location for weather data...');
       navigator.geolocation.getCurrentPosition(
         async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+          const { latitude: lat, longitude: lng, accuracy } = position.coords;
+          console.log(`📍 Weather location obtained: ${lat}, ${lng} (accuracy: ${accuracy}m)`);
 
           if (map && marker) {
-            map.setCenter([lng, lat]);
-            map.setZoom(10);
+            // Smooth transition to user's location
+            map.flyTo({
+              center: [lng, lat],
+              zoom: 12,
+              essential: true,
+              duration: 1500
+            });
+
             marker.setLngLat([lng, lat]);
             await updateLocationWeather(lat, lng, marker);
+            console.log('📍 Weather data updated for user location');
           }
         },
         (error) => {
-          console.error('Geolocation error:', error);
+          console.warn('⚠️ Weather geolocation failed:', error.message);
+          console.log('💡 Allow location access for accurate weather forecasts');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 300000
         }
       );
+    } else {
+      console.warn('⚠️ Geolocation not supported for weather location');
     }
   };
 
@@ -433,11 +461,12 @@ export const WeatherMapModal: React.FC<WeatherMapModalProps> = ({
                     </div>
                     {layer.enabled && (
                       <div className="ml-6">
-                        <Label className="text-xs text-muted-foreground">
+                        <Label htmlFor={`opacity-${layer.id}`} className="text-xs text-muted-foreground">
                           Opacity: {Math.round(layer.opacity * 100)}%
                         </Label>
                         <div className="mt-1">
                           <input
+                            id={`opacity-${layer.id}`}
                             type="range"
                             min="0.1"
                             max="1"

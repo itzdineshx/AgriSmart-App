@@ -51,9 +51,9 @@ export function RoleBasedAuth() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/seller-panel" className="cursor-pointer">
+          <Link to="/buyer-panel" className="cursor-pointer">
             <Users className="mr-2 h-4 w-4" />
-            <span>Seller Panel</span>
+            <span>Buyer Panel</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

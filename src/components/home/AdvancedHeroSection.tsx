@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { 
@@ -107,6 +107,12 @@ export function AdvancedHeroSection() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl w-full p-0 bg-background border-border">
+                  <DialogHeader className="sr-only">
+                    <DialogTitle>AgriSmart Demo Video</DialogTitle>
+                    <DialogDescription>
+                      Watch our product demonstration video to see AgriSmart in action.
+                    </DialogDescription>
+                  </DialogHeader>
                   <div className="aspect-video w-full">
                     <iframe 
                       width="100%" 

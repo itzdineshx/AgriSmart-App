@@ -11,7 +11,8 @@ interface BreadcrumbItem {
 const pathMapping: Record<string, BreadcrumbItem> = {
   "/": { label: "Home", path: "/", icon: Home },
   "/diagnose": { label: "Crop Diagnosis", path: "/diagnose" },
-  "/buy": { label: "Marketplace", path: "/buy" },
+  "/buy": { label: "Buy Products", path: "/buy" },
+  "/sell": { label: "Sell Products", path: "/sell" },
   "/marketplace": { label: "Marketplace", path: "/marketplace" },
   "/market-analysis": { label: "Market Analysis", path: "/market-analysis" },
   "/recommendations": { label: "Recommendations", path: "/recommendations" },
@@ -23,7 +24,7 @@ const pathMapping: Record<string, BreadcrumbItem> = {
   "/gamification": { label: "Achievements", path: "/gamification" },
   "/support": { label: "Support", path: "/support" },
   "/user-profile": { label: "Profile", path: "/user-profile" },
-  "/seller-panel": { label: "Seller Panel", path: "/seller-panel" },
+  "/buyer-panel": { label: "Buyer Panel", path: "/buyer-panel" },
   "/admin": { label: "Admin Panel", path: "/admin" },
   "/auth": { label: "Authentication", path: "/auth" },
   "/chatbot": { label: "AI Assistant", path: "/chatbot" },
@@ -35,6 +36,7 @@ const categoryMapping: Record<string, BreadcrumbItem> = {
   "/diagnose": { label: "AI Tools", path: "#" },
   "/recommendations": { label: "AI Tools", path: "#" },
   "/buy": { label: "Marketplace", path: "#" },
+  "/sell": { label: "Marketplace", path: "#" },
   "/marketplace": { label: "Marketplace", path: "#" },
   "/market-analysis": { label: "Analytics", path: "#" },
   "/government-schemes": { label: "Resources", path: "#" },
@@ -45,7 +47,7 @@ const categoryMapping: Record<string, BreadcrumbItem> = {
   "/gamification": { label: "Profile", path: "#" },
   "/support": { label: "Help", path: "#" },
   "/user-profile": { label: "Profile", path: "#" },
-  "/seller-panel": { label: "Business", path: "#" },
+  "/buyer-panel": { label: "Business", path: "#" },
   "/admin": { label: "Admin", path: "#" },
 };
 

@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useUserProgress, useLeaderboard, useQuests } from "@/hooks/useGamification";
-import { motion } from "framer-motion";
 import { 
   MessageCircle, 
   Heart, 
@@ -38,35 +37,9 @@ import {
 } from "lucide-react";
 
 // Import community images
-import communityDiscussion from "@/assets/community-discussion.jpg";
+import yieldSuccess from "@/assets/yield-success.jpg";
 import knowledgeSharing from "@/assets/knowledge-sharing.jpg";
 import agricultureWorkshop from "@/assets/agriculture-workshop.jpg";
-import communityMarketplace from "@/assets/community-marketplace.jpg";
-import farmerAvatar1 from "@/assets/farmer-avatar-1.jpg";
-import farmerAvatar2 from "@/assets/farmer-avatar-2.jpg";
-import farmerAvatar3 from "@/assets/farmer-avatar-3.jpg";
-import farmerAvatar4 from "@/assets/farmer-avatar-4.jpg";
-import farmerAvatar5 from "@/assets/farmer-avatar-5.jpg";
-import expertAvatar1 from "@/assets/expert-avatar-1.jpg";
-import expertAvatar2 from "@/assets/expert-avatar-2.jpg";
-import agriExpertBadge from "@/assets/agri-expert-badge.jpg";
-import experiencedFarmerBadge from "@/assets/experienced-farmer-badge.jpg";
-import topContributorBadge from "@/assets/top-contributor-badge.jpg";
-import innovationBadge from "@/assets/innovation-badge.jpg";
-import helperBadge from "@/assets/helper-badge.jpg";
-import successStoryIrrigation from "@/assets/success-story-irrigation.jpg";
-import tomatoDiseaseRecovery from "@/assets/tomato-disease-recovery.jpg";
-import neemOilSpray from "@/assets/neem-oil-spray.jpg";
-import seedsMarketplace from "@/assets/seeds-marketplace.jpg";
-import fertilizersMarketplace from "@/assets/fertilizers-marketplace.jpg";
-import equipmentMarketplace from "@/assets/equipment-marketplace.jpg";
-import harvestMarketplace from "@/assets/harvest-marketplace.jpg";
-import onlineWorkshop from "@/assets/online-workshop.jpg";
-import certificationProgram from "@/assets/certification-program.jpg";
-import farmersMeetup from "@/assets/farmers-meetup.jpg";
-import innovationFair from "@/assets/innovation-fair.jpg";
-import qaSession from "@/assets/qa-session.jpg";
-import yieldSuccess from "@/assets/yield-success.jpg";
 
 // Mock data for demonstration
 const mockPosts = [
@@ -78,7 +51,7 @@ const mockPosts = [
     author: {
       name: "Rajesh Kumar",
       location: "Punjab",
-      avatar: farmerAvatar3,
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
       badge: "Experienced Farmer",
       reputation: 234
     },
@@ -89,7 +62,7 @@ const mockPosts = [
     tags: ["tomatoes", "plant-disease", "yellowing"],
     hasImages: true,
     language: "en",
-    postImage: tomatoDiseaseRecovery
+    postImage: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=300&fit=crop&crop=center"
   },
   {
     id: 2,
@@ -99,7 +72,7 @@ const mockPosts = [
     author: {
       name: "Dr. Priya Sharma",
       location: "Maharashtra",
-      avatar: expertAvatar1,
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
       badge: "Agri Expert",
       reputation: 1250
     },
@@ -110,7 +83,7 @@ const mockPosts = [
     tags: ["organic", "pest-control", "neem-oil"],
     hasImages: true,
     language: "en",
-    postImage: neemOilSpray
+    postImage: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&h=300&fit=crop&crop=center"
   },
   {
     id: 3,
@@ -120,7 +93,7 @@ const mockPosts = [
     author: {
       name: "Krishnan Nair",
       location: "Kerala",
-      avatar: farmerAvatar5,
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
       badge: "Innovation Leader",
       reputation: 578
     },
@@ -131,7 +104,7 @@ const mockPosts = [
     tags: ["irrigation", "water-management", "yield-increase"],
     hasImages: true,
     language: "en",
-    postImage: successStoryIrrigation
+    postImage: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&h=300&fit=crop&crop=center"
   },
   {
     id: 4,
@@ -141,7 +114,7 @@ const mockPosts = [
     author: {
       name: "Sunita Devi",
       location: "Haryana", 
-      avatar: farmerAvatar2,
+      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face",
       badge: "New Farmer",
       reputation: 45
     },
@@ -161,7 +134,7 @@ const mockPosts = [
     author: {
       name: "Ramesh Patel",
       location: "Gujarat",
-      avatar: farmerAvatar4,
+      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face",
       badge: "Weather Expert",
       reputation: 445
     },
@@ -187,7 +160,7 @@ const mockEvents = [
     attendees: 234,
     type: "workshop",
     isRegistered: false,
-    image: onlineWorkshop
+    image: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=600&h=300&fit=crop&crop=center"
   },
   {
     id: 2,
@@ -200,7 +173,7 @@ const mockEvents = [
     attendees: 67,
     type: "certification",
     isRegistered: true,
-    image: certificationProgram
+    image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600&h=300&fit=crop&crop=center"
   },
   {
     id: 3,
@@ -213,7 +186,7 @@ const mockEvents = [
     attendees: 156,
     type: "meetup",
     isRegistered: false,
-    image: farmersMeetup
+    image: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=600&h=300&fit=crop&crop=center"
   },
   {
     id: 4,
@@ -226,7 +199,7 @@ const mockEvents = [
     attendees: 892,
     type: "exhibition",
     isRegistered: false,
-    image: innovationFair
+    image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&h=300&fit=crop&crop=center"
   },
   {
     id: 5,
@@ -239,7 +212,7 @@ const mockEvents = [
     attendees: 345,
     type: "interactive",
     isRegistered: true,
-    image: qaSession
+    image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=300&fit=crop&crop=center"
   }
 ];
 
@@ -247,7 +220,7 @@ const topContributors = [
   {
     name: "Dr. Priya Sharma",
     location: "Maharashtra",
-    avatar: expertAvatar1,
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
     badge: "Agri Expert",
     reputation: 1250,
     posts: 89,
@@ -256,7 +229,7 @@ const topContributors = [
   {
     name: "Krishnan Nair", 
     location: "Kerala",
-    avatar: farmerAvatar5,
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
     badge: "Innovation Leader",
     reputation: 578,
     posts: 45,
@@ -265,7 +238,7 @@ const topContributors = [
   {
     name: "Rajesh Kumar",
     location: "Punjab", 
-    avatar: farmerAvatar3,
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
     badge: "Experienced Farmer",
     reputation: 234,
     posts: 23,
@@ -274,7 +247,7 @@ const topContributors = [
   {
     name: "Dr. Amit Singh",
     location: "Uttar Pradesh",
-    avatar: expertAvatar2,
+    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face",
     badge: "Research Expert",
     reputation: 892,
     posts: 67,
@@ -283,7 +256,7 @@ const topContributors = [
   {
     name: "Ramesh Patel",
     location: "Gujarat",
-    avatar: farmerAvatar4,
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
     badge: "Weather Expert", 
     reputation: 445,
     posts: 34,
@@ -297,28 +270,28 @@ const marketplaceCategories = [
     description: "High-quality seeds for various crops",
     items: 125,
     icon: "🌱",
-    image: seedsMarketplace
+    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop&crop=center"
   },
   {
     category: "Fertilizers",
     description: "Organic and chemical fertilizers", 
     items: 89,
     icon: "🌿",
-    image: fertilizersMarketplace
+    image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=300&fit=crop&crop=center"
   },
   {
     category: "Equipment & Tools",
     description: "Farming tools and machinery",
     items: 234,
     icon: "🚜",
-    image: equipmentMarketplace
+    image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop&crop=center"
   },
   {
     category: "Fresh Harvest",
     description: "Farm-fresh produce for sale",
     items: 456,
     icon: "🥕",
-    image: harvestMarketplace
+    image: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=400&h=300&fit=crop&crop=center"
   }
 ];
 
@@ -332,7 +305,7 @@ const collaborationOpportunities = [
     members: 15,
     leader: "Priya Sharma",
     crops: ["Tomatoes", "Spinach", "Carrots"],
-    image: communityMarketplace,
+    image: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=400&h=300&fit=crop&crop=center",
     status: "open"
   },
   {
@@ -345,7 +318,7 @@ const collaborationOpportunities = [
     equipment: "Mahindra 275 DI",
     rate: "₹500/day",
     availability: "Available",
-    image: equipmentMarketplace
+    image: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop&crop=center"
   },
   {
     id: 3,
@@ -355,7 +328,7 @@ const collaborationOpportunities = [
     location: "Karnataka",
     donor: "Krishnan Nair",
     quantity: "50kg",
-    image: seedsMarketplace
+    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop&crop=center"
   },
   {
     id: 4,
@@ -366,7 +339,7 @@ const collaborationOpportunities = [
     members: 20,
     leader: "Amit Singh",
     crops: ["Rice", "Wheat"],
-    image: communityDiscussion,
+    image: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=400&h=300&fit=crop&crop=center",
     status: "full"
   },
   {
@@ -379,7 +352,7 @@ const collaborationOpportunities = [
     equipment: "Sprinkler System",
     rate: "₹200/day",
     availability: "Booked until Dec 15",
-    image: neemOilSpray
+    image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400&h=300&fit=crop&crop=center"
   },
   {
     id: 6,
@@ -389,7 +362,7 @@ const collaborationOpportunities = [
     location: "Tamil Nadu",
     donor: "Murugan",
     quantity: "100 saplings",
-    image: harvestMarketplace
+    image: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=400&h=300&fit=crop&crop=center"
   }
 ];
 
@@ -442,21 +415,21 @@ export default function Community() {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
       {/* Hero Section */}
-      <div className="relative bg-gradient-primary text-primary-foreground p-6 md:p-8 mb-8">
-        <div 
-          className="absolute inset-0 opacity-20 bg-cover bg-center"
-          style={{ backgroundImage: `url(${communityDiscussion})` }}
+      <div className="relative bg-card border-b border-border p-6 md:p-8 mb-8">
+        <div
+          className="absolute inset-0 opacity-10 bg-cover bg-center"
+          style={{ backgroundImage: `url(https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=1200&h=400&fit=crop&crop=center)` }}
         />
         <div className="relative max-w-6xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">
             {language === 'ta' ? 'விவசாயிகள் சமூகம்' : 'Farmers Community'}
           </h1>
-          <p className="text-primary-foreground/90 text-lg mb-4">
+          <p className="text-muted-foreground text-lg mb-4">
             {language === 'ta' 
               ? 'அறிவைப் பகிர்ந்துகொள்ளுங்கள், கற்றுக்கொள்ளுங்கள் மற்றும் ஒன்றாக வளருங்கள்' 
               : 'Share knowledge, learn together, and grow as one farming community'}
           </p>
-          <div className="flex flex-wrap gap-4 text-sm">
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
               <span>12,500+ {language === 'ta' ? 'உறுப்பினர்கள்' : 'Members'}</span>
@@ -625,29 +598,29 @@ export default function Community() {
               {/* Sidebar */}
               <div className="lg:col-span-1 space-y-6">
                 {/* Your Community Progress */}
-                <Card className="shadow-sm bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
+                <Card className="shadow-sm">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Crown className="h-5 w-5 text-blue-600" />
+                    <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
+                      <Crown className="h-5 w-5 text-primary" />
                       Your Progress
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-900">Level {userLevel.currentLevel}</div>
-                      <div className="text-sm text-blue-700">{userStats.totalPoints.toLocaleString()} points</div>
+                      <div className="text-2xl font-bold text-foreground">Level {userLevel.currentLevel}</div>
+                      <div className="text-sm text-muted-foreground">{userStats.totalPoints.toLocaleString()} points</div>
                       <Progress value={levelProgress} className="mt-2 h-2" />
-                      <p className="text-xs text-blue-600 mt-1">{levelProgress}% to next level</p>
+                      <p className="text-xs text-muted-foreground mt-1">{levelProgress}% to next level</p>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3 text-center">
-                      <div className="bg-white/70 rounded-lg p-2">
-                        <div className="text-lg font-bold text-green-700">{userStats.communityHelpPoints}</div>
-                        <div className="text-xs text-gray-600">Help Points</div>
+                      <div className="bg-accent/50 rounded-lg p-2">
+                        <div className="text-lg font-bold text-foreground">{userStats.communityHelpPoints}</div>
+                        <div className="text-xs text-muted-foreground">Help Points</div>
                       </div>
-                      <div className="bg-white/70 rounded-lg p-2">
-                        <div className="text-lg font-bold text-purple-700">{userRank}</div>
-                        <div className="text-xs text-gray-600">Community Rank</div>
+                      <div className="bg-accent/50 rounded-lg p-2">
+                        <div className="text-lg font-bold text-foreground">{userRank}</div>
+                        <div className="text-xs text-muted-foreground">Community Rank</div>
                       </div>
                     </div>
                     
@@ -661,20 +634,19 @@ export default function Community() {
                 {/* Active Quests */}
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Target className="h-5 w-5 text-green-600" />
+                    <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
+                      <Target className="h-5 w-5 text-primary" />
                       Active Quests
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-3">
                     {activeQuests.slice(0, 2).map((quest) => (
-                      <motion.div
+                      <div
                         key={quest.id}
-                        whileHover={{ scale: 1.02 }}
-                        className="bg-green-50 border border-green-200 rounded-lg p-3"
+                        className="border border-border rounded-lg p-3 hover:bg-accent/50 transition-colors"
                       >
-                        <h4 className="font-medium text-sm text-green-900">{quest.name}</h4>
-                        <p className="text-xs text-green-700 mt-1">{quest.description}</p>
+                        <h4 className="font-medium text-sm text-foreground">{quest.name}</h4>
+                        <p className="text-xs text-muted-foreground mt-1">{quest.description}</p>
                         <div className="mt-2">
                           <div className="flex justify-between text-xs mb-1">
                             <span>Progress</span>
@@ -684,14 +656,14 @@ export default function Community() {
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <Badge variant="outline" className="text-xs">{quest.type}</Badge>
-                          <div className="text-xs text-green-600">
+                          <div className="text-xs text-muted-foreground">
                             +{quest.rewards.reduce((sum, r) => sum + (r.value || 0), 0)} XP
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                     {activeQuests.length === 0 && (
-                      <p className="text-sm text-gray-500 text-center py-4">No active quests</p>
+                      <p className="text-sm text-muted-foreground text-center py-4">No active quests</p>
                     )}
                   </CardContent>
                 </Card>
@@ -758,10 +730,10 @@ export default function Community() {
                 </Card>
 
                 {/* Quick Actions */}
-                <Card className="shadow-sm bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
+                <Card className="shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-orange-600" />
+                      <Zap className="h-5 w-5 text-primary" />
                       Quick Actions
                     </CardTitle>
                   </CardHeader>

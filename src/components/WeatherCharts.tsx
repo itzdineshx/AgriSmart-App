@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
+import type { TooltipProps } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -71,14 +72,14 @@ export const WeatherCharts: React.FC<WeatherChartsProps> = ({ weatherData }) => 
     }));
   }, [weatherData]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
           <p className="font-medium text-foreground">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: {entry.value}{entry.unit || ''}
+          {payload.map((entry, index: number) => (
+            <p key={index} className="text-sm" style={{ color: entry?.color || '#000' }}>
+              {entry?.name}: {entry?.value}{(entry?.payload as { unit?: string })?.unit || ''}
             </p>
           ))}
         </div>
