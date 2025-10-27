@@ -18,7 +18,7 @@ import recoveryImage from "@/assets/tomato-disease-recovery.jpg";
 
 // Types
 interface PlantAnalysisResult {
-  status: 'healthy' | 'diseased';
+  status: 'healthy' | 'diseased' | 'error';
   plantType: string;
   confidence: number;
   disease?: string | null;
@@ -65,7 +65,7 @@ export default function Diagnose() {
   const [badges, setBadges] = useState<string[]>([]);
   const [savedDiagnoses, setSavedDiagnoses] = useState<SavedDiagnosis[]>([]);
 
-  const GEMINI_API_KEY = "AIzaSyDGEgEm0g2i94bulu5Mf32yRNEhRLE3RNU";
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
   const productRecommendations = [
     {
@@ -132,7 +132,7 @@ export default function Diagnose() {
 
   const analyzeImageWithGemini = async (imageBase64: string) => {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -196,7 +196,14 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
       const data = await response.json();
       
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        throw new Error('Invalid response from Gemini API');
+        console.error('Invalid API response structure:', data);
+        
+        // Check for quota exceeded error
+        if (data.error && data.error.code === 429) {
+          throw new Error(`API Quota Exceeded: The Gemini API quota has been reached. Please try again later or contact support to increase your quota limits.`);
+        }
+        
+        throw new Error(`Invalid response from Gemini API: ${JSON.stringify(data)}`);
       }
 
       const analysisText = data.candidates[0].content.parts[0].text;
@@ -279,7 +286,34 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
     } catch (error) {
       console.error('Gemini API error:', error);
       
-      // Return comprehensive fallback data
+      // Check if it's a quota exceeded error
+      if (error.message.includes('Quota Exceeded') || error.message.includes('429')) {
+        return {
+          status: "error",
+          plantType: "Service Temporarily Unavailable",
+          confidence: 0,
+          disease: null,
+          severity: null,
+          symptoms: ["API quota exceeded"],
+          immediateActions: ["Please try again later", "Contact support for quota increase"],
+          detailedTreatment: {
+            organicSolutions: [],
+            chemicalSolutions: [],
+            stepByStepCure: []
+          },
+          fertilizers: [],
+          nutritionSuggestions: [],
+          preventionTips: ["Monitor your API usage"],
+          growthTips: [],
+          seasonalCare: [],
+          companionPlants: [],
+          warningsSigns: [],
+          appreciation: "We apologize for the inconvenience. Our AI service is currently at capacity.",
+          additionalAdvice: "The Gemini API quota has been exceeded. Please wait a few minutes before trying again, or consider upgrading your API plan for higher limits."
+        };
+      }
+      
+      // Return comprehensive fallback data for other errors
       return {
         status: "healthy",
         plantType: "Healthy plant",
@@ -338,7 +372,7 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
   };
 
   const saveDiagnosis = () => {
-    if (analysisResult && selectedImage) {
+    if (analysisResult && selectedImage && analysisResult.status !== 'error') {
       const diagnosis = {
         id: Date.now(),
         image: selectedImage,
@@ -660,16 +694,24 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
               <Card className={`shadow-elegant ${
                 analysisResult.status === 'healthy' 
                   ? 'border-success bg-success/5' 
+                  : analysisResult.status === 'error'
+                  ? 'border-warning bg-warning/5'
                   : 'border-destructive bg-destructive/5'
               }`}>
                 <CardHeader>
                   <CardTitle className={`flex items-center gap-2 ${
-                    analysisResult.status === 'healthy' ? 'text-success' : 'text-destructive'
+                    analysisResult.status === 'healthy' ? 'text-success' : 
+                    analysisResult.status === 'error' ? 'text-warning' : 'text-destructive'
                   }`}>
                     {analysisResult.status === 'healthy' ? (
                       <>
                         <CheckCircle className="h-5 w-5" />
                         Healthy Plant Detected! 🌱
+                      </>
+                    ) : analysisResult.status === 'error' ? (
+                      <>
+                        <AlertCircle className="h-5 w-5" />
+                        Service Temporarily Unavailable
                       </>
                     ) : (
                       <>
@@ -679,7 +721,7 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                     )}
                   </CardTitle>
                   <div className="flex gap-2">
-                    <Button onClick={saveDiagnosis} variant="outline" size="sm">
+                    <Button onClick={saveDiagnosis} variant="outline" size="sm" disabled={analysisResult?.status === 'error'}>
                       <Bookmark className="h-4 w-4 mr-1" />
                       Save
                     </Button>
@@ -689,7 +731,7 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                     </Button>
                     <Button 
                       onClick={async () => {
-                        if (analysisResult && selectedImage) {
+                        if (analysisResult && selectedImage && analysisResult.status !== 'error') {
                           try {
                             const pdf = await generateDiagnosisReport(analysisResult, selectedImage);
                             const fileName = `plant-health-report-${new Date().toISOString().split('T')[0]}.pdf`;
@@ -701,6 +743,7 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                       }}
                       variant="outline" 
                       size="sm"
+                      disabled={analysisResult?.status === 'error'}
                     >
                       <FileDown className="h-4 w-4 mr-1" />
                       Download Report
@@ -712,8 +755,12 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                   <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-4 border">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-semibold text-lg">Diagnosis Summary</h3>
-                      <Badge variant={analysisResult.status === 'healthy' ? 'default' : 'destructive'} className="text-xs">
-                        {analysisResult.status === 'healthy' ? 'Healthy' : 'Needs Attention'}
+                      <Badge variant={
+                        analysisResult.status === 'healthy' ? 'default' : 
+                        analysisResult.status === 'error' ? 'secondary' : 'destructive'
+                      } className="text-xs">
+                        {analysisResult.status === 'healthy' ? 'Healthy' : 
+                         analysisResult.status === 'error' ? 'Service Unavailable' : 'Needs Attention'}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -759,6 +806,21 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                         <div className="flex items-start gap-2">
                           <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                           <span className="text-sm">Consider preventive treatments from our marketplace</span>
+                        </div>
+                      </div>
+                    ) : analysisResult.status === 'error' ? (
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">AI service is temporarily unavailable due to quota limits</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">Please try again in a few minutes</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">Contact support if the issue persists</span>
                         </div>
                       </div>
                     ) : (
@@ -856,6 +918,59 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
                           </div>
                         </div>
                       )}
+                    </div>
+                  ) : analysisResult.status === 'error' ? (
+                    // Error Result
+                    <div className="space-y-6">
+                      <motion.div
+                        initial={{ scale: 0.9 }}
+                        animate={{ scale: 1 }}
+                        className="text-center space-y-4"
+                      >
+                        <motion.div
+                          animate={{ rotate: [0, 5, -5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="text-6xl"
+                        >
+                          ⚠️
+                        </motion.div>
+                        <h3 className="text-2xl font-bold text-warning">Service Temporarily Unavailable</h3>
+                        <p className="text-muted-foreground">Our AI analysis service is currently experiencing high demand.</p>
+                      </motion.div>
+
+                      {/* Error Details */}
+                      <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
+                        <h5 className="font-semibold text-warning mb-3 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          What Happened?
+                        </h5>
+                        <div className="space-y-2">
+                          <p className="text-sm">The Gemini API quota has been exceeded for this project.</p>
+                          <p className="text-sm">This is a temporary issue that occurs when too many requests are made in a short period.</p>
+                        </div>
+                      </div>
+
+                      {/* Solutions */}
+                      <div className="bg-info/10 border border-info/20 rounded-lg p-4">
+                        <h5 className="font-semibold text-info mb-3 flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          What You Can Do
+                        </h5>
+                        <div className="space-y-2">
+                          <div className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-info mt-0.5 shrink-0" />
+                            <span className="text-sm">Wait 5-10 minutes and try again</span>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-info mt-0.5 shrink-0" />
+                            <span className="text-sm">Contact support to request a quota increase</span>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-info mt-0.5 shrink-0" />
+                            <span className="text-sm">Use manual plant identification methods in the meantime</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     // Diseased Plant Result
