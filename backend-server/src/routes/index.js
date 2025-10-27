@@ -14,6 +14,7 @@ const notificationRoutes = require('./notifications');
 const analyticsRoutes = require('./analytics');
 const paymentRoutes = require('./payments');
 const webhookRoutes = require('./webhooks');
+const voiceAlertsRoutes = require('./voice-alerts');
 
 const router = express.Router();
 
@@ -28,6 +29,9 @@ router.use('/weather', weatherRoutes);
 
 // Mount market routes
 router.use('/market', marketRoutes);
+
+// Mount voice alerts routes
+router.use('/voice-alerts', voiceAlertsRoutes);
 
 // Mount marketplace routes
 router.use('/products', productRoutes);

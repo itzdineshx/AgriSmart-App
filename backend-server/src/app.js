@@ -9,7 +9,13 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-console.log('Environment variables loaded:', { PORT: process.env.PORT, MONGODB_URI: process.env.MONGODB_URI ? 'SET' : 'NOT SET' });
+console.log('Environment variables loaded:', { 
+    PORT: process.env.PORT, 
+    MONGODB_URI: process.env.MONGODB_URI ? 'SET' : 'NOT SET',
+    TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ? 'SET' : 'NOT SET',
+    TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN ? 'SET' : 'NOT SET',
+    TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER ? 'SET' : 'NOT SET'
+});
 
 // CORS configuration
 const corsOptions = {

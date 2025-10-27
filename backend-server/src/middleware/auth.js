@@ -11,17 +11,32 @@ const authenticateToken = async (req, res, next) => {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-        const user = await User.findById(decoded.userId);
+        
+        // Check if this is a demo user
+        if (decoded.userId.startsWith('demo_')) {
+            // Extract role from demo user ID
+            const role = decoded.userId.split('_')[1];
+            req.user = {
+                _id: decoded.userId,
+                role: role,
+                isActive: true,
+                name: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
+                email: `${role}@demo.agri`
+            };
+        } else {
+            // Regular user - lookup in database
+            const user = await User.findById(decoded.userId);
 
-        if (!user) {
-            return res.status(401).json({ message: 'User not found' });
+            if (!user) {
+                return res.status(401).json({ message: 'User not found' });
+            }
+
+            if (!user.isActive) {
+                return res.status(401).json({ message: 'Account is deactivated' });
+            }
+
+            req.user = user;
         }
-
-        if (!user.isActive) {
-            return res.status(401).json({ message: 'Account is deactivated' });
-        }
-
-        req.user = user;
         next();
     } catch (error) {
         if (error.name === 'TokenExpiredError') {
@@ -52,9 +67,23 @@ const optionalAuth = async (req, res, next) => {
 
         if (token) {
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-            const user = await User.findById(decoded.userId);
-            if (user && user.isActive) {
-                req.user = user;
+            
+            // Check if this is a demo user
+            if (decoded.userId.startsWith('demo_')) {
+                const role = decoded.userId.split('_')[1];
+                req.user = {
+                    _id: decoded.userId,
+                    role: role,
+                    isActive: true,
+                    name: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
+                    email: `${role}@demo.agri`
+                };
+            } else {
+                // Regular user - lookup in database
+                const user = await User.findById(decoded.userId);
+                if (user && user.isActive) {
+                    req.user = user;
+                }
             }
         }
         next();

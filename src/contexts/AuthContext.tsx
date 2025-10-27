@@ -58,7 +58,7 @@ interface AuthContextType {
   userRole: UserRole;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  demoLogin: (username: string, password: string, role: UserRole) => boolean;
+  demoLogin: (username: string, password: string, role: UserRole) => Promise<boolean>;
   register: (name: string, email: string, password: string, role?: UserRole) => Promise<boolean>;
   loginWithGoogle: () => Promise<boolean>;
   logout: () => Promise<void>;
@@ -181,43 +181,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const demoLogin = (username: string, password: string, role: UserRole): boolean => {
-    // Demo credentials for role-based authentication
-    const demoCredentials = {
-      admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
-      buyer: { username: 'buyer_pro', password: 'BuyPro@2024' },
-      farmer: { username: 'farmer_user', password: 'FarmUser@2024' }
-    };
-
-    const roleCredentials = demoCredentials[role as keyof typeof demoCredentials];
-    if (roleCredentials && username === roleCredentials.username && password === roleCredentials.password) {
-      // Create a demo user object
-      const demoUser: User = {
-        _id: `demo_${role}_${Date.now()}`,
-        name: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
-        email: `${role}@demo.agri`,
-        role: role,
-        avatar: undefined,
-        preferences: {
-          theme: 'light',
-          language: 'en',
-          notifications: {
-            email: true,
-            push: true,
-            weather: true,
-            market: true
-          }
+  const demoLogin = async (username: string, password: string, role: UserRole): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/demo-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        lastLogin: new Date().toISOString(),
-        createdAt: new Date().toISOString()
-      };
+        body: JSON.stringify({ username, password, role }),
+      });
 
-      setUser(demoUser);
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+
+      // Store tokens
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('demoAuth', JSON.stringify({ user: data.user, authenticated: true }));
+
+      setUser(data.user);
       setIsAuthenticated(true);
-      localStorage.setItem('demoAuth', JSON.stringify({ user: demoUser, authenticated: true }));
       return true;
+    } catch (error) {
+      console.error('Demo login error:', error);
+      return false;
     }
-    return false;
   };
 
   const register = async (name: string, email: string, password: string, role: UserRole = 'buyer', profileData?: ProfileData): Promise<boolean> => {

@@ -21,7 +21,7 @@ export default function RoleLogin() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -30,7 +30,8 @@ export default function RoleLogin() {
       return;
     }
 
-    if (demoLogin(username, password, role)) {
+    const success = await demoLogin(username, password, role);
+    if (success) {
       toast({
         title: "Login Successful",
         description: `Welcome, ${role}!`,

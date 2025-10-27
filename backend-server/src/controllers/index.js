@@ -451,6 +451,58 @@ const login = async (req, res) => {
     }
 };
 
+const demoLogin = async (req, res) => {
+    try {
+        const { username, password, role } = req.body;
+
+        // Demo credentials
+        const demoCredentials = {
+            admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
+            buyer: { username: 'buyer_pro', password: 'BuyPro@2024' },
+            farmer: { username: 'farmer_user', password: 'FarmUser@2024' }
+        };
+
+        const roleCredentials = demoCredentials[role];
+        if (!roleCredentials || username !== roleCredentials.username || password !== roleCredentials.password) {
+            return res.status(401).json({ message: 'Invalid demo credentials' });
+        }
+
+        // Create demo user object
+        const demoUser = {
+            _id: `demo_${role}_${Date.now()}`,
+            name: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
+            email: `${role}@demo.agri`,
+            role: role,
+            preferences: {
+                theme: 'light',
+                language: 'en',
+                notifications: {
+                    email: true,
+                    push: true,
+                    weather: true,
+                    market: true
+                }
+            },
+            lastLogin: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+        };
+
+        // Generate real JWT tokens for demo user
+        const accessToken = generateAccessToken(demoUser._id);
+        const refreshToken = generateRefreshToken(demoUser._id);
+
+        res.json({
+            message: 'Demo login successful',
+            user: demoUser,
+            accessToken,
+            refreshToken
+        });
+    } catch (error) {
+        console.error('Demo login error:', error);
+        res.status(500).json({ message: 'Server error during demo login' });
+    }
+};
+
 const logout = async (req, res) => {
     try {
         // In a stateless JWT system, logout is handled client-side
@@ -2656,6 +2708,7 @@ module.exports = {
     // Auth controllers
     register,
     login,
+    demoLogin,
     logout,
     refreshToken,
     getMe,

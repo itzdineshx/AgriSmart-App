@@ -11,6 +11,13 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     // Ensure SPA routing works in development
     historyApiFallback: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   preview: {
     // Ensure SPA routing works in preview mode

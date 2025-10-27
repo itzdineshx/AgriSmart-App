@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const {
     register,
     login,
+    demoLogin,
     logout,
     refreshToken,
     getMe,
@@ -63,6 +64,7 @@ router.post('/register/buyer', buyerRegisterValidation, (req, res, next) => {
     next();
 }, register);
 router.post('/login', loginValidation, login);
+router.post('/demo-login', demoLogin);
 router.post('/logout', logout);
 router.post('/refresh-token', refreshToken);
 router.post('/forgot-password', forgotPasswordValidation, forgotPassword);
