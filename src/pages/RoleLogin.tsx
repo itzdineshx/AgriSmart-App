@@ -61,9 +61,9 @@ export default function RoleLogin() {
   };
 
   const credentials = {
-    admin: { username: 'admin_agri', password: 'AgriAdmin@2024' },
-    buyer: { username: 'buyer_pro', password: 'BuyPro@2024' },
-    farmer: { username: 'farmer_user', password: 'FarmUser@2024' }
+    admin: { username: 'admin', password: 'admin123' },
+    buyer: { username: 'buyer', password: 'buyer123' },
+    farmer: { username: 'farmer', password: 'farmer123' }
   };
 
   return (

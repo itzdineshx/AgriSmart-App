@@ -220,14 +220,6 @@ const relatedActions: Record<string, RelatedAction[]> = {
       path: "/blogs",
       icon: BookOpen,
       priority: 'medium'
-    },
-    {
-      title: "Track Progress",
-      description: "View your farming achievements",
-      path: "/gamification",
-      icon: Award,
-      badge: "New",
-      priority: 'low'
     }
   ],
   "/recommendations": [
@@ -268,40 +260,6 @@ const relatedActions: Record<string, RelatedAction[]> = {
       priority: 'low'
     }
   ],
-  "/gamification": [
-    {
-      title: "Complete Diagnosis",
-      description: "Earn points by diagnosing crops",
-      path: "/diagnose",
-      icon: Camera,
-      badge: "50 XP",
-      priority: 'high'
-    },
-    {
-      title: "Market Research",
-      description: "Gain experience with market analysis",
-      path: "/market-analysis",
-      icon: TrendingUp,
-      badge: "30 XP",
-      priority: 'medium'
-    },
-    {
-      title: "Help Community",
-      description: "Earn badges by helping others",
-      path: "/community",
-      icon: Users,
-      badge: "25 XP",
-      priority: 'medium'
-    },
-    {
-      title: "Read Articles",
-      description: "Learn and earn knowledge points",
-      path: "/blogs",
-      icon: BookOpen,
-      badge: "15 XP",
-      priority: 'low'
-    }
-  ],
   "/blogs": [
     {
       title: "Apply Learnings",
@@ -316,14 +274,6 @@ const relatedActions: Record<string, RelatedAction[]> = {
       path: "/community",
       icon: Users,
       priority: 'medium'
-    },
-    {
-      title: "Track Progress",
-      description: "Mark articles as read for XP",
-      path: "/gamification",
-      icon: Award,
-      badge: "Earn XP",
-      priority: 'low'
     }
   ]
 };

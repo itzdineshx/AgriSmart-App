@@ -25,7 +25,6 @@ export function Footer() {
     { name: "Sell Products", path: "/sell" },
     { name: "Recommendations", path: "/recommendations" },
     { name: "Weather Forecast", path: "/weather" },
-    { name: "Achievements", path: "/gamification" },
     { name: "Blog & News", path: "/blogs" },
   ];
 

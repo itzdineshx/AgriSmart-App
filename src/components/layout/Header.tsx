@@ -64,7 +64,6 @@ export function Header() {
   ];
 
   const moreItems = [
-    { name: "Gamification", path: "/gamification", icon: Sparkles },
     { name: "Weather", path: "/weather", icon: Cloud },
     { name: "Support", path: "/support", icon: MessageCircle },
   ];

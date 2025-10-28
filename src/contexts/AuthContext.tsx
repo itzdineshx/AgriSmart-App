@@ -1,6 +1,4 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { auth, signInWithGoogle, isFirebaseConfigured } from '@/lib/firebase';
-import { onAuthStateChanged, User as FirebaseUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 export type UserRole = 'admin' | 'farmer' | 'buyer' | null;
 
@@ -54,7 +52,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  firebaseUser: FirebaseUser | null;
+  firebaseUser: any | null;
   userRole: UserRole;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
@@ -72,108 +70,161 @@ type ProfileData = Partial<User['farmerProfile'] | User['buyerProfile']>;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL = 'http://localhost:3002/api';
+// Demo users for frontend authentication
+const DEMO_USERS = [
+  {
+    email: 'farmer@demo.com',
+    password: 'farmer123',
+    role: 'farmer' as UserRole,
+    user: {
+      _id: 'demo-farmer-1',
+      name: 'Rajesh Kumar Sharma',
+      email: 'farmer@demo.com',
+      role: 'farmer' as UserRole,
+      farmerProfile: {
+        farmName: 'Sharma Family Farm',
+        farmSize: '15 acres',
+        location: {
+          address: 'Village Rampur',
+          city: 'Sangrur',
+          state: 'Punjab',
+          pincode: '148001',
+          coordinates: { lat: 30.2413, lng: 75.8486 }
+        },
+        crops: ['Wheat', 'Rice', 'Sugarcane', 'Cotton', 'Maize'],
+        experience: '12 years',
+        certifications: ['Organic Farming Certified', 'GAP Certified'],
+        contactNumber: '+91 98765 43210'
+      },
+      preferences: {
+        theme: 'light',
+        language: 'en',
+        notifications: {
+          email: true,
+          push: true,
+          weather: true,
+          market: true
+        }
+      },
+      lastLogin: new Date().toISOString(),
+      createdAt: '2023-03-15T00:00:00.000Z'
+    }
+  },
+  {
+    email: 'buyer@demo.com',
+    password: 'buyer123',
+    role: 'buyer' as UserRole,
+    user: {
+      _id: 'demo-buyer-1',
+      name: 'Priya Singh',
+      email: 'buyer@demo.com',
+      role: 'buyer' as UserRole,
+      buyerProfile: {
+        businessName: 'Singh Retail Mart',
+        businessType: 'retail' as const,
+        preferredProducts: ['Rice', 'Wheat', 'Vegetables', 'Fruits'],
+        deliveryAddress: {
+          address: '123 Market Street',
+          city: 'Ludhiana',
+          state: 'Punjab',
+          pincode: '141001',
+          coordinates: { lat: 30.9000, lng: 75.8573 }
+        },
+        gstNumber: '22AAAAA0000A1Z5'
+      },
+      preferences: {
+        theme: 'light',
+        language: 'en',
+        notifications: {
+          email: true,
+          push: false,
+          weather: false,
+          market: true
+        }
+      },
+      lastLogin: new Date().toISOString(),
+      createdAt: '2023-05-20T00:00:00.000Z'
+    }
+  },
+  {
+    email: 'admin@demo.com',
+    password: 'admin123',
+    role: 'admin' as UserRole,
+    user: {
+      _id: 'demo-admin-1',
+      name: 'Admin User',
+      email: 'admin@demo.com',
+      role: 'admin' as UserRole,
+      preferences: {
+        theme: 'dark',
+        language: 'en',
+        notifications: {
+          email: true,
+          push: true,
+          weather: false,
+          market: false
+        }
+      },
+      lastLogin: new Date().toISOString(),
+      createdAt: '2023-01-01T00:00:00.000Z'
+    }
+  }
+];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<any | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored authentication tokens
-    const checkAuthStatus = async () => {
-      const accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
-
-      if (accessToken) {
-        try {
-          // Validate token with backend
-          const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setUser(data.user);
-            setIsAuthenticated(true);
-          } else if (refreshToken) {
-            // Try to refresh token
-            const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ refreshToken }),
-            });
-
-            if (refreshResponse.ok) {
-              const refreshData = await refreshResponse.json();
-              localStorage.setItem('accessToken', refreshData.accessToken);
-              setUser(refreshData.user);
-              setIsAuthenticated(true);
-            } else {
-              // Clear invalid tokens
-              localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
-            }
-          }
-        } catch (error) {
-          console.error('Auth verification error:', error);
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-        }
-      }
-
-      // Fallback to demo authentication if no backend auth
-      const demoAuth = localStorage.getItem('demoAuth');
-      if (demoAuth) {
-        try {
-          const { user: demoUser, authenticated } = JSON.parse(demoAuth);
-          if (authenticated && demoUser) {
-            setUser(demoUser);
+    // Check for stored authentication on app load
+    const checkStoredAuth = () => {
+      try {
+        const storedAuth = localStorage.getItem('frontendAuth');
+        if (storedAuth) {
+          const { user: storedUser, authenticated } = JSON.parse(storedAuth);
+          if (authenticated && storedUser) {
+            setUser(storedUser);
             setIsAuthenticated(true);
           }
-        } catch (error) {
-          console.error('Error parsing demo auth:', error);
-          localStorage.removeItem('demoAuth');
         }
+      } catch (error) {
+        console.error('Error parsing stored auth:', error);
+        localStorage.removeItem('frontendAuth');
       }
-
       setIsLoading(false);
     };
 
-    checkAuthStatus();
-  }, [setUser, setIsAuthenticated, setIsLoading]);
+    checkStoredAuth();
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+      // Find demo user
+      const demoUser = DEMO_USERS.find(u => u.email === email && u.password === password);
+
+      if (!demoUser) {
+        throw new Error('Invalid email or password');
       }
 
-      const data = await response.json();
-      
-      // Store tokens
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      
-      // Set user data
-      setUser(data.user);
+      // Update last login
+      const updatedUser = {
+        ...demoUser.user,
+        lastLogin: new Date().toISOString()
+      };
+
+      // Store authentication
+      localStorage.setItem('frontendAuth', JSON.stringify({
+        user: updatedUser,
+        authenticated: true
+      }));
+
+      setUser(updatedUser);
       setIsAuthenticated(true);
-      
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -183,26 +234,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const demoLogin = async (username: string, password: string, role: UserRole): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/demo-login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password, role }),
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (!response.ok) {
-        return false;
+      // Find demo user by role
+      const demoUser = DEMO_USERS.find(u => u.role === role);
+
+      if (!demoUser) {
+        throw new Error('Demo user not found for this role');
       }
 
-      const data = await response.json();
+      // Update last login
+      const updatedUser = {
+        ...demoUser.user,
+        lastLogin: new Date().toISOString()
+      };
 
-      // Store tokens
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('demoAuth', JSON.stringify({ user: data.user, authenticated: true }));
+      // Store authentication
+      localStorage.setItem('frontendAuth', JSON.stringify({
+        user: updatedUser,
+        authenticated: true
+      }));
 
-      setUser(data.user);
+      setUser(updatedUser);
       setIsAuthenticated(true);
       return true;
     } catch (error) {
@@ -211,40 +265,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (name: string, email: string, password: string, role: UserRole = 'buyer', profileData?: ProfileData): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, role: UserRole = 'buyer'): Promise<boolean> => {
     try {
-      const endpoint = role === 'farmer' ? '/auth/register/farmer' : '/auth/register/buyer';
-      const requestBody = {
-        name,
-        email,
-        password,
-        ...(role === 'farmer' && profileData && { farmerProfile: profileData }),
-        ...(role === 'buyer' && profileData && { buyerProfile: profileData })
-      };
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+      // Check if user already exists
+      const existingUser = DEMO_USERS.find(u => u.email === email);
+      if (existingUser) {
+        throw new Error('User already exists with this email');
       }
 
-      const data = await response.json();
-      
-      // Store tokens
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      
-      // Set user data
-      setUser(data.user);
+      // Create new user
+      const newUser: User = {
+        _id: `user-${Date.now()}`,
+        name,
+        email,
+        role,
+        preferences: {
+          theme: 'light',
+          language: 'en',
+          notifications: {
+            email: true,
+            push: true,
+            weather: role === 'farmer',
+            market: true
+          }
+        },
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+
+      // Add role-specific profile
+      if (role === 'farmer') {
+        newUser.farmerProfile = {
+          farmName: `${name}'s Farm`,
+          farmSize: '5 acres',
+          location: {
+            address: 'Demo Location',
+            city: 'Demo City',
+            state: 'Demo State',
+            pincode: '123456',
+            coordinates: { lat: 28.6139, lng: 77.2090 }
+          },
+          crops: ['Rice', 'Wheat'],
+          experience: '2 years',
+          certifications: [],
+          contactNumber: '+91 98765 43210'
+        };
+      } else if (role === 'buyer') {
+        newUser.buyerProfile = {
+          businessName: `${name}'s Business`,
+          businessType: 'individual' as const,
+          preferredProducts: ['Rice', 'Wheat', 'Vegetables'],
+          deliveryAddress: {
+            address: 'Demo Address',
+            city: 'Demo City',
+            state: 'Demo State',
+            pincode: '123456',
+            coordinates: { lat: 28.6139, lng: 77.2090 }
+          }
+        };
+      }
+
+      // Store authentication
+      localStorage.setItem('frontendAuth', JSON.stringify({
+        user: newUser,
+        authenticated: true
+      }));
+
+      setUser(newUser);
       setIsAuthenticated(true);
-      
       return true;
     } catch (error) {
       console.error('Registration error:', error);
@@ -253,8 +344,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const loginWithGoogle = async (): Promise<boolean> => {
+    // Frontend-only Google login simulation
     try {
-      await signInWithGoogle();
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Use demo farmer account for Google login
+      const demoUser = DEMO_USERS.find(u => u.role === 'farmer');
+      if (!demoUser) {
+        throw new Error('Demo user not available');
+      }
+
+      const updatedUser = {
+        ...demoUser.user,
+        lastLogin: new Date().toISOString()
+      };
+
+      localStorage.setItem('frontendAuth', JSON.stringify({
+        user: updatedUser,
+        authenticated: true
+      }));
+
+      setUser(updatedUser);
+      setIsAuthenticated(true);
       return true;
     } catch (error) {
       console.error('Google login error:', error);
@@ -264,48 +375,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async (): Promise<void> => {
     try {
-      // Call backend logout endpoint if needed
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-      }
+      // Clear authentication data
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem('frontendAuth');
     } catch (error) {
       console.error('Logout error:', error);
     }
-    
-    // Clear authentication data
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('demoAuth');
   };
 
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token || !user) return false;
+      if (!user) return false;
 
-      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
+      const updatedUser = { ...user, ...data };
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Profile update failed');
-      }
+      // Store updated user
+      localStorage.setItem('frontendAuth', JSON.stringify({
+        user: updatedUser,
+        authenticated: true
+      }));
 
-      const updatedUser = await response.json();
       setUser(updatedUser);
       return true;
     } catch (error) {
@@ -315,40 +405,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshToken = async (): Promise<boolean> => {
-    try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) return false;
-
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (!response.ok) {
-        // Clear invalid tokens
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        setUser(null);
-        setIsAuthenticated(false);
-        return false;
-      }
-
-      const data = await response.json();
-      localStorage.setItem('accessToken', data.accessToken);
-      setUser(data.user);
-      setIsAuthenticated(true);
-      return true;
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      setUser(null);
-      setIsAuthenticated(false);
-      return false;
-    }
+    // Frontend-only - just return true since we don't use tokens
+    return true;
   };
 
   return (

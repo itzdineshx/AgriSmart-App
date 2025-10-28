@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useUserProgress, useLeaderboard, useQuests } from "@/hooks/useGamification";
 import { 
   MessageCircle, 
   Heart, 
@@ -29,11 +28,7 @@ import {
   Clock,
   BookOpen,
   ShoppingCart,
-  AlertCircle,
-  Trophy,
-  Crown,
-  Target,
-  Zap
+  AlertCircle
 } from "lucide-react";
 
 // Import community images
@@ -375,11 +370,6 @@ export default function Community() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   
-  // Gamification hooks
-  const { userLevel, userStats, levelProgress } = useUserProgress();
-  const { leaderboard, userRank } = useLeaderboard();
-  const { activeQuests, completedQuests } = useQuests();
-
   // Update search query when URL params change
   useEffect(() => {
     const search = searchParams.get("search");
@@ -597,77 +587,6 @@ export default function Community() {
 
               {/* Sidebar */}
               <div className="lg:col-span-1 space-y-6">
-                {/* Your Community Progress */}
-                <Card className="shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
-                      <Crown className="h-5 w-5 text-primary" />
-                      Your Progress
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 space-y-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-foreground">Level {userLevel.currentLevel}</div>
-                      <div className="text-sm text-muted-foreground">{userStats.totalPoints.toLocaleString()} points</div>
-                      <Progress value={levelProgress} className="mt-2 h-2" />
-                      <p className="text-xs text-muted-foreground mt-1">{levelProgress}% to next level</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 text-center">
-                      <div className="bg-accent/50 rounded-lg p-2">
-                        <div className="text-lg font-bold text-foreground">{userStats.communityHelpPoints}</div>
-                        <div className="text-xs text-muted-foreground">Help Points</div>
-                      </div>
-                      <div className="bg-accent/50 rounded-lg p-2">
-                        <div className="text-lg font-bold text-foreground">{userRank}</div>
-                        <div className="text-xs text-muted-foreground">Community Rank</div>
-                      </div>
-                    </div>
-                    
-                    <Button size="sm" className="w-full" variant="outline">
-                      <Target className="h-4 w-4 mr-2" />
-                      View Full Dashboard
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Active Quests */}
-                <Card className="shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2 text-card-foreground">
-                      <Target className="h-5 w-5 text-primary" />
-                      Active Quests
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 space-y-3">
-                    {activeQuests.slice(0, 2).map((quest) => (
-                      <div
-                        key={quest.id}
-                        className="border border-border rounded-lg p-3 hover:bg-accent/50 transition-colors"
-                      >
-                        <h4 className="font-medium text-sm text-foreground">{quest.name}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">{quest.description}</p>
-                        <div className="mt-2">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span>Progress</span>
-                            <span>{quest.progress}/{quest.maxProgress}</span>
-                          </div>
-                          <Progress value={(quest.progress / quest.maxProgress) * 100} className="h-1" />
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge variant="outline" className="text-xs">{quest.type}</Badge>
-                          <div className="text-xs text-muted-foreground">
-                            +{quest.rewards.reduce((sum, r) => sum + (r.value || 0), 0)} XP
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    {activeQuests.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">No active quests</p>
-                    )}
-                  </CardContent>
-                </Card>
-
                 {/* Categories - Mobile Horizontal Scroll */}
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
@@ -697,54 +616,22 @@ export default function Community() {
                   </CardContent>
                 </Card>
 
-                {/* Top Contributors - Mobile responsive */}
-                <Card className="shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Trophy className="h-5 w-5 text-yellow-500" />
-                      {language === 'ta' ? 'முன்னணி பங்களிப்பாளர்கள்' : 'Top Contributors'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 space-y-3">
-                    {leaderboard.slice(0, 3).map((contributor, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-bold">
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                        </div>
-                        <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
-                          <AvatarImage src={contributor.avatar} />
-                          <AvatarFallback>{contributor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm truncate">{contributor.name}</h4>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="truncate">{contributor.location}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {contributor.points.toLocaleString()}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
                 {/* Quick Actions */}
                 <Card className="shadow-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-primary" />
+                      <Plus className="h-5 w-5 text-primary" />
                       Quick Actions
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-2">
                     <Button size="sm" variant="outline" className="w-full justify-start">
                       <Plus className="h-4 w-4 mr-2" />
-                      Ask Question (+10 XP)
+                      Ask Question
                     </Button>
                     <Button size="sm" variant="outline" className="w-full justify-start">
                       <MessageCircle className="h-4 w-4 mr-2" />
-                      Answer Question (+25 XP)
+                      Answer Question
                     </Button>
                     <Button size="sm" variant="outline" className="w-full justify-start">
                       <Share2 className="h-4 w-4 mr-2" />

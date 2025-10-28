@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 interface PlantAnalysisResult {
-  status: 'healthy' | 'diseased';
+  status: 'healthy' | 'diseased' | 'error';
   plantType: string;
   confidence: number;
   disease?: string | null;

@@ -359,14 +359,6 @@ Be detailed and practical. Focus on actionable advice that farmers can implement
     setIsAnalyzing(true);
     const result = await analyzeImageWithGemini(selectedImage);
     
-    // Add gamification for healthy plants
-    if (result.status === "healthy") {
-      const newBadge = "Healthy Plant Master";
-      if (!badges.includes(newBadge)) {
-        setBadges([...badges, newBadge]);
-      }
-    }
-    
     setAnalysisResult(result);
     setIsAnalyzing(false);
   };

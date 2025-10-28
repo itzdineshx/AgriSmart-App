@@ -58,14 +58,6 @@ export function QuickActionsGrid() {
       description: "Latest agri news & tips"
     },
     {
-      id: "achievements",
-      title: "Achievements",
-      icon: Headphones,
-      route: "/gamification",
-      emoji: "🏆",
-      description: "Track your progress"
-    },
-    {
       id: "support",
       title: "Support",
       icon: Headphones,
