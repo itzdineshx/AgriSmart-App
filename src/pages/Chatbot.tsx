@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import Spline from '@splinetool/react-spline';
+import { toast } from "@/hooks/use-toast";
 
 // Types
 interface SpeechRecognitionEvent extends Event {
@@ -37,10 +38,15 @@ interface SpeechRecognition extends EventTarget {
   onresult: (event: SpeechRecognitionEvent) => void;
   onstart: () => void;
   onend: () => void;
-  onerror: () => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
   start(): void;
   stop(): void;
   abort(): void;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message?: string;
 }
 
 interface GeminiMessagePart {
@@ -91,23 +97,23 @@ const LANGUAGES: LanguageConfig[] = [
 
 // Test function to debug API calls
 window.testGeminiAPI = async () => {
-  const apiKey = "AIzaSyB7_4jF675ctOel_Ndyf0KAL3Ay8wFpJkM";
+  const apiKey = "AIzaSyDmcIzZ2SDSMAQuewlneQELBpxT4LrVr4g";
   const testRequest = {
     contents: [
       { role: "user", parts: [{ text: "Hello, test message" }] }
     ],
     generationConfig: {
-      temperature: 0.8,
-      topK: 30,
-      topP: 0.9,
-      maxOutputTokens: 512,
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 2048,
     }
   };
   
   console.log('🧪 Testing API with simple request...');
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -193,9 +199,10 @@ export default function Chatbot() {
   const [geminiApiKey, setGeminiApiKey] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const blobUrlsRef = useRef<Set<string>>(new Set()); // Track blob URLs for cleanup
 
   useEffect(() => {
-    const apiKey = "AIzaSyB7_4jF675ctOel_Ndyf0KAL3Ay8wFpJkM";
+    const apiKey = "AIzaSyDmcIzZ2SDSMAQuewlneQELBpxT4LrVr4g";
     console.log('Gemini API Key loaded:', apiKey ? `${apiKey.slice(0, 10)}...` : 'NOT LOADED');
     setGeminiApiKey(apiKey);
 
@@ -211,6 +218,10 @@ export default function Chatbot() {
     }
     loadVoices(); // Try loading immediately
 
+    // Also try loading voices after a short delay to ensure they're available
+    setTimeout(loadVoices, 100);
+    setTimeout(loadVoices, 500);
+
     // Initialize speech recognition
     if ('webkitSpeechRecognition' in window) {
       const recognition = new window.webkitSpeechRecognition();
@@ -225,24 +236,40 @@ export default function Chatbot() {
 
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error('Speech recognition error:', event);
+        setIsListening(false);
+        // Show user-friendly error message
+        if (event.error === 'not-allowed') {
+          toast({
+            title: "Microphone access denied",
+            description: "Please allow microphone access to use voice input.",
+            variant: "destructive",
+          });
+        }
+      };
 
       recognitionRef.current = recognition;
+    } else {
+      console.warn('Speech recognition not supported in this browser');
     }
 
+    // Periodic cleanup of blob URLs
+    const cleanupInterval = setInterval(cleanupBlobUrls, 30000); // Clean up every 30 seconds
+
     return () => {
+      clearInterval(cleanupInterval);
       // Only abort if there's an active controller and signal is not already aborted
       if (controllerRef.current && !controllerRef.current.signal.aborted) {
         controllerRef.current.abort();
       }
       window.speechSynthesis.cancel();
       recognitionRef.current?.stop();
-      // Clean up file URLs
-      uploadedFiles.forEach(file => {
-        if (file.url) {
-          URL.revokeObjectURL(file.url);
-        }
+      // Clean up all tracked blob URLs
+      blobUrlsRef.current.forEach(url => {
+        URL.revokeObjectURL(url);
       });
+      blobUrlsRef.current.clear();
     };
   }, [selectedLanguage, uploadedFiles]);
 
@@ -427,6 +454,9 @@ export default function Chatbot() {
     const fileId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
     const url = URL.createObjectURL(file);
     
+    // Track blob URL for cleanup
+    blobUrlsRef.current.add(url);
+    
     let content = '';
     
     if (file.type.startsWith('image/')) {
@@ -506,9 +536,37 @@ export default function Chatbot() {
     setUploadedFiles(prev => {
       const fileToRemove = prev.find(f => f.id === fileId);
       if (fileToRemove?.url) {
-        URL.revokeObjectURL(fileToRemove.url);
+        // Don't revoke blob URL immediately - let it persist for message display
+        // URL.revokeObjectURL(fileToRemove.url);
       }
       return prev.filter(f => f.id !== fileId);
+    });
+  };
+
+  const cleanupBlobUrls = () => {
+    // Clean up blob URLs that are no longer referenced
+    const activeUrls = new Set<string>();
+    
+    // Collect URLs from current uploadedFiles
+    uploadedFiles.forEach(file => {
+      if (file.url) activeUrls.add(file.url);
+    });
+    
+    // Collect URLs from recent messages (last 10 messages)
+    messages.slice(-10).forEach(message => {
+      if (message.files) {
+        message.files.forEach(file => {
+          if (file.url) activeUrls.add(file.url);
+        });
+      }
+    });
+    
+    // Remove URLs that are no longer active
+    blobUrlsRef.current.forEach(url => {
+      if (!activeUrls.has(url)) {
+        URL.revokeObjectURL(url);
+        blobUrlsRef.current.delete(url);
+      }
     });
   };
 
@@ -536,7 +594,7 @@ export default function Chatbot() {
       return;
     }
 
-    const userMsg = text.trim() || "Please analyze the uploaded file(s).";
+    const userMsg = text.trim() || (currentFiles.length > 0 ? "Please analyze the uploaded file(s) and provide detailed insights about plant health, diseases, or agricultural information." : "");
     const currentFiles = [...uploadedFiles];
     
     console.log('✅ Starting sendToGemini with:', { userMsg, fileCount: currentFiles.length, apiKey: geminiApiKey.slice(0, 10) + '...' });
@@ -544,6 +602,9 @@ export default function Chatbot() {
     setMessages(prev => [...prev, { role: "user", content: userMsg, files: currentFiles }]);
     setInput("");
     setUploadedFiles([]); // Clear files after sending
+    
+    // Clean up old blob URLs after sending
+    setTimeout(() => cleanupBlobUrls(), 1000);
     setIsLoading(true);
 
     const getLoadingMessage = (lang: Language) => {
@@ -566,9 +627,12 @@ export default function Chatbot() {
       // Don't use AbortController for now to isolate the issue
       console.log('🔄 Starting request without AbortController');
 
-      // Build simple conversation for debugging
+      // Build conversation history properly
       console.log('📜 Building conversation from messages:', messages.length);
-      const conversationHistory = messages.slice(-2).map(m => ({
+      
+      // Get recent conversation history (excluding loading messages) - limit to last 6 messages to prevent token overflow
+      const recentMessages = messages.filter(m => !m.isStreaming).slice(-6); // Get last 6 non-loading messages
+      const conversationHistory = recentMessages.map(m => ({
         role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.content }]
       }));
@@ -581,23 +645,29 @@ export default function Chatbot() {
         console.log('📎 Adding file content to message:', currentFiles.length, 'files');
         
         for (const file of currentFiles) {
+          console.log(`Processing file: ${file.name}, type: ${file.type}, hasContent: ${!!file.content}`);
+          
           if (file.type.startsWith('image/') && file.content) {
             // For images, add both text instruction and image data
             messageParts[0].text += `\n\n[Image uploaded: ${file.name} - Please analyze this image for plant health, diseases, pests, or any issues you can identify]`;
             
             // Add the image data in Gemini format
             const base64Data = file.content.split(',')[1]; // Remove data URL prefix
-            messageParts.push({
-              inline_data: {
-                mime_type: file.type,
-                data: base64Data
-              }
-            });
-            console.log(`📷 Added image with data: ${file.name} (${file.type})`);
+            if (base64Data) {
+              messageParts.push({
+                inline_data: {
+                  mime_type: file.type,
+                  data: base64Data
+                }
+              });
+              console.log(`📷 Added image with data: ${file.name} (${file.type}), data length: ${base64Data.length}`);
+            } else {
+              console.warn(`❌ Failed to extract base64 data from image: ${file.name}`);
+            }
           } else if (file.content && (file.type === 'text/plain' || file.type.includes('text'))) {
             // For text files, include the actual content
             messageParts[0].text += `\n\nFile: ${file.name}\nContent:\n${file.content}`;
-            console.log(`📄 Added text file content: ${file.name}`);
+            console.log(`📄 Added text file content: ${file.name}, length: ${file.content.length}`);
           } else {
             // For other files, include metadata and ask for analysis
             messageParts[0].text += `\n\nAttached file: ${file.name} (${file.type}, ${(file.size / 1024 / 1024).toFixed(2)} MB)\nPlease provide relevant advice about this type of agricultural document.`;
@@ -624,20 +694,31 @@ export default function Chatbot() {
         return responses[lang] || responses.en;
       };
 
-      const fullConversation = [
-        { role: "user", parts: [{ text: systemPrompt }] },
-        { role: "model", parts: [{ text: getInitialResponse(selectedLanguage) }] },
-        ...conversationHistory,
-        currentMessage
-      ];
+      // Build conversation properly - only include system prompt for first message
+      let fullConversation;
+      
+      if (messages.filter(m => !m.isStreaming).length === 0) {
+        // First message - include system prompt
+        fullConversation = [
+          { role: "user", parts: [{ text: systemPrompt }] },
+          { role: "model", parts: [{ text: getInitialResponse(selectedLanguage) }] },
+          currentMessage
+        ];
+      } else {
+        // Subsequent messages - use conversation history without system prompt
+        fullConversation = [
+          ...conversationHistory,
+          currentMessage
+        ];
+      }
 
       const requestBody = {
         contents: fullConversation,
         generationConfig: {
-          temperature: 0.8,
-          topK: 30,
-          topP: 0.9,
-          maxOutputTokens: 512,
+          temperature: 0.7, // Slightly lower for more consistent responses
+          topK: 40, // Higher for better quality
+          topP: 0.95, // Higher for more diverse responses
+          maxOutputTokens: 2048, // Increased limit to prevent truncation
         }
       };
 
@@ -658,7 +739,7 @@ export default function Chatbot() {
       }, 15000);
       
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${geminiApiKey}`,
         {
           method: "POST",
           headers: { 
@@ -690,27 +771,58 @@ export default function Chatbot() {
       const data = await res.json();
       console.log('✅ API Response:', data);
       
-      if (!data.candidates || !data.candidates[0]) {
-        console.error('Invalid API response structure:', data);
-        throw new Error('Invalid response from API - no candidates');
+      if (!data.candidates || !Array.isArray(data.candidates) || data.candidates.length === 0) {
+        console.error('Invalid API response structure - no candidates array:', data);
+        throw new Error('Invalid response from API - no candidates array');
       }
 
       const candidate = data.candidates[0];
-      if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
-        console.error('Invalid candidate structure:', candidate);
-        throw new Error('Invalid response from API - no content parts');
-      }
+      console.log('🎯 First candidate:', candidate);
       
-      // Handle different response structures - Gemini 2.5 may have thinking tokens
+      if (!candidate) {
+        console.error('Invalid candidate - candidate is null/undefined:', candidate);
+        throw new Error('Invalid response from API - candidate is null');
+      }
+
+      // Handle different response structures - Gemini 2.5 Pro may have different formats
       let aiResponse = "";
-      for (const part of candidate.content.parts) {
-        if (part.text) {
-          aiResponse += part.text;
-        }
+      
+      // Check if the response was truncated due to max tokens
+      if (candidate.finishReason === "MAX_TOKENS") {
+        console.warn('Response was truncated due to MAX_TOKENS limit');
+        aiResponse = "I was generating a response but reached my limit. Let me try to give you a shorter answer: ";
       }
       
-      if (!aiResponse) {
-        aiResponse = "I couldn't process that right now. Please try again!";
+      // Try different ways to extract text from the response
+      if (candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
+        // Standard Gemini format
+        for (const part of candidate.content.parts) {
+          if (part.text) {
+            aiResponse += part.text;
+          }
+        }
+      } else if (candidate.text) {
+        // Direct text format
+        aiResponse = candidate.text;
+      } else if (candidate.content && typeof candidate.content === 'string') {
+        // Content as string
+        aiResponse = candidate.content;
+      } else if (candidate.parts && Array.isArray(candidate.parts)) {
+        // Alternative parts format
+        for (const part of candidate.parts) {
+          if (part.text) {
+            aiResponse += part.text;
+          }
+        }
+      } else {
+        console.error('Unable to extract text from candidate:', candidate);
+        console.error('Candidate structure:', JSON.stringify(candidate, null, 2));
+        throw new Error('Invalid response from API - cannot extract text content');
+      }
+      
+      if (!aiResponse || aiResponse.trim().length === 0) {
+        console.warn('Empty response from API, using fallback message');
+        aiResponse = "I received your message but couldn't generate a complete response. Please try asking a more specific question or try again!";
       }
       
       const cleaned = cleanResponse(aiResponse);
@@ -940,6 +1052,10 @@ export default function Chatbot() {
                                 src={file.url}
                                 alt={file.name}
                                 className="max-w-32 max-h-32 rounded-lg object-cover border border-border"
+                                onError={(e) => {
+                                  // Hide broken images instead of showing error
+                                  e.currentTarget.style.display = 'none';
+                                }}
                               />
                             ))}
                         </div>
