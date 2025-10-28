@@ -10,6 +10,7 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
+import { useMarketplace } from "@/contexts/MarketplaceContext";
 import {
   Plus,
   Edit,
@@ -28,101 +29,64 @@ import {
 } from "lucide-react";
 
 export default function BuyerPanel() {
+  const { buyerRequests, addBuyerRequest, updateBuyerRequest, deleteBuyerRequest } = useMarketplace();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showAddDemand, setShowAddDemand] = useState(false);
 
-  const buyerStats = [
-    { label: "Active Demands", value: "12", icon: Target, color: "primary" },
-    { label: "Total Spent", value: "₹8.5L", icon: DollarSign, color: "success" },
-    { label: "Suppliers Found", value: "45", icon: Users, color: "secondary" },
-    { label: "Avg. Rating", value: "4.7", icon: Star, color: "warning" },
-  ];
-
-  // CRUD state for demands
-  const [demands, setDemands] = useState([
-    {
-      id: 1,
-      product: "Fresh Tomatoes",
-      category: "Vegetables",
-      quantity: 500,
-      unit: "kg",
-      maxPrice: 50,
-      urgency: "high",
-      status: "active",
-      suppliers: 8,
-      description: "Need fresh, organic tomatoes for retail chain. Grade A quality required."
-    },
-    {
-      id: 2,
-      product: "Hybrid Rice Seeds",
-      category: "Seeds",
-      quantity: 200,
-      unit: "kg",
-      maxPrice: 1500,
-      urgency: "medium",
-      status: "active",
-      suppliers: 3,
-      description: "High-yield hybrid rice seeds for Tamil Nadu climate. Must be certified."
-    },
-    {
-      id: 3,
-      product: "Sugarcane",
-      category: "Crops",
-      quantity: 1000,
-      unit: "tons",
-      maxPrice: 3500,
-      urgency: "low",
-      status: "fulfilled",
-      suppliers: 12,
-      description: "Fresh sugarcane for jaggery production. Organic preferred."
-    }
-  ]);
-
   // Add/Edit/Delete state
-  const [editDemandId, setEditDemandId] = useState<number|null>(null);
+  const [editDemandId, setEditDemandId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     product: "",
     category: "",
     quantity: "",
     unit: "",
     maxPrice: "",
-    urgency: "",
+    urgency: "medium",
+    location: "",
     description: ""
   });
 
   // Add demand handler
   const handleAddDemand = () => {
-    if (!formData.product || !formData.category || !formData.quantity || !formData.unit || !formData.maxPrice) return;
-    const newDemand = {
-      id: demands.length ? Math.max(...demands.map(d => d.id)) + 1 : 1,
-      product: formData.product,
-      category: formData.category,
+    if (!formData.product || !formData.quantity || !formData.unit || !formData.maxPrice) {
+      alert("Please fill in all required fields: Product Type, Quantity, Unit, and Max Price");
+      return;
+    }
+
+    const newRequest = {
+      productName: formData.product,
+      category: formData.category || "General",
       quantity: Number(formData.quantity),
       unit: formData.unit,
       maxPrice: Number(formData.maxPrice),
-      urgency: formData.urgency || "medium",
-      status: "active",
-      suppliers: 0,
+      urgency: (formData.urgency as 'low' | 'medium' | 'high') || "medium",
+      location: formData.location || "TBD",
+      status: 'active' as const,
       description: formData.description || ""
     };
-    setDemands([...demands, newDemand]);
+
+    console.log("Adding buyer request:", newRequest);
+    addBuyerRequest(newRequest);
+    console.log("Request added successfully!");
+    
     setShowAddDemand(false);
-    setFormData({ product: "", category: "", quantity: "", unit: "", maxPrice: "", urgency: "", description: "" });
+    setFormData({ product: "", category: "", quantity: "", unit: "", maxPrice: "", urgency: "medium", location: "", description: "" });
   };
 
   // Edit demand handler
-  const handleEditDemand = (id: number) => {
-    const demand = demands.find(d => d.id === id);
-    if (demand) {
+  const handleEditDemand = (id: string) => {
+    const request = buyerRequests.find(r => r.id === id);
+    if (request) {
       setEditDemandId(id);
       setFormData({
-        product: demand.product,
-        category: demand.category,
-        quantity: String(demand.quantity),
-        unit: demand.unit,
-        maxPrice: String(demand.maxPrice),
-        urgency: demand.urgency,
-        description: demand.description || ""
+        product: request.productName,
+        category: request.category,
+        quantity: String(request.quantity),
+        unit: request.unit,
+        maxPrice: String(request.maxPrice),
+        urgency: request.urgency,
+        location: request.location,
+        description: request.description || ""
       });
       setShowAddDemand(true);
     }
@@ -130,24 +94,36 @@ export default function BuyerPanel() {
 
   // Update demand handler
   const handleUpdateDemand = () => {
-    setDemands(demands.map(d => d.id === editDemandId ? {
-      ...d,
-      product: formData.product,
-      category: formData.category,
+    if (!editDemandId) return;
+
+    if (!formData.product || !formData.quantity || !formData.unit || !formData.maxPrice) {
+      alert("Please fill in all required fields: Product Type, Quantity, Unit, and Max Price");
+      return;
+    }
+
+    const updatedRequest = {
+      productName: formData.product,
+      category: formData.category || "General",
       quantity: Number(formData.quantity),
       unit: formData.unit,
       maxPrice: Number(formData.maxPrice),
-      urgency: formData.urgency,
+      urgency: (formData.urgency as 'low' | 'medium' | 'high') || "medium",
+      location: formData.location || "TBD",
+      status: 'active' as const,
       description: formData.description
-    } : d));
+    };
+
+    updateBuyerRequest(editDemandId, updatedRequest);
     setEditDemandId(null);
     setShowAddDemand(false);
-    setFormData({ product: "", category: "", quantity: "", unit: "", maxPrice: "", urgency: "", description: "" });
+    setFormData({ product: "", category: "", quantity: "", unit: "", maxPrice: "", urgency: "medium", location: "", description: "" });
   };
 
   // Delete demand handler
-  const handleDeleteDemand = (id: number) => {
-    setDemands(demands.filter(d => d.id !== id));
+  const handleDeleteDemand = (id: string) => {
+    if (confirm("Are you sure you want to delete this requirement?")) {
+      deleteBuyerRequest(id);
+    }
   };
 
   // Form change handler
@@ -267,46 +243,46 @@ export default function BuyerPanel() {
 
       {/* Demands Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {demands.map((demand) => (
-          <Card key={demand.id} className="shadow-elegant hover:shadow-glow transition-all duration-300">
+        {buyerRequests.map((request) => (
+          <Card key={request.id} className="shadow-elegant hover:shadow-glow transition-all duration-300">
             <CardContent className="p-4">
               <div className="space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold">{demand.product}</h3>
-                    <p className="text-sm text-muted-foreground">{demand.category}</p>
+                    <h3 className="font-semibold">{request.productName}</h3>
+                    <p className="text-sm text-muted-foreground">Buyer Requirement</p>
                   </div>
-                  <Badge variant={getUrgencyColor(demand.urgency)}>
-                    {demand.urgency}
+                  <Badge variant={getUrgencyColor(request.urgency)}>
+                    {request.urgency}
                   </Badge>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-primary">
-                    {demand.quantity} {demand.unit}
+                    {request.quantity} {request.unit}
                   </span>
-                  <Badge variant={getStatusColor(demand.status)}>
-                    {demand.status}
+                  <Badge variant={getStatusColor(request.status)}>
+                    {request.status}
                   </Badge>
                 </div>
 
                 <div className="text-sm space-y-1">
                   <div className="flex justify-between">
                     <span>Max Price:</span>
-                    <span className="font-medium">₹{demand.maxPrice}</span>
+                    <span className="font-medium">₹{request.maxPrice}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Suppliers:</span>
-                    <span>{demand.suppliers} found</span>
+                    <span>Location:</span>
+                    <span>{request.location}</span>
                   </div>
                 </div>
 
                 <p className="text-sm text-muted-foreground line-clamp-2">
-                  {demand.description}
+                  {request.description}
                 </p>
 
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditDemand(demand.id)}>
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditDemand(request.id)}>
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
@@ -314,7 +290,7 @@ export default function BuyerPanel() {
                     <Eye className="h-3 w-3 mr-1" />
                     View
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDeleteDemand(demand.id)}>
+                  <Button variant="outline" size="sm" onClick={() => handleDeleteDemand(request.id)}>
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
@@ -329,12 +305,12 @@ export default function BuyerPanel() {
   const renderAddDemand = () => (
     <Card className="shadow-elegant max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Post New Demand</CardTitle>
+        <CardTitle>{editDemandId ? 'Edit Demand' : 'Post New Demand'}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="product">Product Name</Label>
+            <Label htmlFor="product">Product Type</Label>
             <Input id="product" value={formData.product} onChange={handleFormChange} placeholder="e.g., Fresh Tomatoes" />
           </div>
           <div>
@@ -343,8 +319,25 @@ export default function BuyerPanel() {
               <option value="">Select category</option>
               <option value="Vegetables">Vegetables</option>
               <option value="Fruits">Fruits</option>
-              <option value="Seeds">Seeds</option>
               <option value="Crops">Crops</option>
+              <option value="Seeds">Seeds</option>
+              <option value="Grains">Grains</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="location">Location</Label>
+            <Input id="location" value={formData.location || ""} onChange={handleFormChange} placeholder="e.g., Chennai Market" />
+          </div>
+          <div>
+            <Label htmlFor="urgency">Urgency</Label>
+            <select id="urgency" value={formData.urgency} onChange={handleFormChange} className="w-full p-2 border rounded-md" title="Select demand urgency level">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
             </select>
           </div>
         </div>
@@ -365,18 +358,9 @@ export default function BuyerPanel() {
             </select>
           </div>
           <div>
-            <Label htmlFor="urgency">Urgency</Label>
-            <select id="urgency" value={formData.urgency} onChange={handleFormChange} className="w-full p-2 border rounded-md" title="Select demand urgency level">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
+            <Label htmlFor="maxPrice">Maximum Price (₹)</Label>
+            <Input id="maxPrice" type="number" value={formData.maxPrice} onChange={handleFormChange} placeholder="Enter maximum price per unit" />
           </div>
-        </div>
-
-        <div>
-          <Label htmlFor="maxPrice">Maximum Price (₹)</Label>
-          <Input id="maxPrice" type="number" value={formData.maxPrice} onChange={handleFormChange} placeholder="Enter maximum price per unit" />
         </div>
 
         <div>
@@ -399,7 +383,7 @@ export default function BuyerPanel() {
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => { setShowAddDemand(false); setEditDemandId(null); setFormData({ product: "", category: "", quantity: "", unit: "", maxPrice: "", urgency: "", description: "" }); }}
+            onClick={() => { setShowAddDemand(false); setEditDemandId(null); setFormData({ product: "", category: "", quantity: "", unit: "", maxPrice: "", urgency: "medium", location: "", description: "" }); }}
           >
             Cancel
           </Button>
