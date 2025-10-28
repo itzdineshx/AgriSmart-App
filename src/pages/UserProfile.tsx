@@ -189,7 +189,8 @@ export default function UserProfile() {
       iconColor: "text-yellow-600",
       time: "1 month ago",
       category: "Weather",
-      details: "No damage reported"
+      details: "No damage reported",
+      amount: null
     },
     {
       type: "subsidy",
@@ -216,7 +217,8 @@ export default function UserProfile() {
       iconColor: "text-purple-600",
       time: "2 months ago",
       category: "Training",
-      details: "Learned sustainable practices"
+      details: "Learned sustainable practices",
+      amount: null
     },
     {
       type: "insurance",
@@ -244,7 +246,29 @@ export default function UserProfile() {
 
   const handleAddActivity = () => {
     if (activityForm.title && activityForm.description) {
-      setActivities([...activities, { ...activityForm }]);
+      const activityTypeConfig = {
+        diagnosis: { icon: Camera, iconBg: "bg-red-100", iconColor: "text-red-600", category: "Diagnosis" },
+        market: { icon: ShoppingCart, iconBg: "bg-green-100", iconColor: "text-green-600", category: "Sales" },
+        purchase: { icon: Package, iconBg: "bg-blue-100", iconColor: "text-blue-600", category: "Purchase" },
+        maintenance: { icon: Wrench, iconBg: "bg-orange-100", iconColor: "text-orange-600", category: "Maintenance" },
+        weather: { icon: AlertCircle, iconBg: "bg-yellow-100", iconColor: "text-yellow-600", category: "Weather" },
+        subsidy: { icon: DollarSign, iconBg: "bg-green-100", iconColor: "text-green-600", category: "Subsidy" },
+        training: { icon: Award, iconBg: "bg-purple-100", iconColor: "text-purple-600", category: "Training" },
+        insurance: { icon: CheckCircle, iconBg: "bg-gray-100", iconColor: "text-gray-600", category: "Insurance" }
+      };
+
+      const config = activityTypeConfig[activityForm.type as keyof typeof activityTypeConfig] || activityTypeConfig.diagnosis;
+
+      setActivities([...activities, { 
+        ...activityForm,
+        icon: config.icon,
+        iconBg: config.iconBg,
+        iconColor: config.iconColor,
+        time: activityForm.date || "Just now",
+        category: config.category,
+        details: "",
+        amount: null
+      }]);
       setActivityForm({ type: "diagnosis", title: "", description: "", date: "", status: "pending" });
     }
   };
@@ -254,8 +278,30 @@ export default function UserProfile() {
   };
   const handleUpdateActivity = () => {
     if (editActivityIdx !== null) {
+      const activityTypeConfig = {
+        diagnosis: { icon: Camera, iconBg: "bg-red-100", iconColor: "text-red-600", category: "Diagnosis" },
+        market: { icon: ShoppingCart, iconBg: "bg-green-100", iconColor: "text-green-600", category: "Sales" },
+        purchase: { icon: Package, iconBg: "bg-blue-100", iconColor: "text-blue-600", category: "Purchase" },
+        maintenance: { icon: Wrench, iconBg: "bg-orange-100", iconColor: "text-orange-600", category: "Maintenance" },
+        weather: { icon: AlertCircle, iconBg: "bg-yellow-100", iconColor: "text-yellow-600", category: "Weather" },
+        subsidy: { icon: DollarSign, iconBg: "bg-green-100", iconColor: "text-green-600", category: "Subsidy" },
+        training: { icon: Award, iconBg: "bg-purple-100", iconColor: "text-purple-600", category: "Training" },
+        insurance: { icon: CheckCircle, iconBg: "bg-gray-100", iconColor: "text-gray-600", category: "Insurance" }
+      };
+
+      const config = activityTypeConfig[activityForm.type as keyof typeof activityTypeConfig] || activityTypeConfig.diagnosis;
+
       const updated = [...activities];
-      updated[editActivityIdx] = { ...activityForm };
+      updated[editActivityIdx] = { 
+        ...activityForm,
+        icon: config.icon,
+        iconBg: config.iconBg,
+        iconColor: config.iconColor,
+        time: activityForm.date || activities[editActivityIdx].time,
+        category: config.category,
+        details: activities[editActivityIdx].details || "",
+        amount: activities[editActivityIdx].amount || null
+      };
       setActivities(updated);
       setEditActivityIdx(null);
       setActivityForm({ type: "diagnosis", title: "", description: "", date: "", status: "pending" });

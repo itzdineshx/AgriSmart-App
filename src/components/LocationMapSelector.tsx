@@ -47,13 +47,32 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
         // Parse current location if it exists
         let initialLng = 77.1025; // Default to Delhi
         let initialLat = 28.7041;
+        let initialAddress = 'Delhi, India';
 
         if (currentLocation && currentLocation.includes(',')) {
           const coords = currentLocation.split(',').map(c => parseFloat(c.trim()));
           if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
             initialLat = coords[0];
             initialLng = coords[1];
+            // Try to resolve coordinates to address
+            try {
+              const geoResponse = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${initialLng},${initialLat}.json?access_token=${MAPBOX_API_KEY}&types=address,poi,place,locality,neighborhood&limit=1`
+              );
+              const geoData = await geoResponse.json();
+              if (geoData.features && geoData.features.length > 0) {
+                initialAddress = geoData.features[0].place_name;
+              } else {
+                initialAddress = `${initialLat.toFixed(4)}, ${initialLng.toFixed(4)}`;
+              }
+            } catch (error) {
+              initialAddress = `${initialLat.toFixed(4)}, ${initialLng.toFixed(4)}`;
+            }
+          } else {
+            initialAddress = currentLocation;
           }
+        } else if (currentLocation) {
+          initialAddress = currentLocation;
         }
 
         // Create map
@@ -75,23 +94,55 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
           .setLngLat([initialLng, initialLat])
           .addTo(mapboxMap);
 
+        // Set initial address
+        setSelectedAddress(initialAddress);
+
         // Add click listener to map
         mapboxMap.on('click', async (event) => {
           const { lng, lat } = event.lngLat;
           
           mapboxMarker.setLngLat([lng, lat]);
           
-          // Get address from coordinates using reverse geocoding
+          // Get detailed address from coordinates using reverse geocoding
           try {
             const response = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}`
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}&types=address,poi,place,locality,neighborhood&limit=5`
             );
             const data = await response.json();
-            const address = data.features[0]?.place_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            
+            let address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`; // fallback to coordinates
+            
+            if (data.features && data.features.length > 0) {
+              // Try to find the most specific address
+              const features = data.features;
+              
+              // Prefer address type first
+              const addressFeature = features.find(f => f.place_type.includes('address'));
+              if (addressFeature) {
+                address = addressFeature.place_name;
+              } else {
+                // Then POI
+                const poiFeature = features.find(f => f.place_type.includes('poi'));
+                if (poiFeature) {
+                  address = poiFeature.place_name;
+                } else {
+                  // Then place
+                  const placeFeature = features.find(f => f.place_type.includes('place'));
+                  if (placeFeature) {
+                    address = placeFeature.place_name;
+                  } else {
+                    // Use the first available feature
+                    address = features[0].place_name;
+                  }
+                }
+              }
+            }
+            
             setSelectedAddress(address);
           } catch (error) {
-            const address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-            setSelectedAddress(address);
+            console.warn('Reverse geocoding failed:', error);
+            // Provide a more user-friendly fallback
+            setSelectedAddress(`Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
           }
         });
 
@@ -100,17 +151,46 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
           const lngLat = mapboxMarker.getLngLat();
           const { lng, lat } = lngLat;
           
-          // Get address from coordinates
+          // Get detailed address from coordinates
           try {
             const response = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}`
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}&types=address,poi,place,locality,neighborhood&limit=5`
             );
             const data = await response.json();
-            const address = data.features[0]?.place_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            
+            let address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`; // fallback to coordinates
+            
+            if (data.features && data.features.length > 0) {
+              // Try to find the most specific address
+              const features = data.features;
+              
+              // Prefer address type first
+              const addressFeature = features.find(f => f.place_type.includes('address'));
+              if (addressFeature) {
+                address = addressFeature.place_name;
+              } else {
+                // Then POI
+                const poiFeature = features.find(f => f.place_type.includes('poi'));
+                if (poiFeature) {
+                  address = poiFeature.place_name;
+                } else {
+                  // Then place
+                  const placeFeature = features.find(f => f.place_type.includes('place'));
+                  if (placeFeature) {
+                    address = placeFeature.place_name;
+                  } else {
+                    // Use the first available feature
+                    address = features[0].place_name;
+                  }
+                }
+              }
+            }
+            
             setSelectedAddress(address);
           } catch (error) {
-            const address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-            setSelectedAddress(address);
+            console.warn('Reverse geocoding failed:', error);
+            // Provide a more user-friendly fallback
+            setSelectedAddress(`Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
           }
         });
 
@@ -186,15 +266,43 @@ export const LocationMapSelector: React.FC<LocationMapSelectorProps> = ({
             // Get precise address using reverse geocoding
             try {
               const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}&types=address,poi,place,locality&limit=1`
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_API_KEY}&types=address,poi,place,locality,neighborhood&limit=5`
               );
               const data = await response.json();
-              const address = data.features[0]?.place_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              
+              let address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`; // fallback to coordinates
+              
+              if (data.features && data.features.length > 0) {
+                // Try to find the most specific address
+                const features = data.features;
+                
+                // Prefer address type first
+                const addressFeature = features.find(f => f.place_type.includes('address'));
+                if (addressFeature) {
+                  address = addressFeature.place_name;
+                } else {
+                  // Then POI
+                  const poiFeature = features.find(f => f.place_type.includes('poi'));
+                  if (poiFeature) {
+                    address = poiFeature.place_name;
+                  } else {
+                    // Then place
+                    const placeFeature = features.find(f => f.place_type.includes('place'));
+                    if (placeFeature) {
+                      address = placeFeature.place_name;
+                    } else {
+                      // Use the first available feature
+                      address = features[0].place_name;
+                    }
+                  }
+                }
+              }
+              
               console.log(`📍 Address resolved: ${address}`);
               setSelectedAddress(address);
             } catch (error) {
               console.warn('⚠️ Reverse geocoding failed:', error);
-              const fallbackAddress = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+              const fallbackAddress = `Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
               setSelectedAddress(fallbackAddress);
             }
           }
