@@ -519,10 +519,10 @@ export default function MarketAnalysis() {
       </div>
 
       <div className="max-w-7xl mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
-        {/* Enhanced Chennai Markets Notice */}
-        {(filters.state === 'Tamil Nadu' && 
+        {/* Enhanced Chennai Markets Notice - Hidden */}
+        {false && (filters.state === 'Tamil Nadu' && 
           (filters.district === 'Chennai' || filters.search?.toLowerCase().includes('chennai'))) && (
-          <Alert className="border-blue-200 bg-blue-50">
+          <Alert className="border-blue-200 bg-blue-50 hidden">
             <MapPin className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800">
               <div className="space-y-2">
@@ -545,15 +545,15 @@ export default function MarketAnalysis() {
           </Alert>
         )}        {/* Error Alert */}
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="hidden">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        {/* Data Source Information */}
-        {!isLoading && data.length > 0 && (
-          <Alert className="border-blue-200 bg-blue-50">
+        {/* Data Source Information - Hidden */}
+        {false && !isLoading && data.length > 0 && (
+          <Alert className="border-blue-200 bg-blue-50 hidden">
             <Database className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800">
               <div className="space-y-2">
@@ -576,9 +576,9 @@ export default function MarketAnalysis() {
           </Alert>
         )}
 
-        {/* No Recent Data Warning */}
-        {filters.onlyRecentData !== false && filteredData.length === 0 && data.length > 0 && !isLoading && (
-          <Alert>
+        {/* No Recent Data Warning - Hidden */}
+        {false && filters.onlyRecentData !== false && filteredData.length === 0 && data.length > 0 && !isLoading && (
+          <Alert className="hidden">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               No data found from the last 2 days. The API contains historical data only. 

@@ -29,7 +29,6 @@ const Community = lazy(() => import("@/pages/Community"));
 const Farms = lazy(() => import("@/pages/Farms"));
 const Marketplace = lazy(() => import("@/pages/Marketplace"));
 const Offices = lazy(() => import("@/pages/Offices"));
-const Gamification = lazy(() => import("@/pages/Gamification"));
 const Support = lazy(() => import("@/pages/Support"));
 
 // Loading component
@@ -186,14 +185,6 @@ export function AppRouter() {
           element={
             <LazyWrapper>
               <Layout><Offices /></Layout>
-            </LazyWrapper>
-          } 
-        />
-        <Route 
-          path="/gamification" 
-          element={
-            <LazyWrapper>
-              <Layout><Gamification /></Layout>
             </LazyWrapper>
           } 
         />

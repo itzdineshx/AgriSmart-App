@@ -82,15 +82,6 @@ const quickActions: QuickAction[] = [
     color: "bg-orange-500 hover:bg-orange-600",
     badge: "Trends",
     description: "Analyze market prices"
-  },
-  {
-    id: "achievements",
-    title: "Achievements",
-    path: "/gamification",
-    icon: Award,
-    color: "bg-yellow-500 hover:bg-yellow-600",
-    badge: "XP",
-    description: "Track your progress"
   }
 ];
 

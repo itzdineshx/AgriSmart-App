@@ -18,7 +18,6 @@ import {
   SortAsc,
   Clock
 } from "lucide-react";
-import marketplaceImage from "@/assets/marketplace.jpg";
 import { useMarketplace } from "@/contexts/MarketplaceContext";
 
 // Function to get category-specific image from online sources

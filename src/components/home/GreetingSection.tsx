@@ -65,14 +65,6 @@ export function GreetingSection() {
 
             <div className="hidden md:block">
               <Card className="bg-white/50 dark:bg-gray-900/50 border-0 shadow-sm">
-                <CardContent className="p-4 text-center">
-                  <div className="text-xl font-bold text-foreground mb-1">Level 15</div>
-                  <div className="text-sm text-muted-foreground mb-2">Expert Farmer</div>
-                  <div className="w-full bg-green-200 dark:bg-green-800 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full w-3/4"></div>
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">2,340 / 3,000 XP</div>
-                </CardContent>
               </Card>
             </div>
           </div>
