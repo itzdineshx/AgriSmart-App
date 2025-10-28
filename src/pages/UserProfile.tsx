@@ -12,11 +12,11 @@ import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { NotificationCenter } from "@/components/dashboard/NotificationCenter";
 import { SettingsModal } from "@/components/SettingsModal";
 import { motion } from "framer-motion";
-import { 
-  User, 
-  MapPin, 
-  Phone, 
-  Mail, 
+import {
+  User,
+  MapPin,
+  Phone,
+  Mail,
   Calendar,
   TrendingUp,
   Camera,
@@ -45,27 +45,51 @@ import {
   Package,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Filter
 } from "lucide-react";
 import { FarmFieldMapping } from "@/components/dashboard/FarmFieldMapping";
 import { FinancialManagement } from "@/components/dashboard/FinancialManagement";
 import { CropPlanningCalendar } from "@/components/dashboard/CropPlanningCalendar";
 import { EquipmentManagement } from "@/components/dashboard/EquipmentManagement";
 import { ProductManagement } from "@/components/ProductManagement";
+import {
+  ResponsiveContainer,
+  BarChart,
+  LineChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  Bar,
+  Line
+} from "recharts";
 
 export default function UserProfile() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   
   const [farmerData, setFarmerData] = useState({
-    name: "Rajesh Kumar",
-    location: "Village Rampur, Punjab",
+    name: "Rajesh Kumar Sharma",
+    location: "Village Rampur, District Sangrur, Punjab",
     phone: "+91 98765 43210",
     email: "rajesh.farmer@gmail.com",
     joinDate: "March 2023",
     farmSize: "15 acres",
-    crops: ["Wheat", "Rice", "Sugarcane"],
+    crops: ["Wheat", "Rice", "Sugarcane", "Cotton", "Maize"],
     experience: "12 years",
+    farmType: "Family-owned farm",
+    irrigationType: "Canal + Borewell",
+    soilType: "Alluvial Soil",
+    certifications: ["Organic Farming Certified", "GAP Certified"],
+    bankAccount: "XXXX-XXXX-1234",
+    aadharNumber: "XXXX-XXXX-5678",
+    panNumber: "ABCDE1234F",
+    totalRevenue: "₹12,50,000",
+    monthlyIncome: "₹85,000",
+    outstandingLoans: "₹2,50,000",
+    insuranceCoverage: "₹8,00,000"
   });
 
   // CRUD for crops
@@ -100,25 +124,114 @@ export default function UserProfile() {
   const [activities, setActivities] = useState([
     {
       type: "diagnosis",
-      title: "Wheat Disease Detected",
-      description: "Leaf rust identified - Treatment applied",
+      title: "Wheat Disease Detected - Leaf Rust",
+      description: "AI analysis detected early leaf rust in North Field. Recommended fungicide application within 48 hours.",
       date: "2 days ago",
       status: "resolved",
+      icon: Camera,
+      iconBg: "bg-red-100",
+      iconColor: "text-red-600",
+      time: "2 days ago",
+      category: "Diagnosis",
+      details: "Treatment cost: ₹2,500",
+      amount: "₹2,500"
     },
     {
       type: "market",
-      title: "Sold Rice Crop",
-      description: "5 quintal sold at ₹3,200/quintal",
+      title: "Rice Crop Sold Successfully",
+      description: "5 quintal PR-126 rice sold at ₹3,200/quintal to local mandi. Total revenue: ₹16,000.",
       date: "1 week ago",
       status: "completed",
+      icon: ShoppingCart,
+      iconBg: "bg-green-100",
+      iconColor: "text-green-600",
+      time: "1 week ago",
+      category: "Sales",
+      details: "Quality grade: A+",
+      amount: "₹16,000"
     },
     {
       type: "purchase",
-      title: "Fertilizer Purchase",
-      description: "NPK 50kg bag ordered",
+      title: "Fertilizer Purchase - NPK 50kg",
+      description: "Purchased NPK 20-20-20 fertilizer for wheat crop. Cost: ₹2,800.",
       date: "2 weeks ago",
       status: "delivered",
+      icon: Package,
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-600",
+      time: "2 weeks ago",
+      category: "Purchase",
+      details: "Supplier: AgriChem Distributors",
+      amount: "₹2,800"
     },
+    {
+      type: "maintenance",
+      title: "Tractor Maintenance Completed",
+      description: "Mahindra 575 DI tractor serviced. Oil change, filter replacement, and brake adjustment.",
+      date: "3 weeks ago",
+      status: "completed",
+      icon: Wrench,
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600",
+      time: "3 weeks ago",
+      category: "Maintenance",
+      details: "Cost: ₹4,200",
+      amount: "₹4,200"
+    },
+    {
+      type: "weather",
+      title: "Weather Alert - Heavy Rainfall",
+      description: "Heavy rainfall expected (150mm) in next 24 hours. Protected crops with tarpaulin.",
+      date: "1 month ago",
+      status: "completed",
+      icon: AlertCircle,
+      iconBg: "bg-yellow-100",
+      iconColor: "text-yellow-600",
+      time: "1 month ago",
+      category: "Weather",
+      details: "No damage reported"
+    },
+    {
+      type: "subsidy",
+      title: "PM-KISAN Payment Received",
+      description: "₹6,000 received under PM-KISAN scheme for quarter 3.",
+      date: "1 month ago",
+      status: "completed",
+      icon: DollarSign,
+      iconBg: "bg-green-100",
+      iconColor: "text-green-600",
+      time: "1 month ago",
+      category: "Subsidy",
+      details: "Total annual benefit: ₹24,000",
+      amount: "₹6,000"
+    },
+    {
+      type: "training",
+      title: "Organic Farming Workshop",
+      description: "Attended 2-day organic farming workshop organized by Krishi Vigyan Kendra.",
+      date: "2 months ago",
+      status: "completed",
+      icon: Award,
+      iconBg: "bg-purple-100",
+      iconColor: "text-purple-600",
+      time: "2 months ago",
+      category: "Training",
+      details: "Learned sustainable practices"
+    },
+    {
+      type: "insurance",
+      title: "Crop Insurance Claim Filed",
+      description: "Filed insurance claim for hail damage to maize crop. Claim amount: ₹15,000.",
+      date: "3 months ago",
+      status: "pending",
+      icon: CheckCircle,
+      iconBg: "bg-gray-100",
+      iconColor: "text-gray-600",
+      time: "3 months ago",
+      category: "Insurance",
+      details: "Status: Under review",
+      amount: "₹15,000"
+    }
   ]);
   const [activityForm, setActivityForm] = useState({
     type: "diagnosis",
@@ -153,10 +266,12 @@ export default function UserProfile() {
   };
 
   const stats = [
-    { label: "Diagnoses", value: "23", icon: Camera },
-    { label: "Trades", value: "8", icon: ShoppingCart },
-    { label: "Savings", value: "₹45K", icon: TrendingUp },
-    { label: "Rating", value: "4.8", icon: Star },
+    { label: "AI Diagnoses", value: "47", icon: Camera, description: "Plant health checks" },
+    { label: "Successful Sales", value: "23", icon: ShoppingCart, description: "Market transactions" },
+    { label: "Farm Savings", value: "₹1.2L", icon: TrendingUp, description: "Cost optimizations" },
+    { label: "Farm Rating", value: "4.8", icon: Star, description: "Buyer feedback" },
+    { label: "Active Fields", value: "3", icon: Leaf, description: "Under cultivation" },
+    { label: "Equipment", value: "5", icon: Tractor, description: "Farm machinery" },
   ];
 
   return (
@@ -215,8 +330,8 @@ export default function UserProfile() {
               </div>
             </div>
 
-            {/* Contact Info */}
-            <div className="mt-6 pt-6 border-t grid sm:grid-cols-2 gap-4 text-sm">
+            {/* Contact Info and Farm Details */}
+            <div className="mt-6 pt-6 border-t grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary" />
                 <span>{farmerData.phone}</span>
@@ -232,6 +347,41 @@ export default function UserProfile() {
               <div className="flex items-center gap-2">
                 <Leaf className="h-4 w-4 text-primary" />
                 <span>{farmerData.farmSize} farm</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Home className="h-4 w-4 text-primary" />
+                <span>{farmerData.farmType}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-primary" />
+                <span>{farmerData.monthlyIncome}/month</span>
+              </div>
+            </div>
+
+            {/* Additional Details */}
+            <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs text-muted-foreground">
+              <div>
+                <span className="font-medium">Experience:</span> {farmerData.experience}
+              </div>
+              <div>
+                <span className="font-medium">Soil Type:</span> {farmerData.soilType}
+              </div>
+              <div>
+                <span className="font-medium">Irrigation:</span> {farmerData.irrigationType}
+              </div>
+              <div>
+                <span className="font-medium">Insurance:</span> {farmerData.insuranceCoverage}
+              </div>
+            </div>
+
+            {/* Certifications */}
+            <div className="mt-4">
+              <div className="flex flex-wrap gap-2">
+                {farmerData.certifications.map((cert, idx) => (
+                  <Badge key={idx} variant="outline" className="text-xs">
+                    {cert}
+                  </Badge>
+                ))}
               </div>
             </div>
           </CardContent>
@@ -366,96 +516,140 @@ export default function UserProfile() {
 
           {/* Activities Tab */}
           <TabsContent value="activities" className="space-y-6">
-            <Card className="shadow-elegant">
-              <CardHeader>
-                <CardTitle>Activities Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {activities.map((activity, idx) => (
-                    <div key={idx} className="border rounded p-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
-                      <div>
-                        <h4 className="font-semibold">{activity.title}</h4>
-                        <p className="text-sm text-muted-foreground">{activity.description}</p>
-                        <span className="text-xs text-muted-foreground">{activity.date}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEditActivity(idx)}><Edit className="h-3 w-3" />Edit</Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDeleteActivity(idx)}><Trash2 className="h-3 w-3" />Delete</Button>
-                      </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Recent Activities</h3>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {activities.map((activity, idx) => (
+                <Card key={idx} className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className={`p-2 rounded-full ${activity.iconBg}`}>
+                      <activity.icon className={`h-4 w-4 ${activity.iconColor}`} />
                     </div>
-                  ))}
-                </div>
-                <div className="mt-6 space-y-2">
-                  <h4 className="font-semibold">{editActivityIdx !== null ? "Edit Activity" : "Add Activity"}</h4>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <input 
-                      name="title" 
-                      value={activityForm.title} 
-                      onChange={e => setActivityForm({ ...activityForm, title: e.target.value })} 
-                      placeholder="Title" 
-                      className="border border-border rounded px-2 py-1 bg-background text-foreground" 
-                    />
-                    <input 
-                      name="description" 
-                      value={activityForm.description} 
-                      onChange={e => setActivityForm({ ...activityForm, description: e.target.value })} 
-                      placeholder="Description" 
-                      className="border border-border rounded px-2 py-1 bg-background text-foreground" 
-                    />
-                    <input 
-                      name="date" 
-                      value={activityForm.date} 
-                      onChange={e => setActivityForm({ ...activityForm, date: e.target.value })} 
-                      placeholder="Date" 
-                      className="border border-border rounded px-2 py-1 bg-background text-foreground" 
-                    />
-                    <select 
-                      name="type" 
-                      value={activityForm.type} 
-                      onChange={e => setActivityForm({ ...activityForm, type: e.target.value })} 
-                      className="border border-border rounded px-2 py-1 bg-background text-foreground"
-                      title="Activity Type"
-                    >
-                      <option value="diagnosis">Diagnosis</option>
-                      <option value="market">Market</option>
-                      <option value="purchase">Purchase</option>
-                    </select>
-                    <select 
-                      name="status" 
-                      value={activityForm.status} 
-                      onChange={e => setActivityForm({ ...activityForm, status: e.target.value })} 
-                      className="border border-border rounded px-2 py-1 bg-background text-foreground"
-                      title="Activity Status"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="completed">Completed</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="delivered">Delivered</option>
-                    </select>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">{activity.title}</h4>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {activity.time}
+                          <Badge variant="secondary" className="text-xs">
+                            {activity.category}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{activity.description}</p>
+                      {activity.details && (
+                        <div className="text-xs text-muted-foreground">
+                          {activity.details}
+                        </div>
+                      )}
+                      {activity.amount && (
+                        <div className="flex items-center gap-1 text-sm font-medium text-green-600">
+                          <DollarSign className="h-3 w-3" />
+                          {activity.amount}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-2 mt-2">
-                    {editActivityIdx !== null ? (
-                      <Button size="sm" variant="default" onClick={handleUpdateActivity}>Update</Button>
-                    ) : (
-                      <Button size="sm" variant="default" onClick={handleAddActivity}>Add</Button>
-                    )}
-                    {editActivityIdx !== null && (
-                      <Button size="sm" variant="ghost" onClick={() => { setEditActivityIdx(null); setActivityForm({ type: "diagnosis", title: "", description: "", date: "", status: "pending" }); }}>Cancel</Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </Card>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Button variant="outline">
+                Load More Activities
+              </Button>
+            </div>
           </TabsContent>
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
+            {/* Key Performance Indicators */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {stats.map((stat, idx) => (
+                <Card key={idx} className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <stat.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{stat.value}</p>
+                      <p className="text-sm text-muted-foreground">{stat.label}</p>
+                      <p className="text-xs text-muted-foreground">{stat.description}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column - Charts and Data */}
               <div className="lg:col-span-2 space-y-8">
                 {/* Revenue Chart */}
                 <RevenueChart userType="farmer" />
+
+                {/* Crop Performance Chart */}
+                <Card className="shadow-elegant">
+                  <CardHeader>
+                    <CardTitle>Crop Performance</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={[
+                          { name: 'Rice', yield: 85, revenue: 45000 },
+                          { name: 'Wheat', yield: 92, revenue: 38000 },
+                          { name: 'Cotton', yield: 78, revenue: 52000 },
+                          { name: 'Sugarcane', yield: 88, revenue: 65000 },
+                        ]}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis yAxisId="left" />
+                          <YAxis yAxisId="right" orientation="right" />
+                          <Tooltip />
+                          <Legend />
+                          <Bar yAxisId="left" dataKey="yield" fill="#8884d8" name="Yield %" />
+                          <Bar yAxisId="right" dataKey="revenue" fill="#82ca9d" name="Revenue (₹)" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Monthly Trends */}
+                <Card className="shadow-elegant">
+                  <CardHeader>
+                    <CardTitle>Monthly Trends</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={[
+                          { month: 'Jan', sales: 12000, expenses: 8000, profit: 4000 },
+                          { month: 'Feb', sales: 15000, expenses: 9000, profit: 6000 },
+                          { month: 'Mar', sales: 18000, expenses: 10000, profit: 8000 },
+                          { month: 'Apr', sales: 22000, expenses: 12000, profit: 10000 },
+                          { month: 'May', sales: 25000, expenses: 14000, profit: 11000 },
+                          { month: 'Jun', sales: 28000, expenses: 15000, profit: 13000 },
+                        ]}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="month" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Line type="monotone" dataKey="sales" stroke="#8884d8" name="Sales" />
+                          <Line type="monotone" dataKey="expenses" stroke="#ff7300" name="Expenses" />
+                          <Line type="monotone" dataKey="profit" stroke="#82ca9d" name="Profit" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Right Column - Sidebar */}
@@ -465,6 +659,36 @@ export default function UserProfile() {
 
                 {/* Notification Center */}
                 <NotificationCenter userType="farmer" />
+
+                {/* Quick Insights */}
+                <Card className="shadow-elegant">
+                  <CardHeader>
+                    <CardTitle>Quick Insights</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium text-green-800">Revenue Up 15%</p>
+                        <p className="text-sm text-green-600">vs last month</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <Camera className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium text-blue-800">47 AI Diagnoses</p>
+                        <p className="text-sm text-blue-600">This month</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
+                      <Star className="h-5 w-5 text-orange-600" />
+                      <div>
+                        <p className="font-medium text-orange-800">4.8 Rating</p>
+                        <p className="text-sm text-orange-600">Average score</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </TabsContent>
